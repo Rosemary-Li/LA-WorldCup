@@ -169,6 +169,26 @@ async function initAPI() {
       loadMapData(),
     ]);
     console.log("🎉 All data loaded from API successfully!");
+
+    // Re-render the currently visible tab with live data
+    if (typeof renderCards === "function") {
+      const activeTab = document.querySelector(".tab-btn.active");
+      const onclickAttr = activeTab ? activeTab.getAttribute("onclick") : "";
+      const tabMatch = onclickAttr.match(/switchTab\('(\w+)'/);
+      const tab = tabMatch ? tabMatch[1] : "hotels";
+      renderCards(tab);
+
+      // Fade in the new cards
+      document.querySelectorAll(".rec-card").forEach((el) => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(16px)";
+        el.style.transition = "opacity 0.4s, transform 0.4s";
+        requestAnimationFrame(() => {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+        });
+      });
+    }
   } catch (err) {
     console.warn("⚠️ API load failed, using hardcoded data as fallback.", err);
   }

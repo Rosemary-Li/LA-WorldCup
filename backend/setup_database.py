@@ -243,7 +243,7 @@ print("✅ 所有表建立成功")
 # 3. 导入数据 (ETL)
 # ─────────────────────────────────────────
 
-DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../database/clean_data")
 
 
 def load_csv(filename, table_name):

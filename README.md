@@ -10,7 +10,7 @@ A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, combin
 
 This project covers the full pipeline from raw data → cleaned CSVs → relational database design → frontend website. It targets visitors planning to attend World Cup matches at SoFi Stadium in Inglewood, CA (June–July 2026), helping them find matches, buy tickets, book hotels, discover restaurants, and plan day itineraries.
 
-**Status:** Database and data layers are complete. The frontend is still under active development — current UI uses hardcoded data and does not yet connect to the database.
+**Status:** Database and data layers are complete. Frontend is connected to the Flask API backend.
 
 ---
 
@@ -18,32 +18,35 @@ This project covers the full pipeline from raw data → cleaned CSVs → relatio
 
 ```
 LA_WorldCup/
-├── front_end/                          # Static website (in progress)
-│   ├── index.html
+├── backend/                            # Python / Flask API server
+│   ├── app.py                          # Flask routes (/api/matches, /api/hotels, ...)
+│   ├── queries.py                      # SQL query functions (psycopg2)
+│   └── setup_database.py              # One-time DB setup: CREATE TABLE + CSV import
+│
+├── frontend/                           # Static website (pure HTML/CSS/JS)
+│   ├── index.html                      # Entry point — section mount points
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── data.js                     # Hardcoded data (to be replaced by DB)
-│   │   ├── matches.js / itinerary.js / explore.js / app.js
-│   └── sections/                       # Page sections injected via JS
+│   │   ├── api.js                      # Fetches live data from Flask, overrides data.js
+│   │   ├── data.js                     # Hardcoded fallback data
+│   │   ├── matches.js                  # Match overlay logic
+│   │   ├── itinerary.js               # Itinerary builder
+│   │   ├── explore.js                  # Map filter logic
+│   │   └── app.js                      # Projector, tab cards, scroll animations
+│   └── sections/                       # Page sections injected into mount points
 │       └── nav / hero / matches / overlay / showcase /
 │           itinerary / explore / discover / about / footer
 │
-├── 2026SP_SQL_LA_World_Cup_sharedoc/   # Database project folder
-│   ├── clean_data/                     # Cleaned CSVs (ready to import)
-│   ├── data_cleaning_report/           # Cleaning documentation
-│   ├── APAN5310_ER_Diagram_Simplified_v4.drawio(.html)   # ER diagram
-│   ├── LA-WC2026-Seat-information.xlsx
-│   ├── LA_Hollywood_Events_Matched_Format.xlsx
-│   ├── LA_World_Cup_Events.xlsx
-│   ├── LA_World_Cup_Hotel_Restaurant.xlsx
-│   └── la_world_cup_data_Games&Players.xlsx
+├── database/                           # All data assets
+│   ├── raw_data/                       # Original Excel + CSV source files
+│   ├── clean_data/                     # Cleaned, import-ready CSVs (clean_*.csv)
+│   └── docs/                           # ER diagram + data cleaning reports
 │
-├── data/                               # Additional raw data (Excel)
-│   ├── LA World Cup Soccer Events.xlsx
-│   ├── LA_WC2026_other_sports_events.xlsx
-│   └── la_attractions_database.xlsx
+├── archive/                            # Early single-file prototype
+│   └── la_worldcup_oldhollywood.html
 │
-└── la_worldcup_oldhollywood.html       # Early single-file prototype
+├── README.md
+└── README.cn.md
 ```
 
 ---
@@ -52,7 +55,7 @@ LA_WorldCup/
 
 ### Entity-Relationship Model
 
-The schema follows a star-schema / dimensional model with dimension tables and fact tables. The ER diagram is at `2026SP_SQL_LA_World_Cup_sharedoc/APAN5310_ER_Diagram_Simplified_v4.drawio.html`.
+The schema follows a star-schema / dimensional model with dimension tables and fact tables. The ER diagram is at `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`.
 
 ### Tables
 
@@ -87,7 +90,7 @@ The schema follows a star-schema / dimensional model with dimension tables and f
 
 ### Clean Data (CSV)
 
-All cleaned, import-ready CSVs are in `2026SP_SQL_LA_World_Cup_sharedoc/clean_data/`. Naming convention: `clean_<table_name>.csv`.
+All cleaned, import-ready CSVs are in `database/clean_data/`. Naming convention: `clean_<table_name>.csv`.
 
 ---
 
@@ -123,7 +126,7 @@ Prices sourced from `clean_fact_ticket.csv` (46 options across all 8 matches):
 
 ## Transport: Airports → SoFi Stadium
 
-From `clean_fact_route.csv`:
+From `database/clean_data/clean_fact_route.csv`:
 
 | Origin | Mode | Duration | Cost |
 |---|---|---|---|
@@ -136,14 +139,18 @@ From `clean_fact_route.csv`:
 
 The website is built as a pure static site — no framework, no build step.
 
-**Current state:** All sections render from `sections/*.js` injecting HTML into mount points in `index.html`. Data is currently hardcoded in `js/data.js` (a subset of the full database).
-
-**Planned:** Connect frontend to the full database via an API layer, adding dynamic filtering, ticket availability, and richer event data from the 139-event dataset.
+**Current state:** All sections render from `sections/*.js` injecting HTML into mount points in `index.html`. `js/api.js` fetches live data from the Flask backend at startup and overrides the hardcoded fallback data in `js/data.js`.
 
 ### Running locally
 
 ```bash
-cd front_end
+# 1. Start the Flask API (terminal 1)
+cd backend
+python3 app.py
+# API runs at http://127.0.0.1:5000
+
+# 2. Serve the frontend (terminal 2)
+cd frontend
 python3 -m http.server 8080
 # Visit http://localhost:8080
 ```
