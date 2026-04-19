@@ -1,6 +1,6 @@
 # LA × FIFA World Cup 2026™ — An Old Hollywood Production
 
-A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, built as a full-stack web application with a normalized PostgreSQL database, a Flask REST API, and a pure-static frontend. Academic project for APAN5310.
+A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches. Full-stack web application: normalized PostgreSQL database → Flask REST API → pure-static frontend. Academic project for APAN5310.
 
 > **Also available in:** [中文 README](README.cn.md)
 
@@ -8,14 +8,17 @@ A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, built 
 
 ## Project Overview
 
-This project covers the full pipeline from raw data → cleaned CSVs → relational database → REST API → frontend website. It targets visitors planning to attend World Cup matches at SoFi Stadium in Inglewood, CA (June–July 2026), helping them find matches, buy tickets, book hotels, discover restaurants, and plan day itineraries.
+Targets visitors planning to attend matches at SoFi Stadium, Inglewood, CA (June–July 2026). Covers the full pipeline from raw data → cleaned CSVs → relational database → REST API → frontend website.
 
-**Tech stack:**
-- **Database:** PostgreSQL (hosted on DigitalOcean)
-- **Backend:** Python / Flask REST API (`psycopg2`, `flask-cors`)
-- **Frontend:** Pure HTML / CSS / JavaScript — no frameworks, no build step
+**Tech stack**
 
-**Current status:** All three layers are complete and connected. The frontend loads live data from the Flask API on startup, with hardcoded fallback data if the API is unavailable.
+| Layer | Technology |
+|---|---|
+| Database | PostgreSQL hosted on DigitalOcean |
+| Backend | Python 3 · Flask · psycopg2 · flask-cors |
+| Frontend | Pure HTML / CSS / JavaScript — no frameworks, no build step |
+
+**Status:** All three layers complete and connected. Frontend loads live data from the API on startup; falls back to hardcoded data if the API is unreachable.
 
 ---
 
@@ -23,32 +26,32 @@ This project covers the full pipeline from raw data → cleaned CSVs → relatio
 
 ```
 LA_WorldCup/
-├── backend/                            # Python / Flask API server
-│   ├── app.py                          # Flask routes (/api/matches, /api/hotels, ...)
-│   ├── queries.py                      # SQL query functions via psycopg2
-│   └── setup_database.py              # One-time DB setup: CREATE TABLE + CSV import
+├── backend/
+│   ├── app.py                  # Flask API server — all /api/* routes
+│   ├── queries.py              # SQL query functions (psycopg2)
+│   └── setup_database.py      # One-time DB init: CREATE TABLE + import CSVs
 │
-├── frontend/                           # Static website (pure HTML/CSS/JS)
-│   ├── index.html                      # Entry point — section mount points
+├── frontend/
+│   ├── index.html              # Entry point — empty mount-point divs
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── api.js                      # Fetches live data from Flask, overrides data.js
-│   │   ├── data.js                     # Hardcoded fallback data
-│   │   ├── matches.js                  # Match overlay logic
-│   │   ├── itinerary.js               # Itinerary builder
-│   │   ├── explore.js                  # Map filter logic
-│   │   └── app.js                      # Projector, tab cards, scroll animations
-│   └── sections/                       # Page sections injected into mount points
-│       └── nav / hero / matches / overlay / showcase /
-│           itinerary / explore / discover / about / footer
+│   │   ├── api.js              # Fetches from Flask on load; overwrites data.js arrays
+│   │   ├── data.js             # Hardcoded fallback data (matches, hotels, restaurants…)
+│   │   ├── matches.js          # Match card overlay — details, H2H, players, nearby
+│   │   ├── itinerary.js        # Personalised day-by-day itinerary generator
+│   │   ├── explore.js          # Map pin filter logic
+│   │   └── app.js              # Tab cards, scroll animations, projector intro
+│   └── sections/               # Each file injects one page section via innerHTML
+│       └── nav · hero · matches · overlay · showcase · itinerary
+│           · explore · discover · about · footer
 │
-├── database/                           # All data assets
-│   ├── raw_data/                       # Original Excel + CSV source files
-│   ├── clean_data/                     # Cleaned, import-ready CSVs (clean_*.csv)
-│   └── docs/                           # ER diagram + data cleaning reports
+├── database/
+│   ├── raw_data/               # Original Excel + CSV source files
+│   ├── clean_data/             # Import-ready CSVs (clean_<table>.csv)
+│   └── docs/                   # ER diagram + data cleaning reports
 │
-├── archive/                            # Early single-file prototype
-│   └── la_worldcup_oldhollywood.html
+├── archive/
+│   └── la_worldcup_oldhollywood.html   # Early single-file prototype
 │
 ├── README.md
 └── README.cn.md
@@ -59,88 +62,116 @@ LA_WorldCup/
 ## Running Locally
 
 ```bash
-# Terminal 1 — Start the Flask API
+# Terminal 1 — Flask API
 cd backend
 python3 app.py
-# API runs at http://127.0.0.1:5000
+# → http://127.0.0.1:5000
 
-# Terminal 2 — Serve the frontend
+# Terminal 2 — Frontend
 cd frontend
 python3 -m http.server 8080
-# Visit http://localhost:8080
+# → http://localhost:8080
 ```
 
-**Dependencies** (install once):
+**Install dependencies once:**
 ```bash
 pip install flask flask-cors psycopg2-binary pandas
 ```
 
 ---
 
+## Frontend Features
+
+### Match Schedule
+Eight LA matches displayed as cards. Clicking any card opens a full-screen overlay with:
+- Match details (round, date, venue)
+- Head-to-head record
+- Star players to watch (pulled from `dim_player` via API)
+- Nearby Hotels / Restaurants / Events tabs (pulled from API)
+
+### Hotels, Restaurants & Events (Discover)
+Tab-switched card grid. On page load, `api.js` fetches live data from the database and re-renders the grid, replacing the hardcoded fallback. Four tabs: **Hotels** (21) · **Restaurants** (32) · **Fan Events** · **Shows & Entertainment**.
+
+### Personalised Itinerary Builder
+Users select five inputs to generate a day-by-day itinerary:
+
+| Input | Options |
+|---|---|
+| Traveler type | Football Fan · Family · Backpacker · Luxury Traveler |
+| Budget | Budget ($150–250/day) · Mid ($350–500/day) · Luxury ($700+/day) |
+| Trip length | 1–7 days |
+| Match date | One of the 8 LA match dates |
+| Vibe | Culture · Beach · Nightlife · Film |
+
+**How it works:**
+- Each **traveler type** maps to a completely different activity set — Football Fan gets Fan Zones and match bars; Family gets museums and Santa Monica Pier; Backpacker gets free outdoor spots; Luxury Traveler gets Rodeo Drive and Michelin restaurants.
+- Each **budget level** within a type has its own activity list.
+- **Day 1** always ends with the chosen vibe activity (e.g. Sunset Strip nightlife at 22:00 goes last, not first).
+- **Match Day** (Day 3 for 3+ day trips) always closes with ⚽ MATCH AT SOFI STADIUM, regardless of traveler type.
+- **Days 2+** rotate through the type's activity pool so days don't repeat identically.
+
+---
+
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/matches` | All 8 LA matches |
-| GET | `/api/matches/<match_number>` | Single match detail |
-| GET | `/api/tickets` | All ticket options |
-| GET | `/api/tickets/<match_number>` | Tickets for a match |
-| GET | `/api/teams` | All LA teams |
-| GET | `/api/players` | All players |
-| GET | `/api/players/stars` | Star players only |
-| GET | `/api/hotels` | All hotels |
-| GET | `/api/restaurants` | All restaurants |
-| GET | `/api/events` | All events |
-| GET | `/api/rankings` | FIFA rankings |
-| GET | `/api/routes` | Airport → SoFi transport routes |
-| GET | `/api/map-data` | Geo coordinates for map pins |
+| Endpoint | Description |
+|---|---|
+| `GET /api/matches` | All 8 LA matches |
+| `GET /api/matches/<id>` | Single match with venue and notes |
+| `GET /api/tickets` | All 46 ticket options |
+| `GET /api/tickets/<id>` | Tickets for one match |
+| `GET /api/teams` | All LA teams |
+| `GET /api/players` | All players |
+| `GET /api/players/stars` | Star players only |
+| `GET /api/hotels` | All hotels (filter by `/region/<r>` or `/price/<p>`) |
+| `GET /api/restaurants` | All restaurants (filter by `/flavor/<f>`) |
+| `GET /api/events` | All 139 events (filter by `/category/<c>`) |
+| `GET /api/rankings` | FIFA rankings for LA teams |
+| `GET /api/routes` | Airport → SoFi transport routes |
+| `GET /api/map-data` | Hotel + place coordinates for map pins |
 
 ---
 
 ## Database Design
 
-### Entity-Relationship Model
-
-The schema follows a star-schema / dimensional model. ER diagram: `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`
-
-### Tables
+Star-schema / dimensional model. ER diagram: `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`
 
 **Dimension tables**
 
 | Table | Rows | Description |
 |---|---|---|
-| `dim_team` | 8 | Teams playing in LA — federation, group, LA match numbers, FIFA status |
-| `dim_player` | 26 | Star players per team — position, club, age, caps, goals |
-| `dim_place` | 10 | Venues, airports, and transport hubs (with lat/lon) |
-| `dim_mode` | 3 | Transport modes: transit, rideshare, drive |
-| `dim_event_category` | 23 | Event category labels (Fan Festival, Fan Zone, MLB, Tennis, etc.) |
+| `dim_team` | 8 | Teams — federation, group, LA matches, FIFA status |
+| `dim_player` | 26 | Players — position, club, age, caps, goals, is_star |
+| `dim_place` | 10 | Venues, airports, transport hubs (lat/lon) |
+| `dim_mode` | 3 | Transport modes: transit · rideshare · drive |
+| `dim_event_category` | 23 | Event category labels |
 
 **Fact tables**
 
 | Table | Rows | Description |
 |---|---|---|
-| `fact_match` | 8 | All LA matches — date, time, teams, group, stage, venue |
-| `fact_ticket` | 46 | Ticket options per match — section, level, category, price (USD), availability |
-| `fact_hotel` | 21 | Hotels — region, address, star rating, price band, coordinates |
-| `fact_restaurant` | 32 | Restaurants — region, cuisine, price range, Google review score |
-| `fact_event` | 139 | All events — fan festivals, sports (MLB/NBA/tennis/etc.), shows, fan zones |
-| `fact_route` | 4 | Airport-to-SoFi routes — mode, duration (min), cost range |
-| `fact_ranking` | 8 | FIFA rankings for LA teams at time of data collection |
+| `fact_match` | 8 | Date, time, teams, group, stage, venue |
+| `fact_ticket` | 46 | Section, level, category, price (USD), availability |
+| `fact_hotel` | 21 | Region, star rating, price band, coordinates |
+| `fact_restaurant` | 32 | Cuisine, price range, Google review score |
+| `fact_event` | 139 | Fan festivals, sports, shows, fan zones |
+| `fact_route` | 4 | Airport → SoFi: mode, duration, cost range |
+| `fact_ranking` | 8 | FIFA rankings at time of data collection |
 
 **Detail tables**
 
 | Table | Rows | Description |
 |---|---|---|
-| `event_experience_detail` | 111 | Rich attributes: duration, intensity, photo value, transportation, planning tag |
-| `event_sports_detail` | 28 | Sports-specific fields: sport type, ticket price, competition info |
+| `event_experience_detail` | 111 | Duration, intensity, photo value, transport, planning tag |
+| `event_sports_detail` | 28 | Sport type, ticket price, competition info |
 
-All cleaned CSVs are in `database/clean_data/`. Naming convention: `clean_<table_name>.csv`.
+All cleaned CSVs: `database/clean_data/clean_<table_name>.csv`
 
 ---
 
 ## LA Match Schedule
 
-All matches at **SoFi Stadium**, 1001 S. Stadium Drive, Inglewood, CA 90301.
+All matches at **SoFi Stadium** · 1001 S. Stadium Drive, Inglewood, CA 90301
 
 | Match | Date | Time (PT) | Teams | Stage |
 |---|---|---|---|---|
@@ -157,7 +188,7 @@ All matches at **SoFi Stadium**, 1001 S. Stadium Drive, Inglewood, CA 90301.
 
 ## Ticket Pricing Reference
 
-46 options across all 8 matches (source: `database/clean_data/clean_fact_ticket.csv`):
+46 options across all 8 matches · source: `database/clean_data/clean_fact_ticket.csv`
 
 | Category | Price (USD) | Notes |
 |---|---|---|
@@ -181,10 +212,10 @@ All matches at **SoFi Stadium**, 1001 S. Stadium Drive, Inglewood, CA 90301.
 
 | Dataset | Source |
 |---|---|
-| Match schedule | SoFi Stadium official site, losangelesfwc26.com |
+| Match schedule | SoFi Stadium official site · losangelesfwc26.com |
 | Ticket pricing | LA-WC2026-Seat-information.xlsx |
 | Hotels & restaurants | Manual curation + Google Reviews |
-| Events | discoverlosangeles.com, losangelesfwc26.com, individual venue sites |
-| FIFA rankings | FIFA API (fallback: demo values, marked in `note` column) |
+| Events | discoverlosangeles.com · losangelesfwc26.com · individual venue sites |
+| FIFA rankings | FIFA API (fallback: demo values marked in `note` column) |
 | Routes | Rome2rio |
 | Players | Public football databases |
