@@ -1,0 +1,5 @@
+route_id,origin_place_id,dest_place_id,mode_id,duration_min,cost_low_usd,cost_high_usd,source
+R_LAX_SOFI_TRANSIT,AIR_LAX,VENUE_SOFI,TRANSIT,46,2,4,Rome2rio: LAX to SoFi Stadium
+R_BUR_SOFI_TRANSIT,AIR_BUR,VENUE_SOFI,TRANSIT,112,12,16,Rome2rio: BUR to SoFi Stadium
+R_LGB_SOFI_TRANSIT,AIR_LGB,VENUE_SOFI,TRANSIT,105,5,8,Rome2rio: LGB to SoFi Stadium
+R_LAXTC_SOFI_BUS,HUB_LAX_METRO_TC,VENUE_SOFI,TRANSIT,17,1,2,Rome2rio: LAX/Metro Transit Center to SoFi Stadium

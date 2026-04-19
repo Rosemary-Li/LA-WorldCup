@@ -1,0 +1,9 @@
+rank,country,total_points,previous_rank,rank_change,confederation,last_updated,source_url,fetch_method,fetched_at,note,ranking_id
+15,USA,1650.5,16,1,CONCACAF,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,1
+37,Paraguay,1480.2,38,1,CONMEBOL,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,2
+20,Iran,1520.8,21,1,AFC,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,3
+94,New Zealand,1200.1,95,1,OFC,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,4
+18,Switzerland,1510.3,19,1,UEFA,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,5
+9,Belgium,1720.6,8,-1,UEFA,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,6
+13,Italy,1600.4,14,1,UEFA,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,7
+42,Turkey,1450.7,43,1,UEFA,2026-02-26,demo_fallback,demo_fallback,2026-02-26 10:21:36,NOT official; API failed,8

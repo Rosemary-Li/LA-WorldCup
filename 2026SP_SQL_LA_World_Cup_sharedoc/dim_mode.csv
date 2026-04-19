@@ -1,0 +1,4 @@
+mode_id,mode_name,mode_group,includes,notes
+TRANSIT,Public transit,transit,"bus, tram/light rail, subway","Use agency fares (e.g., Metro TAP)."
+RIDESHARE,Rideshare/Taxi,car_service,"Uber, Lyft, taxi",Price varies with surge; not stored as fixed.
+DRIVE,Drive,private_vehicle,"rental car, private car",Cost typically fuel + parking/tolls.

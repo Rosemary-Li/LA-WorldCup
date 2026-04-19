@@ -1,0 +1,27 @@
+team,player_name,position,club,age,caps,goals,is_star,notes,player_id
+USA,Christian Pulisic,FW,AC Milan,27,70,29,True,Captain-level star; key attacker,1
+USA,Folarin Balogun,FW,AS Monaco,24,15,5,False,High-upside striker,2
+USA,Ricardo Pepi,FW,PSV Eindhoven,22,34,13,False,Impact finisher,3
+USA,Gio Reyna,MF,Borussia Dortmund,22,34,9,False,Creative midfield/wing option,4
+USA,Weston McKennie,MF,Juventus,27,55,11,False,Box-to-box engine,5
+USA,Tyler Adams,MF,Bournemouth,26,42,2,False,Defensive midfield anchor,6
+USA,Antonee Robinson,DF,Fulham,27,50,4,False,High-activity left back,7
+Iran,Mehdi Taremi,FW,Inter Milan,33,85,50,True,Primary scorer; fan favorite,8
+Iran,Sardar Azmoun,FW,Rostov,30,80,45,False,Experienced forward,9
+Iran,Alireza Beiranvand,GK,Tractor,33,70,0,False,Starting keeper profile,10
+Iran,Saeid Ezatollahi,MF,Shabab Al Ahli,29,65,3,False,Midfield stabilizer,11
+Switzerland,Granit Xhaka,MF,Bayer Leverkusen,33,130,14,True,Midfield leader,12
+Switzerland,Yann Sommer,GK,Inter Milan,37,95,0,False,Veteran goalkeeper,13
+Switzerland,Manuel Akanji,DF,Manchester City,30,65,3,False,Top-level CB,14
+Switzerland,Breel Embolo,FW,AS Monaco,28,70,15,False,Direct attacker,15
+Belgium,Kevin De Bruyne,MF,Manchester City,34,105,28,True,Global star; key playmaker,16
+Belgium,Thibaut Courtois,GK,Real Madrid,33,105,0,True,Elite goalkeeper,17
+Belgium,Romelu Lukaku,FW,SSC Napoli,32,120,85,True,Record-level striker,18
+Belgium,Jeremy Doku,FW,Manchester City,23,30,2,False,Explosive winger,19
+Paraguay,Miguel Almirón,MF,Newcastle United,32,60,8,True,Most recognizable name,20
+Paraguay,Julio Enciso,FW,Brighton,22,25,4,False,Rising talent,21
+Paraguay,Gustavo Gómez,DF,Palmeiras,32,75,4,False,Defensive leader,22
+New Zealand,Chris Wood,FW,Nottingham Forest,34,75,35,True,Flagship scorer,23
+New Zealand,Joe Bell,MF,Viking FK,26,20,1,False,Midfield workhorse,24
+UEFA Playoff A Winner,TBD,TBD,TBD,,,,False,Update after European play-offs,25
+UEFA Playoff C Winner,TBD,TBD,TBD,,,,False,Update after European play-offs,26

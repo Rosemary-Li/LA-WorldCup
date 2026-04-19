@@ -1,0 +1,33 @@
+restaurant_name,region,address,price_range,flavor,google_review_score,review_count,disability_access,restaurant_id
+Norah,West Hollywood,"8279 Santa Monica Blvd, West Hollywood, CA 90046",$50-100,American,4.6,1203,1,1
+Dialog Cafe,West Hollywood,"8766 Holloway Dr, West Hollywood, CA 90069",$20-30,American,4.5,987,1,2
+Night + Market WeHo,West Hollywood,"9041 Sunset Blvd, West Hollywood, CA 90069",$30-50,Asian,4.6,1512,1,3
+Katsuya West Hollywood,West Hollywood,"8929 Sunset Blvd, West Hollywood, CA 90069",$50-100,Asian,4.4,2137,1,4
+Rosaline,West Hollywood,"8479 Melrose Ave, Los Angeles, CA 90069",$30-50,South American,4.5,1326,1,5
+Gracias Madre,West Hollywood,"8905 Melrose Ave, West Hollywood, CA 90069",$20-30,South American,4.6,3084,1,6
+Cecconi’s West Hollywood,West Hollywood,"8764 Melrose Ave, West Hollywood, CA 90069",$100+,Italian/French,4.5,2463,1,7
+Zinqué,West Hollywood,"8684 Melrose Ave, West Hollywood, CA 90069",$30-50,Italian/French,4.4,1417,1,8
+The Boiling Crab,Westwood,"10875 Kinross Ave, Los Angeles, CA 90024",$30-50,American,4.6,3218,1,9
+In-N-Out Burger,Westwood,"922 Gayley Ave, Los Angeles, CA 90024",$10-20,American,4.7,5042,1,10
+Kazunori,Westwood,"11529 Santa Monica Blvd, Los Angeles, CA 90025",$20-30,Asian,4.8,2089,1,11
+Tsujita LA Artisan Noodle,Westwood,"2057 Sawtelle Blvd, Los Angeles, CA 90025",$20-30,Asian,4.7,4076,1,12
+Bella Pita,Westwood,"10319 Santa Monica Blvd, Los Angeles, CA 90025",$10-20,South American,4.5,642,1,13
+CAVA,Westwood,"1073 Broxton Ave, Los Angeles, CA 90024",$10-20,South American,4.6,1538,1,14
+Pomodoro Trattoria,Westwood,"11645 San Vicente Blvd, Los Angeles, CA 90049",$30-50,Italian/French,4.5,823,1,15
+Le Pain Quotidien,Westwood,"11419 Santa Monica Blvd, Los Angeles, CA 90025",$20-30,Italian/French,4.4,914,1,16
+Philippe The Original,Downtown LA,"1001 N Alameda St, Los Angeles, CA 90012",$10-20,American,4.6,5118,1,17
+Eggslut,Downtown LA,"317 S Broadway, Los Angeles, CA 90013",$10-20,American,4.7,6073,1,18
+Daikokuya Ramen,Downtown LA,"327 E 1st St, Los Angeles, CA 90012",$20-30,Asian,4.6,4051,1,19
+Marugame Monzo,Downtown LA,"329 E 1st St, Los Angeles, CA 90012",$20-30,Asian,4.7,3486,1,20
+Cabra LA,Downtown LA,"1060 S Broadway, Los Angeles, CA 90015",$50-100,South American,4.6,1247,1,21
+Holbox,Downtown LA,"3655 S Grand Ave, Los Angeles, CA 90007",$20-30,South American,4.8,1829,1,22
+Maccheroni Republic,Downtown LA,"332 S Broadway, Los Angeles, CA 90013",$20-30,Italian/French,4.5,2136,1,23
+Kendall’s Brasserie,Downtown LA,"135 N Grand Ave, Los Angeles, CA 90012",$50-100,Italian/French,4.4,1742,1,24
+HiHo Cheeseburger,Santa Monica,"1320 2nd St, Santa Monica, CA 90401",$10-20,American,4.6,2083,1,25
+Blue Plate Taco,Santa Monica,"1515 Ocean Ave, Santa Monica, CA 90401",$20-30,American,4.5,3057,1,26
+Hae Jang Chon,Santa Monica,"3821 W 6th St, Los Angeles, CA 90020",$30-50,Asian,4.6,2864,1,27
+Tatsu Ramen,Santa Monica,"2123 Sawtelle Blvd, Los Angeles, CA 90025",$20-30,Asian,4.7,1931,1,28
+Socalo,Santa Monica,"1920 Santa Monica Blvd, Santa Monica, CA 90404",$20-30,South American,4.6,1672,1,29
+Cha Cha Chicken,Santa Monica,"1906 Ocean Ave, Santa Monica, CA 90405",$20-30,South American,4.7,2243,1,30
+Forma Restaurant & Cheese Bar,Santa Monica,"1610 Montana Ave, Santa Monica, CA 90403",$30-50,Italian/French,4.7,1589,1,31
+Pasjoli,Santa Monica,"2732 Main St, Santa Monica, CA 90405",$100+,Italian/French,4.6,947,1,32

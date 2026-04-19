@@ -1,0 +1,9 @@
+team_id,country,federation,status,possible_teams,group_stage,matches_in_la,notes,source_url,last_verified,update_after_playoff
+1,USA,CONCACAF,Scheduled in LA,-,D,"M4, M59",Host nation,https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+2,Paraguay,CONMEBOL,Scheduled in LA,-,D,M4,Scheduled in LA opening match,https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+3,Iran,AFC,Scheduled in LA,-,G,"M15, M39",Scheduled in LA (Group G),https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+4,New Zealand,OFC,Scheduled in LA,-,G,M15,Scheduled in LA (Group G),https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+5,Switzerland,UEFA,Scheduled in LA,-,B,M26,Scheduled in LA (Group B),https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+6,Belgium,UEFA,Scheduled in LA,-,G,M39,Scheduled in LA (Group G),https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+7,UEFA Playoff A Winner,UEFA,"TBD (European Play-Off, Mar 2026)",Italy/Northern Ireland/Wales/Bosnia,B,M26,Playoff winner - Group B,https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)
+8,UEFA Playoff C Winner,UEFA,"TBD (European Play-Off, Mar 2026)",Turkey/Romania/Slovakia/Kosovo,D,M59,Playoff winner - Group D,https://losangelesfwc26.com/,2026-02-26,Yes (if playoff winner)

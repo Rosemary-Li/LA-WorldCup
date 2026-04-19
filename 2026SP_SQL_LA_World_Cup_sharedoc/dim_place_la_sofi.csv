@@ -1,0 +1,11 @@
+place_id,place_type,subtype,name,city,state,lat,lon,source,needs_coord_verify
+VENUE_SOFI,venue,stadium,SoFi Stadium (Hollywood Park),Inglewood,CA,33.953,-118.339,Wikipedia: SoFi Stadium,False
+AIR_LAX,transport_hub,airport,Los Angeles International Airport (LAX),Los Angeles,CA,33.9425,-118.40806,Wikipedia: Los Angeles International Airport,False
+AIR_BUR,transport_hub,airport,Hollywood Burbank Airport (BUR),Burbank,CA,34.20056,-118.35861,Wikipedia: Hollywood Burbank Airport,False
+AIR_LGB,transport_hub,airport,Long Beach Airport (LGB),Long Beach,CA,33.81778,-118.15167,Wikipedia: Long Beach Airport,False
+HUB_LAX_METRO_TC,transport_hub,metro_station,LAX/Metro Transit Center (C & K Line),Los Angeles,CA,33.950128,-118.3784392,Wikipedia: LAX/Metro Transit Center,False
+STN_AVI_CEN,transport_hub,metro_station,Aviation/Century station (C & K Line),Los Angeles,CA,33.945598,-118.378573,Wikipedia: Aviation/Century station,False
+STN_WEST_VET,transport_hub,metro_station,Westchester/Veterans station (K Line),Los Angeles,CA,33.962045,-118.374354,Wikipedia: Westchester/Veterans station,False
+STN_DTW_IGL,transport_hub,metro_station,Downtown Inglewood station (K Line),Inglewood,CA,33.966996,-118.351389,Wikipedia: Downtown Inglewood station,False
+STN_HAW_LEN,transport_hub,metro_station,Hawthorne/Lennox station (C Line),Lennox,CA,33.9335,-118.3526,Wikipedia: Hawthorne/Lennox station,False
+STN_AVI_IMP,transport_hub,metro_station,Aviation/Imperial station (C Line),Los Angeles,CA,33.9298,-118.3784,Wikipedia: Aviation/Imperial station,False

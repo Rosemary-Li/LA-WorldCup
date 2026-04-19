@@ -1,0 +1,22 @@
+hotel_name,region,address,postal_code,star_rating,room_count,google_reviews_count,price_band,latitude,longitude,hotel_id
+The West Hollywood EDITION,West Hollywood (European),9040 W Sunset Blvd,90069,5.0,190,758,400+,34.0906,-118.3891,1
+Petit Ermitage,West Hollywood (European),8822 Cynthia St,90069,4.0,80,720,400+,34.0849,-118.3838,2
+Andaz West Hollywood,West Hollywood (European),8401 W Sunset Blvd,90069,4.0,239,1775,200+,34.0913,-118.3734,3
+Best Western Plus Sunset Plaza,West Hollywood (European),8400 W Sunset Blvd,90069,3.0,100,1246,200+,34.0911,-118.3732,4
+Ramada Plaza by Wyndham,West Hollywood (European),8585 Santa Monica Blvd,90069,3.0,176,1401,100+,34.0886,-118.3787,5
+W Los Angeles - West Beverly,Westwood (Middle Eastern),30 Hilgard Ave,90024,4.0,297,1530,200+,34.0628,-118.4416,6
+Plaza La Reina,Westwood (Middle Eastern),10850 Lindbrook Dr,90024,4.0,44,250,200+,34.0602,-118.4431,7
+Kimpton Hotel Palomar,Westwood (Middle Eastern),10740 Wilshire Blvd,90024,4.0,264,1458,100+,34.0614,-118.435,8
+Holiday Inn Express West LA,Westwood (Middle Eastern),11250 Santa Monica Blvd,90025,3.0,78,1191,400+,34.0454,-118.4475,9
+Royal Palace Westwood Hotel,Westwood (Middle Eastern),1052 Tiverton Ave,90024,2.0,36,379,100+,34.0594,-118.4422,10
+"The Ritz-Carlton, DTLA",Downtown LA (Latin American),900 W Olympic Blvd,90015,5.0,123,1293,400+,34.0451,-118.2646,11
+Hotel Figueroa,Downtown LA (Latin American),939 S Figueroa St,90015,4.0,268,1713,100+,34.0449,-118.2631,12
+Courtyard L.A. LIVE,Downtown LA (Latin American),901 W Olympic Blvd,90015,3.0,174,977,400+,34.0452,-118.2652,13
+Moxy Downtown Los Angeles,Downtown LA (Latin American),1260 S Figueroa St,90015,4.0,727,801,200+,34.041,-118.267,14
+Freehand Los Angeles,Downtown LA (Latin American),416 W 8th St,90014,4.0,226,3239,100+,34.0441,-118.2561,15
+Shutters on the Beach,Santa Monica (American/Local),1 Pico Blvd,90405,5.0,198,2474,400+,34.0076,-118.4907,16
+Hotel Erwin,Santa Monica (American/Local),1697 Pacific Ave,90291,4.0,119,2219,200+,33.9872,-118.4727,17
+Hilton Santa Monica,Santa Monica (American/Local),1707 4th St,90401,4.0,286,1972,200+,34.0117,-118.4871,18
+Hampton Inn & Suites,Santa Monica (American/Local),501 Colorado Ave,90401,3.0,54,1034,100+,34.0151,-118.4893,19
+Venice on the Beach Hotel,Santa Monica (American/Local),2819 Ocean Front Walk,90291,2.0,18,469,200+,33.9788,-118.4651,20
+,,,<NA>,,,,,,,21

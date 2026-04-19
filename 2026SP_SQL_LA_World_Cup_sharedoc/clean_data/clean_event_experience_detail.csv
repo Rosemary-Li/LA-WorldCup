@@ -1,0 +1,112 @@
+event_id,key_experience,recommended_duration,suitable_for,intensity_level,night_friendly,photo_value,commercial_level,crowdedness,price_level,transportation,spatial_character,planning_tag,ticket_price,admission_info
+1,"Live match broadcasts, concerts, cultural programming, interactive experiences, diverse food",3–5 hours,"All football fans, tourists, families",3,1.0,5.0,High,High,1.0,Metro + Walk,Historic mega stadium grounds,Must-visit,,Admission details not yet stated on official LA page
+2,"Live match viewing, immersive fan experiences at historic market",2–4 hours,"All fans, families, foodies",2,1.0,4.0,High,High,1.0,Car + Walk,Open-air market complex,Local flavor,,Admission not stated on cited page
+3,"Live match viewing, community fan experience",2–3 hours,"Local residents, families",1,0.0,3.0,Medium,Medium,1.0,Car,Shopping center area,Neighborhood,,Admission not stated on cited page
+4,"Live match viewing, cultural experiences at landmark transit hub",2–4 hours,"All fans, culture lovers, tourists",2,1.0,4.0,Medium,High,1.0,Metro + Walk,Historic transit node + cultural center,Cultural highlight,,Admission not stated on cited page
+5,"Outdoor lakeside match viewing, nature-adjacent fan gathering",2–4 hours,"Families, outdoor lovers",1,0.0,4.0,Low,Medium,1.0,Car,Lakeside recreation area,Outdoor escape,,Admission not stated on cited page
+6,"July 4th weekend match viewing, community celebration",2–3 hours,"Local community, families",1,0.0,3.0,Low,Medium,1.0,Car + Transit,Community park,Neighborhood,,Admission not stated on cited page
+7,"Live match viewing, immersive fan experience in park setting",2–3 hours,"Local community, families",1,0.0,3.0,Low,Medium,1.0,Car,Regional recreation area,Neighborhood,,Admission not stated on cited page
+8,"Beachside match viewing, iconic Venice atmosphere",2–3 hours,"Tourists, beach visitors, fans",2,0.0,5.0,Medium,High,1.0,Car + Walk,Open beachfront boardwalk,Iconic LA,,Admission not stated on cited page
+9,Large-venue match viewing for knockout rounds,2–4 hours,"All fans, families",2,1.0,3.0,Medium,Medium,1.0,Car,Fairground / expo campus,Event venue,,Admission not stated on cited page
+10,Waterfront match viewing with harbor views,2–4 hours,"Tourists, families, fans",2,1.0,4.0,Medium,Medium,1.0,Car + Transit,Waterfront promenade,Scenic venue,,Admission not stated on cited page
+11,Urban fan zone for semifinal and final stage viewing,2–3 hours,"Local residents, fans",1,1.0,3.0,Medium,Medium,1.0,Car + Transit,Pedestrian downtown strip,Neighborhood,,Admission not stated on cited page
+12,"Watch parties, legend appearances, speaker sessions, live podcasts, premium viewing",2–4 hours,"USMNT fans, football fans",2,1.0,4.0,Medium,High,1.0,Car + Walk,Immersive pop-up venue,Must-visit,,Open to registered U.S. Soccer Insiders (free registration)
+13,"Free live match viewing, Mexican culture, music, gastronomy, visual arts, exhibitions",2–4 hours,"Mexico fans, culture lovers, families",2,1.0,4.0,Medium,Medium,1.0,Metro + Walk,Cultural center campus,Cultural highlight,,Free public program
+14,"Free youth training ages 6-12 led by LA Galaxy, LAFC, Angel City FC coaches",2–3 hours,"Youth ages 6-12, families",2,0.0,3.0,Low,Medium,1.0,Car + Transit,Campus sports field,Family activity,,Free clinic
+15,"Volunteer-driven community park improvement, presented by Amgen",3–4 hours,"Community volunteers, families",2,0.0,3.0,Low,Medium,1.0,Metro + Walk,Open civic park,Community legacy,,Free (volunteer participation)
+16,"Soccer education, interactive games, merchandise, grassroots fan engagement",30–60 min,"All ages, casual fans",1,0.0,2.0,Low,Low,1.0,Varies,Mobile pop-up,Grassroots,,Free
+17,"Large-screen group-stage broadcasts, Galaxy player appearances, youth clinics, giveaways",2–4 hours,"Football fans, families, casual visitors",2,1.0,4.0,Medium,High,1.0,Metro + Car,Pedestrian commercial street,Free highlight,,Free and open to the public
+18,"Round of 16 broadcasts, player interactions, sponsor activations at Galaxy Park",2–4 hours,"Football fans, families",2,1.0,3.0,Medium,Medium,1.0,Car,Stadium campus green,Free highlight,,Free and open to the public
+19,"Beachside semifinal & final broadcasts, stage performances, merchandise on sand",2–4 hours,"Football fans, beach visitors, families",2,1.0,5.0,Medium,High,1.0,Car + Walk,Open beachfront,Free highlight,,Free and open to the public
+20,Son Heung-min vs Messi; LAFC season opener at historic Coliseum,3–4 hours,"Football fans, MLS fans",3,1.0,5.0,High,High,3.0,Metro + Walk,Historic mega stadium,Marquee match,,Paid ticketed event
+21,El Trafico derby during the World Cup window; LA's biggest MLS rivalry,3–4 hours,"Football fans, MLS fans",3,1.0,4.0,High,High,3.0,Car + Shuttle,Stadium campus,Rivalry match,,Paid ticketed event
+22,Second El Trafico of 2026; Sunday Night Soccer on Apple TV,3–4 hours,"Football fans, MLS fans",3,1.0,4.0,High,High,2.0,Metro + Walk,Modern soccer-specific stadium,Rivalry match,,Paid ticketed event
+23,"Photo with original FIFA World Cup Trophy, football challenges, music, DJs, giveaways",1–2 hours,"Football fans, tourists, families",1,0.0,5.0,High,High,1.0,Metro + Walk,Commercial entertainment complex,Once-in-a-lifetime,,Free (register for up to 4 tickets at coca-cola.com)
+24,Official global fan hub,2–4 hours,"Soccer fans, families, tourists",5,1.0,5.0,High,High,1.0,Train/Drive,Open historic space,Iconic,,
+25,Community outdoor watch party,2–3 hours,"Families, soccer fans, locals",5,1.0,3.0,Medium,High,1.0,Bus/Drive,Mixed-use node,Classic LA,,
+26,Community outdoor watch party,2–3 hours,"Local families, soccer fans",5,1.0,2.0,Low,Medium,1.0,Drive,Secured lot edge,Community,,
+27,Community outdoor watch party,2–3 hours,"Commuters, soccer fans, tourists",5,1.0,4.0,Medium,High,1.0,Train/Drive,Historic transit node,Heritage,,
+28,Community outdoor watch party,2–4 hours,"Families, outdoor lovers, soccer fans",5,0.0,3.0,Low,Medium,1.0,Drive,Large-scale natural,Scenic,,
+29,Community outdoor watch party,2–3 hours,"Local community, soccer fans, families",5,0.0,3.0,Low,Medium,1.0,Train/Drive,Large-scale natural,Community,,
+30,Community outdoor watch party,2–3 hours,"Families, soccer fans",5,0.0,2.0,Low,Medium,1.0,Drive,Large-scale natural,Community,,
+31,Community outdoor watch party,2–4 hours,"Soccer fans, tourists, beach lovers",5,1.0,5.0,Medium,High,1.0,Bus/Drive,Large-scale natural,Scenic,,
+32,Community outdoor watch party,2–4 hours,"Families, soccer fans, groups",5,1.0,3.0,Medium,High,1.0,Bus/Drive,Secured campus,Tourist hub,,
+33,Community outdoor watch party,2–4 hours,"Soccer fans, families, locals",5,1.0,4.0,Medium,High,1.0,Drive,Mixed-use node,Scenic,,
+34,Community outdoor watch party,2–3 hours,"Locals, soccer fans, families",5,1.0,3.0,Medium,Medium,1.0,Train/Drive,Linear street,Community,,
+35,Local club fan fest,2–4 hours,"Soccer fans, LA Galaxy supporters, families",5,1.0,3.0,Medium,Medium,1.0,Train/Drive,Mixed-use node,Community,,
+36,Local club fan fest,2–3 hours,"Soccer fans, LA Galaxy supporters, families",5,0.0,3.0,Medium,Medium,1.0,Drive,Secured campus,Community,,
+37,Local club fan fest,2–4 hours,"Soccer fans, beach lovers, families",5,1.0,4.0,Medium,High,1.0,Train/Drive,Large-scale natural,Scenic,,
+38,Interactive sports science exhibit,1–2 hours,"Families, students, sports fans",1,0.0,3.0,Low,Medium,1.0,Train/Drive,Indoor exhibition,Educational,,
+39,Soccer art exhibition,1–2 hours,"Art lovers, soccer fans, tourists",1,0.0,4.0,Low,Low,1.0,Bus/Drive,Indoor exhibition,Cultural,,
+40,Soccer cinema celebration,2–3 hours,"Film fans, soccer fans, families",1,0.0,4.0,Low,High,1.0,Bus/Drive,Indoor exhibition,Cultural,,
+41,Classic British pub,2–3 hours,"Soccer fans, adults, expats",2,1.0,2.0,Medium,High,1.0,Train/Drive,Indoor niche,Cultural,,
+42,Sports bar,2–3 hours,"Sports fans, groups, adults",3,1.0,3.0,High,High,1.0,Train/Drive,Indoor niche,Cultural,,
+43,Vibrant Mexican fan HQ,2–3 hours,"Soccer fans, food lovers, Latin culture enthusiasts",3,1.0,3.0,Medium,High,1.0,Train/Drive,Indoor niche,Cultural,,
+44,German beer bar,2–3 hours,"Soccer fans, beer lovers, adults",3,1.0,3.0,Medium,High,1.0,Bus/Drive,Indoor niche,Cultural,,
+45,Hardcore pre-game tailgate,2–4 hours,"Die-hard soccer fans, ultras, adults",3,1.0,3.0,Low,Medium,1.0,Drive,Event-based,Community,,
+46,Passionate supporter rally,2–4 hours,"LAFC fans, soccer enthusiasts, adults",3,1.0,3.0,Low,High,1.0,Train/Drive,Event-based,Community,,
+47,Classic LA summer concert experience in a large outdoor amphitheater,2-3 hours,"Couples, tourists",2,1.0,5.0,,,,Car + Shuttle,Outdoor amphitheater,Summer classic,$40-$120,
+48,Club-style stand-up set with a strong chance of recognizable comedians,1.5-2 hours,Young professionals,2,1.0,3.0,,,,Rideshare,Intimate comedy club,Easy weeknight,$25-$60,
+49,Open-air film night with picnic seating and a highly photogenic setting,2-3 hours,"Friends, lifestyle lovers",1,1.0,5.0,,,,Car,Open lawn venue,LA signature,$25-$35,
+50,Smaller-scale live house show with local and touring indie acts,2 hours,Indie music fans,3,1.0,3.0,,,,Rideshare,Intimate standing-room venue,Local favorite,$15-$30,
+51,Legendary Sunset Strip comedy room with classic LA late-night energy,1.5-2 hours,Comedy fans,3,1.0,3.0,,,,Rideshare,Historic comedy club,Late-night staple,$20-$50,
+52,Historic room known for emerging artists and intimate performances,2 hours,Music lovers,2,1.0,4.0,,,,Rideshare,Historic live room,Music landmark,$25-$60,
+53,Relaxed open-air jazz program suited to a summer evening,2-3 hours,Upscale audience,2,1.0,4.0,,,,Car + Shuttle,Outdoor amphitheater,Date night,$35-$100,
+54,Later show slot that fits after dinner and avoids daytime fan activity,1.5-2 hours,Nightlife crowd,3,1.0,2.0,,,,Rideshare,Intimate comedy club,Post-game option,$25-$60,
+55,Sunset Strip venue with a strong reputation for energetic live sets,2 hours,Young crowd,3,1.0,4.0,,,,Rideshare,Compact theater venue,Youth culture,$20-$50,
+56,Accessible Hollywood comedy option with mainstream appeal,1.5-2 hours,"Tourists, comedy fans",2,1.0,2.0,,,,Rideshare,Commercial comedy club,Tourist-friendly,$20-$50,
+57,Late-night dance-focused set in a smaller alternative venue,2-3 hours,Party crowd,4,1.0,3.0,,,,Rideshare,Compact nightlife venue,After-hours,$15-$25,
+58,Flagship summer headliner format in LA's best-known outdoor music venue,2.5-3 hours,General audience,3,1.0,5.0,,,,Car + Shuttle,Outdoor amphitheater,Headline night,$50-$150,
+59,"Late set on the Strip, good for visitors looking for post-match nightlife",1.5-2 hours,Nightlife lovers,4,1.0,2.0,,,,Rideshare,Historic comedy club,Night out,$20-$40,
+60,Intimate room with a discovery-oriented lineup and strong music credibility,2 hours,Indie fans,2,1.0,4.0,,,,Rideshare,Historic live room,Indie pick,$20-$50,
+61,"Pier, ferris wheel, beach",Half day - 1 day,All visitors,2,1.0,4.0,High,High,2.0,Transit + Car,Open waterfront,Tourist-oriented,,
+62,"Street art, skate, boardwalk",2-4 hours,Young visitors,2,0.0,4.0,Medium,High,1.0,Transit + Car,Public open space,Organic culture,,
+63,"Scenic coastline, quiet beach",Half day,"Couples, drivers",2,0.0,5.0,Low,Low,2.0,Car,Natural dispersed,Low density,,
+64,"Clear water, art town",Full day,High-end visitors,2,0.0,5.0,Medium,Medium,3.0,Car,Small-town fabric,Affluent oriented,,
+65,Surfing culture,Half day,Outdoor users,3,0.0,3.0,Medium,Medium,2.0,Car,Open beach,Sports culture,,
+66,Iconic city symbol,1-2 hours,Tourists,2,0.0,4.0,Low,Medium,1.0,Car + Hiking,Elevated terrain,Symbolic,,
+67,Celebrity star sidewalk,1-2 hours,Tourists,1,0.0,2.0,High,High,1.0,Metro + Walk,Linear street,Tourist-driven,,
+68,Skyline + astronomy,Evening,All visitors,2,1.0,4.0,Medium,High,1.0,Car,High vantage point,Public space,,
+69,Dense city environment,Half day,Planning visitors,3,1.0,2.0,Medium,Medium,2.0,Metro + Car,High density,Polycentric,,
+70,Movie rides and attractions,Full day,All visitors,4,0.0,4.0,High,High,3.0,Car,Enclosed system,Entertainment economy,,
+71,Disney immersive experience,1-2 days,Families,4,1.0,5.0,High,High,4.0,Car,Fully enclosed,Consumption-driven,,
+72,Film production behind scenes,Half day,Film audience,2,0.0,2.0,Medium,Medium,2.0,Car,Semi-open campus,Content-based,,
+73,Historic film studio,Half day,Film visitors,2,0.0,2.0,Medium,Low,2.0,Car,Historic lot,Heritage,,
+74,"Architecture, art, landscape",Half day,All visitors,2,0.0,4.0,Medium,Medium,1.0,Car,Hilltop complex,Cultural public,,
+75,Urban Light installation,2-3 hours,Tourists,1,1.0,5.0,Medium,High,1.0,Transit + Car,Urban embedded,Exhibition,,
+76,Contemporary art,2 hours,Young visitors,1,0.0,4.0,Medium,High,1.0,Metro,Compact,Trend-driven,,
+77,Roman-style architecture,Half day,Niche visitors,2,0.0,4.0,Low,Low,1.0,Car,Courtyard complex,Immersive,,
+78,Luxury shopping,1-2 hours,High-income,1,0.0,4.0,High,Medium,4.0,Car,Refined street,Exclusive,,
+79,Outdoor shopping mall,2-3 hours,All visitors,1,1.0,3.0,High,High,2.0,Car,Simulated street,Consumption,,
+80,Boutique and creative shops,2 hours,Young visitors,1,0.0,4.0,Medium,Medium,2.0,Car,Small-scale street,Creative economy,,
+81,Streetwear and murals,2 hours,Young visitors,2,0.0,4.0,Medium,High,2.0,Car,Linear street,Trend culture,,
+82,Hiking and city view,2-3 hours,Fitness users,3,0.0,3.0,Low,High,1.0,Walking,Open hillside,Social,,
+83,Urban nature trails,2-4 hours,All visitors,2,0.0,2.0,Low,Medium,1.0,Walking,Large-scale park,Public resource,,
+84,Rocky beach landscape,2-3 hours,Photographers,2,0.0,5.0,Low,Medium,1.0,Car,Natural landscape,Hidden,,
+85,Scenic drive and nature,Half day,Drivers,2,0.0,3.0,Low,Low,1.0,Car,Dispersed,Ecological,,
+86,"Recognizable movie scenes, urban backdrop",1–2 hours,"Film fans, tourists",1,1.0,4.0,High,High,1.0,Metro + Walk,Linear street,Film landmark,,
+87,"Film star graves, outdoor movie screenings",1–2 hours,Niche visitors,1,1.0,4.0,Low,Low,1.0,Car,Open historic space,Cult culture,,
+88,"Music, nightlife, film history",2–4 hours,Young visitors,2,1.0,4.0,High,High,3.0,Car,Linear nightlife strip,Pop culture,,
+89,Classic studio exterior views,1–2 hours,Film enthusiasts,1,0.0,3.0,Medium,Low,2.0,Car,Secured lot edge,Industry,,
+90,Famous mansion used in films,1–2 hours,"Film fans, photographers",1,0.0,5.0,Low,Low,1.0,Car,Estate landscape,Filming spot,,
+91,Blade Runner interior architecture,30–60 min,Film fans,1,0.0,5.0,Low,Medium,1.0,Metro + Walk,Interior landmark,Cinematic,,
+92,Classic station in many films,1 hour,"Film fans, tourists",1,0.0,4.0,Medium,Medium,1.0,Transit,Historic transit node,Classic LA,,
+93,Scenic canals featured in films,1–2 hours,"Couples, photographers",1,0.0,5.0,Low,Low,1.0,Walk + Car,Quiet residential,Scenic,,
+94,Multiple iconic movie scenes,2–3 hours,"Film fans, hikers",2,0.0,4.0,Low,Medium,1.0,Car,Large-scale natural,Multi-scene,,
+95,"Film costumes, props, archives",1–2 hours,Film fans,1,0.0,3.0,Medium,Medium,2.0,Car,Indoor exhibition,Archive,,
+96,"Oscars-related events, screenings",2–4 hours,Film enthusiasts,3,1.0,5.0,High,High,4.0,Car + Transit,Event-based,Seasonal,,
+97,Film-themed retail + attractions,1–2 hours,Tourists,1,1.0,4.0,High,High,3.0,Metro + Walk,Mixed-use node,Tourist hub,,
+98,Classic LA summer concert experience in a large outdoor amphitheater,2-3 hours,"Couples, tourists",2,1.0,5.0,,,,Car + Shuttle,Outdoor amphitheater,Summer classic,$40-$120,
+99,Club-style stand-up set with a strong chance of recognizable comedians,1.5-2 hours,Young professionals,2,1.0,3.0,,,,Rideshare,Intimate comedy club,Easy weeknight,$25-$60,
+100,Open-air film night with picnic seating and a highly photogenic setting,2-3 hours,"Friends, lifestyle lovers",1,1.0,5.0,,,,Car,Open lawn venue,LA signature,$25-$35,
+101,Smaller-scale live house show with local and touring indie acts,2 hours,Indie music fans,3,1.0,3.0,,,,Rideshare,Intimate standing-room venue,Local favorite,$15-$30,
+102,Legendary Sunset Strip comedy room with classic LA late-night energy,1.5-2 hours,Comedy fans,3,1.0,3.0,,,,Rideshare,Historic comedy club,Late-night staple,$20-$50,
+103,Historic room known for emerging artists and intimate performances,2 hours,Music lovers,2,1.0,4.0,,,,Rideshare,Historic live room,Music landmark,$25-$60,
+104,Relaxed open-air jazz program suited to a summer evening,2-3 hours,Upscale audience,2,1.0,4.0,,,,Car + Shuttle,Outdoor amphitheater,Date night,$35-$100,
+105,Later show slot that fits after dinner and avoids daytime fan activity,1.5-2 hours,Nightlife crowd,3,1.0,2.0,,,,Rideshare,Intimate comedy club,Post-game option,$25-$60,
+106,Sunset Strip venue with a strong reputation for energetic live sets,2 hours,Young crowd,3,1.0,4.0,,,,Rideshare,Compact theater venue,Youth culture,$20-$50,
+107,Accessible Hollywood comedy option with mainstream appeal,1.5-2 hours,"Tourists, comedy fans",2,1.0,2.0,,,,Rideshare,Commercial comedy club,Tourist-friendly,$20-$50,
+108,Late-night dance-focused set in a smaller alternative venue,2-3 hours,Party crowd,4,1.0,3.0,,,,Rideshare,Compact nightlife venue,After-hours,$15-$25,
+109,Flagship summer headliner format in LA's best-known outdoor music venue,2.5-3 hours,General audience,3,1.0,5.0,,,,Car + Shuttle,Outdoor amphitheater,Headline night,$50-$150,
+110,"Late set on the Strip, good for visitors looking for post-match nightlife",1.5-2 hours,Nightlife lovers,4,1.0,2.0,,,,Rideshare,Historic comedy club,Night out,$20-$40,
+111,Intimate room with a discovery-oriented lineup and strong music credibility,2 hours,Indie fans,2,1.0,4.0,,,,Rideshare,Historic live room,Indie pick,$20-$50,

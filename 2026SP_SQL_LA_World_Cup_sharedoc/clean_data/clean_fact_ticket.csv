@@ -1,0 +1,47 @@
+match_date,match_time,match_info,stage,seating_section,section_level,ticket_category,price_usd,ticket_status,ticket_id,match_number,matchup
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),3000.0,Waitlist,1,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),450.0,Low Stock,2,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 218-222 (Mid Sideline),Level 2,Category 1 (一类票),450.0,Available,3,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),250.0,Available,4,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 200-217 (Mid Corner),Level 2,Category 2 (二类票),250.0,Available,5,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),150.0,Available,6,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 400-442 (400 Deck),Level 4,Category 3 (三类票),150.0,Available,7,M4,USA vs Paraguay
+2026-06-12,18:00:00,Match 4: USA vs Paraguay,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),80.0,Sold Out,8,M4,USA vs Paraguay
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),1500.0,Available,9,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),220.0,Available,10,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 218-222 (Mid Sideline),Level 2,Category 1 (一类票),220.0,Available,11,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),150.0,Available,12,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 200-217 (Mid Corner),Level 2,Category 2 (二类票),150.0,Available,13,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),80.0,Available,14,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 400-442 (400 Deck),Level 4,Category 3 (三类票),80.0,Available,15,M15,IR Iran vs New Zealand
+2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),40.0,Available,16,M15,IR Iran vs New Zealand
+2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),1500.0,Available,17,M26,Switzerland vs Playoff A
+2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),220.0,Available,18,M26,Switzerland vs Playoff A
+2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),150.0,Available,19,M26,Switzerland vs Playoff A
+2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),80.0,Available,20,M26,Switzerland vs Playoff A
+2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),40.0,Available,21,M26,Switzerland vs Playoff A
+2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),3000.0,Low Stock,22,M39,Belgium vs IR Iran
+2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),450.0,Available,23,M39,Belgium vs IR Iran
+2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),250.0,Available,24,M39,Belgium vs IR Iran
+2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),150.0,Available,25,M39,Belgium vs IR Iran
+2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),80.0,Low Stock,26,M39,Belgium vs IR Iran
+2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),3000.0,Waitlist,27,M59,USA vs Playoff C
+2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),450.0,Low Stock,28,M59,USA vs Playoff C
+2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),250.0,Available,29,M59,USA vs Playoff C
+2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),150.0,Available,30,M59,USA vs Playoff C
+2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),80.0,Sold Out,31,M59,USA vs Playoff C
+2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),3500.0,Available,32,M73,Group A 2nd vs Group B 2nd
+2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),500.0,Available,33,M73,Group A 2nd vs Group B 2nd
+2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),300.0,Available,34,M73,Group A 2nd vs Group B 2nd
+2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),200.0,Available,35,M73,Group A 2nd vs Group B 2nd
+2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),100.0,Available,36,M73,Group A 2nd vs Group B 2nd
+2026-07-02,12:00:00,Match 84: Group H 1st vs Group J 2nd,Round of 32,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),3500.0,Available,37,M84,Group H 1st vs Group J 2nd
+2026-07-02,12:00:00,Match 84: Group H 1st vs Group J 2nd,Round of 32,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),500.0,Available,38,M84,Group H 1st vs Group J 2nd
+2026-07-02,12:00:00,Match 84: Group H 1st vs Group J 2nd,Round of 32,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),300.0,Available,39,M84,Group H 1st vs Group J 2nd
+2026-07-02,12:00:00,Match 84: Group H 1st vs Group J 2nd,Round of 32,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),200.0,Available,40,M84,Group H 1st vs Group J 2nd
+2026-07-02,12:00:00,Match 84: Group H 1st vs Group J 2nd,Round of 32,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),100.0,Available,41,M84,Group H 1st vs Group J 2nd
+2026-07-10,12:00:00,Match 98: Quarter-final (TBD),Quarter-final,Pechanga Founders Club,Level 1,VIP Hospitality (顶级款待),4500.0,Low Stock,42,M98,Quarter-final (TBD)
+2026-07-10,12:00:00,Match 98: Quarter-final (TBD),Quarter-final,Sections 111-115 (Lower Sideline),Level 1,Category 1 (一类票),750.0,Low Stock,43,M98,Quarter-final (TBD)
+2026-07-10,12:00:00,Match 98: Quarter-final (TBD),Quarter-final,Sections 100-110 (Lower Endzone),Level 1,Category 2 (二类票),450.0,Available,44,M98,Quarter-final (TBD)
+2026-07-10,12:00:00,Match 98: Quarter-final (TBD),Quarter-final,Sections 300-347 (Upper Bowl),Level 3,Category 3 (三类票),280.0,Available,45,M98,Quarter-final (TBD)
+2026-07-10,12:00:00,Match 98: Quarter-final (TBD),Quarter-final,Sections 504-542 (500 Deck),Level 5,Category 4 (四类票 - 最便宜),150.0,Sold Out,46,M98,Quarter-final (TBD)

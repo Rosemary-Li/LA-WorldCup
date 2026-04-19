@@ -1,0 +1,5702 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LA × FIFA World Cup 2026™ — An Old Hollywood Production</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ═══════════════════════════════════════
+   OLD HOLLYWOOD B&W PALETTE
+   White-dominant, newspaper/silver screen
+═══════════════════════════════════════ */
+      :root {
+        --ink: #0d0d0d;
+        --ink-soft: #1c1c1c;
+        --charcoal: #2e2e2e;
+        --silver: #8a8a8a;
+        --silver-lt: #b0b0b0;
+        --ash: #d0d0d0;
+        --cream: #f5f2ec;
+        --white: #fafaf8;
+        --paper: #ede9df;
+
+        --accent: #c9a84c; /* one touch of gold for awards/prestige */
+        --red-title: #1a1a1a;
+
+        --bg-page: #fafaf8;
+        --bg-section: #f0ede5;
+        --bg-dark: #111111;
+        --bg-card: #ffffff;
+
+        --border-ink: rgba(13, 13, 13, 0.15);
+        --border-med: rgba(13, 13, 13, 0.25);
+        --border-hard: rgba(13, 13, 13, 0.6);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg-page);
+        color: var(--ink);
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 300;
+        overflow-x: hidden;
+      }
+
+      /* ══════════════════════════════════
+   FILM PROJECTOR INTRO SCREEN
+══════════════════════════════════ */
+      #projector-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      /* Film sprocket holes */
+      .sprocket-strip {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 8px 0;
+      }
+      .sprocket-strip.left {
+        left: 0;
+        background: #0a0a0a;
+      }
+      .sprocket-strip.right {
+        right: 0;
+        background: #0a0a0a;
+      }
+      .sprocket-hole {
+        width: 26px;
+        height: 18px;
+        border-radius: 3px;
+        background: #1a1a1a;
+        border: 1px solid #222;
+        margin: 0 auto;
+      }
+
+      /* Film gate flicker */
+      .film-gate {
+        width: calc(100% - 96px);
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+        background: #000;
+      }
+
+      /* Scratches and dust overlay */
+      .film-grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(255, 255, 255, 0.015) 2px,
+          rgba(255, 255, 255, 0.015) 4px
+        );
+        animation: flicker 0.08s infinite;
+      }
+
+      .film-scratch {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.04);
+        animation: scratch-move 3s linear infinite;
+      }
+      .film-scratch:nth-child(2) {
+        animation-delay: -1s;
+        left: 30%;
+      }
+      .film-scratch:nth-child(3) {
+        animation-delay: -2s;
+        left: 70%;
+      }
+
+      @keyframes scratch-move {
+        0% {
+          left: 10%;
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+        90% {
+          opacity: 0;
+        }
+        100% {
+          left: 90%;
+          opacity: 0;
+        }
+      }
+
+      @keyframes flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.94;
+        }
+      }
+
+      /* The "film frames" slideshow */
+      .film-frames {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .film-frame {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.15s;
+        padding: 3rem;
+        filter: grayscale(100%) contrast(1.1) brightness(0.85);
+      }
+      .film-frame.active {
+        opacity: 1;
+      }
+
+      /* SVG-based WC moment illustrations (B&W cinematic) */
+      .frame-visual {
+        width: 100%;
+        max-width: 700px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .frame-caption {
+        text-align: center;
+        padding-top: 1.5rem;
+      }
+      .caption-year {
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.3em;
+        color: #888;
+        margin-bottom: 0.3rem;
+      }
+      .caption-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.6rem;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .caption-sub {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 0.95rem;
+        color: #999;
+        margin-top: 0.2rem;
+      }
+
+      /* Projector light beam */
+      .proj-beam {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 80px solid transparent;
+        border-right: 80px solid transparent;
+        border-top: 200px solid rgba(255, 255, 240, 0.03);
+        pointer-events: none;
+      }
+
+      /* PROJECTOR MACHINE at top */
+      .projector-machine {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+      }
+
+      /* Film counter overlay */
+      .film-counter {
+        position: absolute;
+        top: 1.5rem;
+        right: 2rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.3);
+        letter-spacing: 0.1em;
+        z-index: 20;
+      }
+
+      /* Skip button */
+      .proj-skip {
+        position: absolute;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 20;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.4);
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .proj-skip:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* FADE OUT the projector */
+      #projector-screen.fade-out {
+        animation: projFadeOut 1s forwards;
+      }
+      @keyframes projFadeOut {
+        from {
+          opacity: 1;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(1.03);
+        }
+      }
+
+      /* Progress bar at bottom */
+      .proj-progress {
+        position: absolute;
+        bottom: 0;
+        left: 48px;
+        right: 48px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .proj-progress-bar {
+        height: 100%;
+        background: rgba(255, 255, 255, 0.3);
+        transition: width 0.5s linear;
+      }
+
+      /* ══════════════════════════════════
+   NAV — newspaper masthead style
+══════════════════════════════════ */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: var(--bg-page);
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .nav-masthead {
+        text-align: center;
+        padding: 0.5rem 2rem 0;
+        border-bottom: 1px solid var(--border-ink);
+      }
+
+      .nav-title {
+        font-family: "Playfair Display", serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.1rem;
+      }
+
+      .nav-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 1.8rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+        line-height: 1;
+      }
+
+      .nav-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 3rem;
+      }
+
+      .nav-rule {
+        font-size: 0.6rem;
+        color: var(--silver);
+        font-family: "DM Mono", monospace;
+        letter-spacing: 0.1em;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+      .nav-links a {
+        color: var(--charcoal);
+        text-decoration: none;
+        font-size: 0.68rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-family: "DM Mono", monospace;
+        transition: color 0.2s;
+        padding-bottom: 2px;
+        border-bottom: 1px solid transparent;
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+
+      /* ══════════════════════════════════
+   HERO — main title card
+══════════════════════════════════ */
+      #hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8rem 3rem 5rem;
+        background: var(--bg-page);
+        overflow: hidden;
+      }
+
+      /* Halftone dot texture in bg */
+      #hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          circle,
+          rgba(13, 13, 13, 0.06) 1px,
+          transparent 1px
+        );
+        background-size: 20px 20px;
+        pointer-events: none;
+      }
+
+      /* Horizontal rules like a newspaper */
+      .hero-rule-top {
+        position: absolute;
+        top: 5.5rem;
+        left: 3rem;
+        right: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .rule-thick {
+        height: 3px;
+        background: var(--ink);
+      }
+      .rule-thin {
+        height: 1px;
+        background: var(--ink);
+      }
+
+      .hero-eyebrow-wrap {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeIn 0.8s 0.3s forwards;
+      }
+      .hero-eyebrow {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+      .eyebrow-rule {
+        flex: 1;
+        height: 1px;
+        background: var(--border-ink);
+      }
+
+      .hero-dateline {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        color: var(--silver);
+        opacity: 0;
+        animation: fadeIn 0.8s 0.4s forwards;
+        margin-bottom: 1rem;
+      }
+
+      .hero-headline {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(3rem, 9vw, 7.5rem);
+        font-weight: 900;
+        line-height: 0.92;
+        letter-spacing: 0.01em;
+        color: var(--ink);
+        text-align: center;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: fadeIn 1s 0.5s forwards;
+      }
+
+      .hero-headline em {
+        font-style: italic;
+        font-weight: 400;
+      }
+
+      .hero-headline .outline-txt {
+        -webkit-text-stroke: 2px var(--ink);
+        color: transparent;
+      }
+
+      .hero-deck {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: clamp(1rem, 2vw, 1.3rem);
+        color: var(--charcoal);
+        text-align: center;
+        max-width: 650px;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeIn 0.9s 0.7s forwards;
+      }
+
+      /* La photo strip — colorful LA images as film strip */
+      .la-filmstrip {
+        width: 100%;
+        overflow: hidden;
+        margin: 2rem 0 3rem;
+        opacity: 0;
+        animation: fadeIn 1s 0.9s forwards;
+        position: relative;
+      }
+
+      .la-filmstrip::before,
+      .la-filmstrip::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 80px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .la-filmstrip::before {
+        left: 0;
+        background: linear-gradient(to right, var(--bg-page), transparent);
+      }
+      .la-filmstrip::after {
+        right: 0;
+        background: linear-gradient(to left, var(--bg-page), transparent);
+      }
+
+      /* Sprocket strip on filmstrip */
+      .strip-sprockets {
+        background: #1a1a1a;
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .strip-holes {
+        display: inline-flex;
+        gap: 20px;
+        padding: 0 20px;
+        animation: scroll-strip 20s linear infinite;
+      }
+      .strip-hole {
+        width: 16px;
+        height: 12px;
+        border-radius: 2px;
+        background: #333;
+        border: 1px solid #444;
+        flex-shrink: 0;
+      }
+
+      .strip-images {
+        display: flex;
+        gap: 4px;
+        animation: scroll-strip 30s linear infinite;
+        white-space: nowrap;
+      }
+      @keyframes scroll-strip {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* Each colorful LA photo frame */
+      .la-photo {
+        width: 220px;
+        height: 150px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        border: 3px solid #1a1a1a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* SVG-based colorful LA scenes */
+      .la-photo svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .photo-caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.65);
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.15em;
+        color: #fff;
+        text-align: center;
+        padding: 3px;
+        text-transform: uppercase;
+      }
+
+      /* IDENTITY CARDS */
+      .identity-section {
+        width: 100%;
+        max-width: 700px;
+        text-align: center;
+        opacity: 0;
+        animation: fadeIn 0.9s 1.1s forwards;
+      }
+      .identity-eyebrow {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .identity-eyebrow::before,
+      .identity-eyebrow::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-ink);
+      }
+
+      .identity-cards {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .identity-card {
+        cursor: pointer;
+        border: 1px solid var(--border-med);
+        background: var(--white);
+        padding: 0.9rem 1.4rem;
+        min-width: 130px;
+        transition: all 0.25s;
+        text-align: center;
+      }
+      .identity-card:hover {
+        border-color: var(--ink);
+        background: var(--ink);
+        transform: translateY(-2px);
+      }
+      .identity-card:hover .label {
+        color: #fff;
+      }
+      .identity-card.active {
+        border-color: var(--ink);
+        background: var(--ink);
+      }
+      .identity-card.active .label {
+        color: #fff;
+      }
+
+      .identity-card .icon {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+      .identity-card .label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+      }
+
+      /* Scroll hint */
+      .scroll-hint {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        opacity: 0;
+        animation: fadeIn 1s 1.5s forwards;
+      }
+      .scroll-hint span {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+      .scroll-line {
+        width: 1px;
+        height: 50px;
+        background: linear-gradient(to bottom, var(--ink), transparent);
+        animation: scrollPulse 1.5s ease-in-out infinite;
+      }
+      @keyframes scrollPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.9;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ══════════════════════════════════
+   SHARED SECTION STYLES
+══════════════════════════════════ */
+      section {
+        padding: 5rem 3rem;
+      }
+
+      .section-masthead {
+        border-top: 3px solid var(--ink);
+        border-bottom: 1px solid var(--ink);
+        padding: 0.6rem 0;
+        margin-bottom: 3rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        color: var(--ink);
+      }
+      .section-folio {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        color: var(--silver);
+        text-transform: uppercase;
+      }
+
+      /* ══════════════════════════════════
+   MATCHES — editorial sports page
+══════════════════════════════════ */
+      #matches {
+        background: var(--bg-section);
+      }
+
+      .matches-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5px;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--border-med);
+        border: 1.5px solid var(--border-med);
+      }
+
+      .match-card {
+        background: var(--white);
+        padding: 2rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .match-card:hover {
+        background: var(--ink);
+      }
+      .match-card:hover .match-round,
+      .match-card:hover .match-date,
+      .match-card:hover .team-name,
+      .match-card:hover .team-country,
+      .match-card:hover .match-vs,
+      .match-card:hover .match-venue {
+        color: #fff !important;
+      }
+      .match-card:hover .match-round {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .match-card:hover .match-cta {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #ccc;
+      }
+      .match-card:hover .team-flag {
+        filter: grayscale(0%) brightness(1.1);
+      }
+
+      .match-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--ink);
+      }
+
+      .match-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      .match-round {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+        background: var(--paper);
+        padding: 0.25rem 0.6rem;
+        border: 1px solid var(--border-ink);
+      }
+      .match-date {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--silver);
+      }
+
+      .match-teams {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 1.5rem 0;
+        border-top: 1px solid var(--border-ink);
+        border-bottom: 1px solid var(--border-ink);
+        padding: 1.2rem 0;
+      }
+      .team-block {
+        text-align: center;
+        flex: 1;
+      }
+      .team-flag {
+        font-size: 2.2rem;
+        display: block;
+        margin-bottom: 0.4rem;
+        filter: grayscale(80%) contrast(1.1);
+        transition: filter 0.3s;
+      }
+      .match-card:hover .team-flag {
+        filter: grayscale(0%);
+      }
+      .team-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .team-country {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        color: var(--silver);
+        letter-spacing: 0.1em;
+      }
+
+      .match-vs {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 1.4rem;
+        color: var(--silver);
+        padding: 0 1rem;
+        flex-shrink: 0;
+      }
+      .match-venue {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        color: var(--silver);
+        text-align: center;
+      }
+      .match-cta {
+        display: block;
+        margin-top: 1.2rem;
+        padding: 0.6rem;
+        text-align: center;
+        border: 1px solid var(--border-med);
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+        cursor: pointer;
+        transition: all 0.2s;
+        background: transparent;
+        width: 100%;
+      }
+
+      /* ══════════════════════════════════
+   MATCH DETAIL OVERLAY
+══════════════════════════════════ */
+      #matchOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(250, 250, 248, 0.97);
+        backdrop-filter: blur(4px);
+        overflow-y: auto;
+      }
+      .overlay-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 5rem 2rem;
+      }
+      .overlay-close {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: var(--ink);
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 201;
+        font-size: 1rem;
+        border: none;
+        transition: opacity 0.2s;
+      }
+      .overlay-close:hover {
+        opacity: 0.7;
+      }
+
+      .detail-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 3px solid var(--ink);
+      }
+      .detail-team {
+        text-align: center;
+        flex: 1;
+      }
+      .detail-flag {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 0.8rem;
+        filter: grayscale(50%);
+      }
+      .detail-name {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--ink);
+      }
+      .detail-vs-block {
+        text-align: center;
+        padding: 0 2rem;
+      }
+      .detail-vs {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 2.5rem;
+        color: var(--silver);
+        display: block;
+      }
+      .detail-match-info {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--silver);
+        line-height: 2;
+        margin-top: 0.5rem;
+      }
+
+      .h2h-block {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        border: 1.5px solid var(--border-med);
+        margin-bottom: 3rem;
+      }
+      .h2h-stat {
+        padding: 1.5rem;
+        text-align: center;
+        border-right: 1px solid var(--border-ink);
+      }
+      .h2h-stat:last-child {
+        border-right: none;
+      }
+      .h2h-num {
+        font-family: "Playfair Display", serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: var(--ink);
+      }
+      .h2h-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+
+      .players-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border-ink);
+        margin-bottom: 3rem;
+      }
+      .player-card {
+        background: var(--white);
+        padding: 1rem 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .player-number {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--ash);
+        flex-shrink: 0;
+        width: 40px;
+      }
+      .player-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        font-family: "Cormorant Garamond", serif;
+      }
+      .player-pos {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        color: var(--silver);
+      }
+
+      .nearby-tabs {
+        display: flex;
+        gap: 1px;
+        margin-bottom: 1.5rem;
+        background: var(--border-ink);
+      }
+      .nearby-tab {
+        flex: 1;
+        padding: 0.7rem;
+        text-align: center;
+        background: var(--white);
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--silver);
+        border: none;
+      }
+      .nearby-tab.active,
+      .nearby-tab:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .nearby-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border-ink);
+      }
+      .nearby-card {
+        background: var(--white);
+        padding: 1rem;
+      }
+      .nearby-name {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .nearby-sub {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        color: var(--silver);
+      }
+      .nearby-price {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        color: var(--charcoal);
+        margin-top: 0.4rem;
+      }
+
+      /* ══════════════════════════════════
+   LA COLORFUL PHOTO SHOWCASE
+   (bright color bursts amid B&W)
+══════════════════════════════════ */
+      #la-showcase {
+        background: var(--ink);
+        padding: 4rem 0;
+        overflow: hidden;
+      }
+      .showcase-header {
+        text-align: center;
+        padding: 0 3rem 2.5rem;
+      }
+      .showcase-rule {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 0.85rem;
+        color: var(--silver);
+        letter-spacing: 0.05em;
+      }
+      .showcase-title {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--white);
+        letter-spacing: 0.04em;
+        margin-top: 0.4rem;
+      }
+
+      .showcase-strip {
+        display: flex;
+        gap: 6px;
+        padding: 0 3rem;
+        animation: scroll-showcase 40s linear infinite;
+        white-space: nowrap;
+      }
+      .showcase-strip:hover {
+        animation-play-state: paused;
+      }
+
+      .showcase-photo {
+        width: 320px;
+        height: 220px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        display: inline-flex;
+      }
+      .showcase-photo svg {
+        width: 100%;
+        height: 100%;
+      }
+      .showcase-photo .photo-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        padding: 1rem 0.8rem 0.6rem;
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 0.85rem;
+        color: #fff;
+      }
+
+      @keyframes scroll-showcase {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* ══════════════════════════════════
+   ITINERARY
+══════════════════════════════════ */
+      #itinerary {
+        background: var(--bg-page);
+      }
+
+      .builder-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .control-group label {
+        display: block;
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.4rem;
+      }
+      .control-group select {
+        width: 100%;
+        background: var(--white);
+        border: 1.5px solid var(--border-med);
+        color: var(--ink);
+        padding: 0.7rem 0.9rem;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.9rem;
+        appearance: none;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .control-group select:focus {
+        outline: none;
+        border-color: var(--ink);
+      }
+
+      .generate-btn {
+        display: block;
+        width: 100%;
+        margin: 2rem 0;
+        padding: 1rem;
+        background: var(--ink);
+        color: var(--white);
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .generate-btn:hover {
+        background: var(--charcoal);
+      }
+
+      .itinerary-result {
+        display: none;
+      }
+      .itinerary-result.visible {
+        display: block;
+      }
+
+      .day-block {
+        margin-bottom: 2rem;
+        border-left: 3px solid var(--ink);
+        padding-left: 1.5rem;
+      }
+      .day-label {
+        font-family: "Playfair Display", serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 1rem;
+        letter-spacing: 0.02em;
+      }
+      .timeline-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid var(--border-ink);
+      }
+      .timeline-time {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--silver);
+        min-width: 55px;
+        padding-top: 0.15rem;
+      }
+      .timeline-content .title {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.15rem;
+      }
+      .timeline-content .desc {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--silver);
+        line-height: 1.5;
+      }
+
+      .loading-bar {
+        height: 2px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--ink),
+          transparent
+        );
+        background-size: 300% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -300% 0;
+        }
+        100% {
+          background-position: 300% 0;
+        }
+      }
+
+      /* ══════════════════════════════════
+   EXPLORE MAP
+══════════════════════════════════ */
+      #explore {
+        background: var(--bg-section);
+      }
+
+      .explore-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 1.5px;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--border-med);
+        border: 1.5px solid var(--border-med);
+      }
+
+      .filter-panel {
+        background: var(--white);
+        padding: 1.5rem;
+      }
+      .filter-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 1.2rem;
+        border-bottom: 1px solid var(--border-ink);
+        padding-bottom: 0.7rem;
+      }
+      .filter-group {
+        margin-bottom: 1.5rem;
+      }
+      .filter-group-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.5rem;
+      }
+      .filter-btn {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem 0.7rem;
+        margin-bottom: 0.25rem;
+        background: transparent;
+        border: 1px solid transparent;
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--silver);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .filter-btn .count {
+        float: right;
+        opacity: 0.5;
+      }
+
+      .map-container {
+        background: #1a1a1a;
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+      }
+      .map-bg {
+        position: absolute;
+        inset: 0;
+        background: #111;
+      }
+      .map-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .map-roads {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.07) 2px,
+            transparent 2px
+          ),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.07) 2px, transparent 2px);
+        background-size: 120px 120px;
+        background-position: 20px 20px;
+      }
+      .map-pin {
+        position: absolute;
+        cursor: pointer;
+        transform: translate(-50%, -100%);
+        transition: all 0.2s;
+      }
+      .map-pin:hover {
+        transform: translate(-50%, -100%) scale(1.2);
+        z-index: 10;
+      }
+      .pin-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #fff;
+        margin: 0 auto;
+      }
+      .pin-dot.hotel {
+        background: #aaa;
+      }
+      .pin-dot.restaurant {
+        background: #ccc;
+      }
+      .pin-dot.event {
+        background: #888;
+      }
+      .pin-dot.stadium {
+        background: #fff;
+        width: 14px;
+        height: 14px;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      }
+      .pin-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        white-space: nowrap;
+        margin-top: 4px;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 2px 5px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ccc;
+        letter-spacing: 0.05em;
+      }
+      .map-legend {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.8rem;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        color: #888;
+        margin-bottom: 0.3rem;
+      }
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      #mapInfoPanel {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--paper);
+        border: 1px solid var(--border-ink);
+        display: none;
+      }
+
+      /* ══════════════════════════════════
+   DISCOVER CARDS
+══════════════════════════════════ */
+      #discover {
+        background: var(--bg-page);
+      }
+
+      .tab-bar {
+        display: flex;
+        gap: 1px;
+        margin-bottom: 2rem;
+        background: var(--border-med);
+        border: 1.5px solid var(--border-med);
+        max-width: 1200px;
+      }
+      .tab-btn {
+        padding: 0.7rem 1.5rem;
+        background: var(--white);
+        border: none;
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--silver);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tab-btn.active,
+      .tab-btn:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 1.5px;
+        max-width: 1200px;
+        background: var(--border-ink);
+      }
+      .rec-card {
+        background: var(--white);
+        overflow: hidden;
+        transition: all 0.25s;
+        cursor: pointer;
+      }
+      .rec-card:hover {
+        background: var(--paper);
+        transform: translateY(-3px);
+      }
+
+      .rec-card-img {
+        height: 140px;
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-ink);
+        filter: grayscale(30%);
+      }
+      .rec-card-body {
+        padding: 1rem;
+      }
+      .rec-card-tag {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.4rem;
+      }
+      .rec-card-name {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .rec-card-sub {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        color: var(--silver);
+      }
+      .rec-card-price {
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--charcoal);
+        margin-top: 0.6rem;
+      }
+      .stars {
+        color: var(--charcoal);
+      }
+
+      /* ══════════════════════════════════
+   SECTION DIVIDER — newspaper rule
+══════════════════════════════════ */
+      .section-divider {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 0 3rem;
+      }
+      .section-divider .d1 {
+        height: 3px;
+        background: var(--ink);
+      }
+      .section-divider .d2 {
+        height: 1px;
+        background: var(--ink);
+      }
+
+      /* ══════════════════════════════════
+   FOOTER
+══════════════════════════════════ */
+      footer {
+        background: var(--ink);
+        color: var(--silver);
+        padding: 3rem;
+        text-align: center;
+        border-top: 3px solid rgba(255, 255, 255, 0.1);
+      }
+      .footer-masthead {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--white);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+      }
+      .footer-tagline {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 0.9rem;
+        color: var(--silver);
+        margin-bottom: 1.5rem;
+      }
+      .footer-links {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .footer-links a {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--silver);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-links a:hover {
+        color: #fff;
+      }
+      .footer-copy {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        color: rgba(138, 138, 138, 0.4);
+        letter-spacing: 0.08em;
+      }
+
+      /* ══════════════════════════════════
+   ABOUT US
+══════════════════════════════════ */
+      #about {
+        background: var(--bg-page);
+      }
+
+      .about-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .about-lead {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+        font-weight: 400;
+        color: var(--ink);
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+      }
+
+      .about-body {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.05rem;
+        color: var(--charcoal);
+        line-height: 1.8;
+        margin-bottom: 2rem;
+      }
+
+      .about-features-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+      .about-features-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-ink);
+      }
+
+      .about-feature {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-ink);
+      }
+      .about-feature:last-child {
+        border-bottom: none;
+      }
+      .feature-bullet {
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        color: var(--accent);
+        flex-shrink: 0;
+        padding-top: 0.1rem;
+      }
+      .feature-text {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.95rem;
+        color: var(--charcoal);
+        line-height: 1.5;
+      }
+
+      .about-db-card {
+        border: 1.5px solid var(--border-med);
+        background: var(--white);
+        padding: 2rem;
+        align-self: start;
+      }
+      .about-db-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 1rem;
+      }
+      .about-db-badge {
+        display: inline-block;
+        background: var(--ink);
+        color: var(--white);
+        font-family: "DM Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.8rem;
+        margin-bottom: 1.2rem;
+      }
+      .about-db-body {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.95rem;
+        color: var(--charcoal);
+        line-height: 1.7;
+      }
+      .about-db-datasets {
+        margin-top: 1.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .about-db-tag {
+        font-family: "DM Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: 1px solid var(--border-med);
+        color: var(--charcoal);
+        padding: 0.25rem 0.6rem;
+      }
+
+      /* Team member grid */
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5px;
+        max-width: 1100px;
+        margin: 2.5rem auto 0;
+        background: var(--border-med);
+        border: 1.5px solid var(--border-med);
+      }
+      .team-card {
+        background: var(--white);
+        padding: 1.8rem 1.6rem;
+        transition: all 0.25s;
+        position: relative;
+        overflow: hidden;
+      }
+      .team-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--ink);
+      }
+      .team-card:hover {
+        background: var(--ink);
+      }
+      .team-card:hover .team-name,
+      .team-card:hover .team-role,
+      .team-card:hover .team-bio {
+        color: #fff !important;
+      }
+      .team-card:hover .team-role {
+        opacity: 0.6;
+      }
+      .team-card:hover .team-rule {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .team-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 0.3rem;
+        transition: color 0.25s;
+      }
+      .team-role {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.8rem;
+        transition: color 0.25s;
+      }
+      .team-rule {
+        height: 1px;
+        background: var(--border-ink);
+        margin-bottom: 0.8rem;
+        transition: background 0.25s;
+      }
+      .team-bio {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 0.92rem;
+        color: var(--charcoal);
+        line-height: 1.6;
+        transition: color 0.25s;
+      }
+
+      @media (max-width: 900px) {
+        .team-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 768px) {
+        .about-layout {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .team-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .nav-bar {
+          padding: 0.5rem 1.5rem;
+        }
+        .nav-links {
+          display: none;
+        }
+        section {
+          padding: 3rem 1.5rem;
+        }
+        .matches-grid,
+        .explore-layout {
+          grid-template-columns: 1fr;
+        }
+        .builder-controls {
+          grid-template-columns: 1fr;
+        }
+        .nearby-grid {
+          grid-template-columns: 1fr;
+        }
+        .detail-hero {
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══════════════════════════
+     PROJECTOR INTRO SCREEN
+══════════════════════════ -->
+    <div id="projector-screen" style="display: none">
+      <!-- Sprocket holes -->
+      <div class="sprocket-strip left">
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+      </div>
+      <div class="sprocket-strip right">
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+        <div class="sprocket-hole"></div>
+      </div>
+
+      <!-- Projector beam from top -->
+      <div class="proj-beam"></div>
+
+      <!-- Film gate -->
+      <div class="film-gate">
+        <div class="film-grain"></div>
+        <div class="film-scratch"></div>
+        <div class="film-scratch"></div>
+        <div class="film-scratch"></div>
+
+        <!-- Film frames -->
+        <div class="film-frames" id="filmFrames">
+          <!-- Frame 0: Production card -->
+          <div class="film-frame active" id="frame0">
+            <div
+              class="frame-visual"
+              style="flex-direction: column; text-align: center; gap: 1rem"
+            >
+              <div
+                style="
+                  width: 120px;
+                  height: 120px;
+                  border: 4px solid rgba(255, 255, 255, 0.3);
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin: 0 auto;
+                "
+              >
+                <!-- Projector icon SVG -->
+                <svg viewBox="0 0 80 80" width="80" height="80" fill="none">
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="18"
+                    stroke="rgba(255,255,255,0.5)"
+                    stroke-width="2"
+                  />
+                  <circle cx="40" cy="40" r="8" fill="rgba(255,255,255,0.3)" />
+                  <line
+                    x1="40"
+                    y1="0"
+                    x2="40"
+                    y2="15"
+                    stroke="rgba(255,255,255,0.3)"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="40"
+                    y1="65"
+                    x2="40"
+                    y2="80"
+                    stroke="rgba(255,255,255,0.3)"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="0"
+                    y1="40"
+                    x2="15"
+                    y2="40"
+                    stroke="rgba(255,255,255,0.3)"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="65"
+                    y1="40"
+                    x2="80"
+                    y2="40"
+                    stroke="rgba(255,255,255,0.3)"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="11"
+                    y1="11"
+                    x2="22"
+                    y2="22"
+                    stroke="rgba(255,255,255,0.2)"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="58"
+                    y1="58"
+                    x2="69"
+                    y2="69"
+                    stroke="rgba(255,255,255,0.2)"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <div
+                style="
+                  font-family: 'DM Mono', monospace;
+                  font-size: 0.7rem;
+                  color: rgba(255, 255, 255, 0.4);
+                  letter-spacing: 0.3em;
+                "
+              >
+                A COLUMBIA PICTURES PRESENTATION
+              </div>
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 2.5rem;
+                  font-weight: 900;
+                  color: #fff;
+                  letter-spacing: 0.04em;
+                "
+              >
+                FIFA WORLD CUP
+              </div>
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-style: italic;
+                  font-size: 1rem;
+                  color: rgba(255, 255, 255, 0.5);
+                "
+              >
+                2026 · Los Angeles · An Old Hollywood Production
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame 1: 1966 England (Wembley goal) -->
+          <div class="film-frame" id="frame1">
+            <div class="frame-visual">
+              <svg
+                viewBox="0 0 640 360"
+                xmlns="http://www.w3.org/2000/svg"
+                style="max-width: 640px; width: 100%"
+              >
+                <!-- Crowd stands -->
+                <rect width="640" height="360" fill="#0a0a0a" />
+                <!-- Stadium terraces -->
+                <rect x="0" y="200" width="640" height="160" fill="#111" />
+                <rect x="0" y="200" width="640" height="5" fill="#1a1a1a" />
+                <!-- Pitch -->
+                <ellipse
+                  cx="320"
+                  cy="320"
+                  rx="300"
+                  ry="80"
+                  fill="#1a1a1a"
+                  stroke="#222"
+                  stroke-width="1"
+                />
+                <!-- Goal posts -->
+                <line
+                  x1="250"
+                  y1="120"
+                  x2="250"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.7)"
+                  stroke-width="3"
+                />
+                <line
+                  x1="390"
+                  y1="120"
+                  x2="390"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.7)"
+                  stroke-width="3"
+                />
+                <line
+                  x1="250"
+                  y1="120"
+                  x2="390"
+                  y2="120"
+                  stroke="rgba(255,255,255,0.7)"
+                  stroke-width="3"
+                />
+                <!-- Crossbar net -->
+                <line
+                  x1="250"
+                  y1="130"
+                  x2="390"
+                  y2="130"
+                  stroke="rgba(255,255,255,0.15)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="260"
+                  y1="120"
+                  x2="260"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="280"
+                  y1="120"
+                  x2="280"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="300"
+                  y1="120"
+                  x2="300"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="320"
+                  y1="120"
+                  x2="320"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="340"
+                  y1="120"
+                  x2="340"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="360"
+                  y1="120"
+                  x2="360"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="380"
+                  y1="120"
+                  x2="380"
+                  y2="220"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <!-- Ball -->
+                <circle
+                  cx="320"
+                  cy="125"
+                  r="12"
+                  fill="rgba(255,255,255,0.9)"
+                  stroke="#888"
+                  stroke-width="1"
+                />
+                <!-- Motion lines -->
+                <line
+                  x1="260"
+                  y1="200"
+                  x2="305"
+                  y2="130"
+                  stroke="rgba(255,255,255,0.15)"
+                  stroke-width="1"
+                  stroke-dasharray="4,4"
+                />
+                <!-- Crowd silhouettes -->
+                <g fill="rgba(255,255,255,0.06)">
+                  <ellipse cx="50" cy="190" rx="20" ry="30" />
+                  <ellipse cx="100" cy="185" rx="18" ry="28" />
+                  <ellipse cx="150" cy="192" rx="22" ry="32" />
+                  <ellipse cx="500" cy="188" rx="20" ry="30" />
+                  <ellipse cx="550" cy="183" rx="18" ry="28" />
+                  <ellipse cx="590" cy="190" rx="20" ry="30" />
+                </g>
+                <!-- Vignette -->
+                <radialGradient id="vig1" cx="50%" cy="50%">
+                  <stop offset="60%" stop-color="transparent" />
+                  <stop offset="100%" stop-color="rgba(0,0,0,0.8)" />
+                </radialGradient>
+                <rect width="640" height="360" fill="url(#vig1)" />
+              </svg>
+            </div>
+            <div class="frame-caption">
+              <div class="caption-year">World Cup 1966 · Wembley, England</div>
+              <div class="caption-title">England's Finest Hour</div>
+              <div class="caption-sub">
+                The disputed goal heard around the world
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame 2: 1970 Brazil Pelé -->
+          <div class="film-frame" id="frame2">
+            <div class="frame-visual">
+              <svg
+                viewBox="0 0 640 360"
+                xmlns="http://www.w3.org/2000/svg"
+                style="max-width: 640px; width: 100%"
+              >
+                <rect width="640" height="360" fill="#080808" />
+                <!-- Sky / stadium lights -->
+                <ellipse
+                  cx="100"
+                  cy="30"
+                  rx="40"
+                  ry="15"
+                  fill="rgba(255,255,255,0.08)"
+                />
+                <ellipse
+                  cx="540"
+                  cy="30"
+                  rx="40"
+                  ry="15"
+                  fill="rgba(255,255,255,0.08)"
+                />
+                <!-- Player silhouette - Pelé bicycle kick style -->
+                <g transform="translate(280,140)" fill="rgba(255,255,255,0.8)">
+                  <!-- Body -->
+                  <ellipse cx="30" cy="0" rx="12" ry="18" />
+                  <!-- Head -->
+                  <circle cx="30" cy="-25" r="12" />
+                  <!-- Arms -->
+                  <line
+                    x1="18"
+                    y1="-5"
+                    x2="-10"
+                    y2="-25"
+                    stroke="rgba(255,255,255,0.8)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="42"
+                    y1="-5"
+                    x2="68"
+                    y2="-25"
+                    stroke="rgba(255,255,255,0.8)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <!-- Legs - kick position -->
+                  <line
+                    x1="22"
+                    y1="15"
+                    x2="5"
+                    y2="40"
+                    stroke="rgba(255,255,255,0.8)"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="38"
+                    y1="15"
+                    x2="60"
+                    y2="-10"
+                    stroke="rgba(255,255,255,0.8)"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                </g>
+                <!-- Ball -->
+                <circle cx="360" cy="100" r="18" fill="rgba(255,255,255,0.9)" />
+                <!-- Motion arc -->
+                <path
+                  d="M345 118 Q380 60 420 90"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.2)"
+                  stroke-width="1.5"
+                  stroke-dasharray="5,5"
+                />
+                <!-- Pitch markings -->
+                <ellipse
+                  cx="320"
+                  cy="330"
+                  rx="280"
+                  ry="40"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <!-- Vignette -->
+                <radialGradient id="vig2" cx="50%" cy="50%">
+                  <stop offset="55%" stop-color="transparent" />
+                  <stop offset="100%" stop-color="rgba(0,0,0,0.85)" />
+                </radialGradient>
+                <rect width="640" height="360" fill="url(#vig2)" />
+                <!-- Grain lines -->
+                <g stroke="rgba(255,255,255,0.015)" stroke-width="1">
+                  <line x1="0" y1="40" x2="640" y2="40" />
+                  <line x1="0" y1="80" x2="640" y2="80" />
+                  <line x1="0" y1="120" x2="640" y2="120" />
+                  <line x1="0" y1="200" x2="640" y2="200" />
+                </g>
+              </svg>
+            </div>
+            <div class="frame-caption">
+              <div class="caption-year">World Cup 1970 · Mexico City</div>
+              <div class="caption-title">O Rei — The King of the Game</div>
+              <div class="caption-sub">
+                Brazil's golden era, forever immortalized on film
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame 3: 1986 Maradona Hand of God -->
+          <div class="film-frame" id="frame3">
+            <div class="frame-visual">
+              <svg
+                viewBox="0 0 640 360"
+                xmlns="http://www.w3.org/2000/svg"
+                style="max-width: 640px; width: 100%"
+              >
+                <rect width="640" height="360" fill="#090909" />
+                <!-- Scoreboard suggestion -->
+                <rect
+                  x="10"
+                  y="10"
+                  width="160"
+                  height="40"
+                  fill="rgba(255,255,255,0.04)"
+                  rx="2"
+                />
+                <text
+                  x="20"
+                  y="28"
+                  font-family="monospace"
+                  font-size="11"
+                  fill="rgba(255,255,255,0.3)"
+                >
+                  ARG 1 : 0 ENG
+                </text>
+                <text
+                  x="20"
+                  y="42"
+                  font-family="monospace"
+                  font-size="9"
+                  fill="rgba(255,255,255,0.15)"
+                >
+                  52' MEXICO CITY
+                </text>
+                <!-- Goalkeeper jumping -->
+                <g transform="translate(450,80)">
+                  <circle cx="0" cy="-20" r="11" />
+                  <rect x="-10" y="-10" width="20" height="28" rx="5" />
+                  <line
+                    x1="-10"
+                    y1="-5"
+                    x2="-35"
+                    y2="-28"
+                    stroke="#888"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="10"
+                    y1="-5"
+                    x2="30"
+                    y2="-25"
+                    stroke="#888"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="-5"
+                    y1="18"
+                    x2="-12"
+                    y2="45"
+                    stroke="#888"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="5"
+                    y1="18"
+                    x2="15"
+                    y2="45"
+                    stroke="#888"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                </g>
+                <!-- Maradona smaller, hand up -->
+                <g transform="translate(300,120)" fill="rgba(255,255,255,0.85)">
+                  <circle cx="0" cy="-20" r="10" />
+                  <rect x="-9" y="-11" width="18" height="25" rx="4" />
+                  <line
+                    x1="-9"
+                    y1="-5"
+                    x2="-30"
+                    y2="-35"
+                    stroke="rgba(255,255,255,0.85)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="9"
+                    y1="-5"
+                    x2="22"
+                    y2="-15"
+                    stroke="rgba(255,255,255,0.85)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                </g>
+                <!-- Ball near hand -->
+                <circle cx="310" cy="85" r="13" fill="rgba(255,255,255,0.85)" />
+                <!-- "?" overlay for controversy -->
+                <text
+                  x="316"
+                  y="93"
+                  font-family="Georgia"
+                  font-size="14"
+                  fill="rgba(0,0,0,0.5)"
+                  font-weight="bold"
+                >
+                  ?
+                </text>
+                <!-- Goalposts -->
+                <line
+                  x1="400"
+                  y1="60"
+                  x2="400"
+                  y2="230"
+                  stroke="rgba(255,255,255,0.5)"
+                  stroke-width="3"
+                />
+                <line
+                  x1="560"
+                  y1="60"
+                  x2="560"
+                  y2="230"
+                  stroke="rgba(255,255,255,0.5)"
+                  stroke-width="3"
+                />
+                <line
+                  x1="400"
+                  y1="60"
+                  x2="560"
+                  y2="60"
+                  stroke="rgba(255,255,255,0.5)"
+                  stroke-width="3"
+                />
+                <!-- Vignette -->
+                <radialGradient id="vig3" cx="50%" cy="50%">
+                  <stop offset="50%" stop-color="transparent" />
+                  <stop offset="100%" stop-color="rgba(0,0,0,0.9)" />
+                </radialGradient>
+                <rect width="640" height="360" fill="url(#vig3)" />
+              </svg>
+            </div>
+            <div class="frame-caption">
+              <div class="caption-year">
+                World Cup 1986 · Azteca Stadium, Mexico
+              </div>
+              <div class="caption-title">
+                "A Little with the Head of Maradona..."
+              </div>
+              <div class="caption-sub">
+                The goal that divided the world — and thrilled it
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame 4: 2022 Qatar Final -->
+          <div class="film-frame" id="frame4">
+            <div class="frame-visual">
+              <svg
+                viewBox="0 0 640 360"
+                xmlns="http://www.w3.org/2000/svg"
+                style="max-width: 640px; width: 100%"
+              >
+                <rect width="640" height="360" fill="#070707" />
+                <!-- Stadium with massive lights -->
+                <g fill="rgba(255,255,255,0.06)">
+                  <rect x="0" y="0" width="640" height="150" />
+                </g>
+                <!-- Pitch center -->
+                <ellipse
+                  cx="320"
+                  cy="300"
+                  rx="260"
+                  ry="60"
+                  fill="#0f0f0f"
+                  stroke="rgba(255,255,255,0.07)"
+                  stroke-width="1"
+                />
+                <line
+                  x1="320"
+                  y1="240"
+                  x2="320"
+                  y2="360"
+                  stroke="rgba(255,255,255,0.07)"
+                  stroke-width="1"
+                />
+                <!-- Trophy silhouette -->
+                <g transform="translate(260,60)" fill="rgba(255,255,255,0.9)">
+                  <path
+                    d="M60 0 L80 0 L75 80 L85 90 L85 110 L35 110 L35 90 L45 80 Z"
+                  />
+                  <path d="M75 20 Q100 30 95 60 Q85 70 75 65 Z" />
+                  <path d="M45 20 Q20 30 25 60 Q35 70 45 65 Z" />
+                  <rect x="20" y="105" width="80" height="12" rx="2" />
+                </g>
+                <!-- Player lifting trophy - celebration -->
+                <g transform="translate(140,120)" fill="rgba(255,255,255,0.7)">
+                  <circle cx="30" cy="-30" r="13" />
+                  <rect x="20" y="-17" width="20" height="30" rx="4" />
+                  <line
+                    x1="20"
+                    y1="-10"
+                    x2="-5"
+                    y2="-35"
+                    stroke="rgba(255,255,255,0.7)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="40"
+                    y1="-10"
+                    x2="55"
+                    y2="-35"
+                    stroke="rgba(255,255,255,0.7)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="25"
+                    y1="13"
+                    x2="18"
+                    y2="45"
+                    stroke="rgba(255,255,255,0.7)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="35"
+                    y1="13"
+                    x2="42"
+                    y2="45"
+                    stroke="rgba(255,255,255,0.7)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                </g>
+                <!-- Confetti dots -->
+                <g fill="rgba(255,255,255,0.4)">
+                  <circle cx="50" cy="80" r="2" />
+                  <circle cx="120" cy="40" r="2" />
+                  <circle cx="80" cy="120" r="1.5" />
+                  <circle cx="200" cy="60" r="2" />
+                  <circle cx="450" cy="90" r="2" />
+                  <circle cx="520" cy="50" r="1.5" />
+                  <circle cx="580" cy="100" r="2" />
+                  <circle cx="480" cy="130" r="2" />
+                  <circle cx="160" cy="100" r="1.5" />
+                  <circle cx="350" cy="50" r="2" />
+                  <circle cx="420" cy="70" r="1.5" />
+                  <circle cx="250" cy="90" r="2" />
+                </g>
+                <!-- Score display -->
+                <rect
+                  x="230"
+                  y="20"
+                  width="180"
+                  height="35"
+                  fill="rgba(255,255,255,0.05)"
+                  rx="2"
+                />
+                <text
+                  x="320"
+                  y="43"
+                  font-family="Georgia"
+                  font-size="18"
+                  fill="rgba(255,255,255,0.5)"
+                  text-anchor="middle"
+                  font-weight="bold"
+                >
+                  ARG 3 : 3 FRA
+                </text>
+                <!-- Vignette -->
+                <radialGradient id="vig4" cx="50%" cy="50%">
+                  <stop offset="50%" stop-color="transparent" />
+                  <stop offset="100%" stop-color="rgba(0,0,0,0.85)" />
+                </radialGradient>
+                <rect width="640" height="360" fill="url(#vig4)" />
+              </svg>
+            </div>
+            <div class="frame-caption">
+              <div class="caption-year">
+                World Cup Final 2022 · Lusail Stadium, Qatar
+              </div>
+              <div class="caption-title">The Greatest Final Ever Played</div>
+              <div class="caption-sub">
+                Argentina. France. 3-3. Penalty glory. Tears & triumph.
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame 5: Coming to LA -->
+          <div class="film-frame" id="frame5">
+            <div
+              class="frame-visual"
+              style="flex-direction: column; text-align: center; gap: 1.5rem"
+            >
+              <!-- Hollywood sign + stadium silhouette -->
+              <svg
+                viewBox="0 0 600 280"
+                xmlns="http://www.w3.org/2000/svg"
+                style="max-width: 600px; width: 100%"
+              >
+                <rect width="600" height="280" fill="#080808" />
+                <!-- Hills -->
+                <path
+                  d="M0 200 Q100 120 200 150 Q280 110 350 140 Q430 100 500 130 Q560 115 600 140 L600 280 L0 280Z"
+                  fill="#111"
+                />
+                <!-- Hollywood sign (stylized letters) -->
+                <g
+                  fill="rgba(255,255,255,0.55)"
+                  font-family="Playfair Display, serif"
+                  font-weight="900"
+                  font-size="28"
+                >
+                  <text x="55" y="125">HOLLYWOOD</text>
+                </g>
+                <!-- Stadium silhouette (modern) -->
+                <g fill="rgba(255,255,255,0.08)">
+                  <ellipse cx="300" cy="230" rx="160" ry="40" />
+                  <rect x="150" y="185" width="300" height="50" rx="4" />
+                  <path
+                    d="M150 190 Q170 160 200 165 L400 165 Q430 160 450 190Z"
+                  />
+                </g>
+                <!-- "2026" large -->
+                <text
+                  x="300"
+                  y="175"
+                  font-family="Playfair Display, serif"
+                  font-weight="900"
+                  font-size="60"
+                  fill="rgba(255,255,255,0.9)"
+                  text-anchor="middle"
+                >
+                  2026
+                </text>
+                <!-- Stars in sky -->
+                <g fill="rgba(255,255,255,0.3)">
+                  <circle cx="50" cy="40" r="1.5" />
+                  <circle cx="150" cy="25" r="1" />
+                  <circle cx="250" cy="50" r="1.5" />
+                  <circle cx="400" cy="30" r="1" />
+                  <circle cx="500" cy="45" r="1.5" />
+                  <circle cx="550" cy="20" r="1" />
+                  <circle cx="100" cy="60" r="1" />
+                  <circle cx="470" cy="60" r="1.5" />
+                </g>
+                <!-- Moon -->
+                <circle cx="520" cy="50" r="20" fill="rgba(255,255,255,0.07)" />
+                <circle cx="525" cy="45" r="16" fill="#080808" />
+                <!-- Vignette -->
+                <radialGradient id="vig5" cx="50%" cy="60%">
+                  <stop offset="50%" stop-color="transparent" />
+                  <stop offset="100%" stop-color="rgba(0,0,0,0.8)" />
+                </radialGradient>
+                <rect width="600" height="280" fill="url(#vig5)" />
+              </svg>
+              <div
+                style="
+                  font-family: 'DM Mono', monospace;
+                  font-size: 0.7rem;
+                  color: rgba(255, 255, 255, 0.3);
+                  letter-spacing: 0.3em;
+                "
+              >
+                NOW PLAYING
+              </div>
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 2rem;
+                  font-weight: 900;
+                  color: #fff;
+                  letter-spacing: 0.04em;
+                "
+              >
+                LOS ANGELES · JUNE–JULY 2026
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /film-frames -->
+      </div>
+      <!-- /film-gate -->
+
+      <!-- Film counter -->
+      <div class="film-counter" id="filmCounter">01 / 06</div>
+
+      <!-- Progress -->
+      <div class="proj-progress">
+        <div
+          class="proj-progress-bar"
+          id="projProgress"
+          style="width: 0%"
+        ></div>
+      </div>
+
+      <!-- Skip -->
+      <button class="proj-skip" onclick="skipProjector()">Skip ›</button>
+    </div>
+
+    <!-- ═══════════════════ MAIN SITE ════════════════════ -->
+
+    <!-- NAV -->
+    <nav>
+      <div class="nav-masthead">
+        <div class="nav-title">
+          The Official FIFA World Cup 2026™ Los Angeles Visitor's Guide
+        </div>
+        <div class="nav-logo">LA × WC26</div>
+      </div>
+      <div class="nav-bar">
+        <div class="nav-rule">Est. June 11, 2026</div>
+        <ul class="nav-links">
+          <li><a href="#matches">Matches</a></li>
+          <li><a href="#la-showcase">Explore LA</a></li>
+          <li><a href="#itinerary">Itinerary</a></li>
+          <li><a href="#explore">Map</a></li>
+          <li><a href="#discover">Hotels & Dining</a></li>
+          <li><a href="#about">About Us</a></li>
+        </ul>
+        <div class="nav-rule">SoFi Stadium · Inglewood</div>
+      </div>
+    </nav>
+
+    <!-- ══════════ HERO ══════════ -->
+    <section id="hero">
+      <div class="hero-rule-top">
+        <div class="rule-thick"></div>
+        <div class="rule-thin"></div>
+      </div>
+
+      <div class="hero-eyebrow-wrap">
+        <div class="eyebrow-rule"></div>
+        <div class="hero-eyebrow">✦ FIFA World Cup 2026™ · Los Angeles ✦</div>
+        <div class="eyebrow-rule"></div>
+      </div>
+
+      <div class="hero-dateline">
+        June 11 – July 19, 2026 · SoFi Stadium · Inglewood, California
+      </div>
+
+      <h1 class="hero-headline">
+        THE <em>BEAUTIFUL</em><br />
+        GAME COMES TO<br />
+        <span class="outline-txt">HOLLYWOOD</span>
+      </h1>
+
+      <p class="hero-deck">
+        A cinematic journey through football, glamour &amp; the City of Angels
+        —<br />
+        where the silver screen meets the beautiful game.
+      </p>
+
+      <!-- LA Colorful Filmstrip -->
+      <div class="la-filmstrip">
+        <!-- Sprocket row -->
+        <div class="strip-sprockets">
+          <div class="strip-holes">
+            <!-- 40 holes for looping -->
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <!-- duplicate for loop -->
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+          </div>
+        </div>
+
+        <!-- Photo strip (colorful LA) -->
+        <div class="strip-images" id="laStrip">
+          <!-- LA Sky - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lasky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FF6B35" />
+                  <stop offset="40%" stop-color="#F7C59F" />
+                  <stop offset="70%" stop-color="#87CEEB" />
+                  <stop offset="100%" stop-color="#4A90D9" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#lasky)" />
+              <!-- Sun -->
+              <circle cx="170" cy="35" r="20" fill="#FFD700" opacity="0.9" />
+              <!-- Palm trees silhouette -->
+              <rect x="30" y="80" width="6" height="70" fill="#1a0a00" />
+              <ellipse cx="33" cy="75" rx="22" ry="12" fill="#1a2a00" />
+              <rect x="180" y="90" width="5" height="60" fill="#1a0a00" />
+              <ellipse cx="182" cy="85" rx="18" ry="10" fill="#1a2a00" />
+              <!-- Smog layer -->
+              <rect
+                x="0"
+                y="105"
+                width="220"
+                height="20"
+                fill="rgba(255,200,150,0.3)"
+              />
+              <!-- LA skyline silhouette -->
+              <g fill="#0a0a0a">
+                <rect x="80" y="100" width="12" height="50" />
+                <rect x="95" y="90" width="15" height="60" />
+                <rect x="113" y="95" width="10" height="55" />
+                <rect x="126" y="85" width="13" height="65" />
+              </g>
+            </svg>
+            <div class="photo-caption">LA Sunset Sky</div>
+          </div>
+
+          <!-- Hollywood Sign - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hillsky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1E3A5F" />
+                  <stop offset="60%" stop-color="#87CEEB" />
+                  <stop offset="100%" stop-color="#5BA04A" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#hillsky)" />
+              <!-- Hills -->
+              <path
+                d="M0 120 Q60 70 120 90 Q170 60 220 85 L220 150 L0 150Z"
+                fill="#4A7A30"
+              />
+              <path
+                d="M0 130 Q80 100 160 110 L220 105 L220 150 L0 150Z"
+                fill="#3A6020"
+              />
+              <!-- White Hollywood sign letters -->
+              <g
+                fill="white"
+                font-family="Arial Black"
+                font-weight="900"
+                font-size="14"
+              >
+                <text x="18" y="95">HOLLYWOOD</text>
+              </g>
+              <!-- Sign poles suggestion -->
+              <g stroke="rgba(255,255,255,0.4)" stroke-width="0.5">
+                <line x1="25" y1="96" x2="25" y2="110" />
+                <line x1="42" y1="96" x2="42" y2="112" />
+                <line x1="59" y1="96" x2="59" y2="110" />
+              </g>
+              <!-- Blue sky clouds -->
+              <ellipse
+                cx="160"
+                cy="30"
+                rx="30"
+                ry="12"
+                fill="rgba(255,255,255,0.6)"
+              />
+              <ellipse
+                cx="190"
+                cy="35"
+                rx="20"
+                ry="8"
+                fill="rgba(255,255,255,0.5)"
+              />
+              <ellipse
+                cx="40"
+                cy="20"
+                rx="25"
+                ry="10"
+                fill="rgba(255,255,255,0.4)"
+              />
+            </svg>
+            <div class="photo-caption">Hollywood Sign</div>
+          </div>
+
+          <!-- Disneyland - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="disneysky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1565C0" />
+                  <stop offset="100%" stop-color="#42A5F5" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#disneysky)" />
+              <!-- Sleeping Beauty Castle -->
+              <g fill="#E8C9E0">
+                <!-- Main tower -->
+                <rect x="95" y="55" width="30" height="80" />
+                <!-- Side towers -->
+                <rect x="70" y="75" width="20" height="60" />
+                <rect x="130" y="70" width="22" height="65" />
+                <!-- Turret spires -->
+                <polygon points="110,15 95,55 125,55" fill="#7B1FA2" />
+                <polygon points="80,35 70,75 90,75" fill="#9C27B0" />
+                <polygon points="141,28 130,70 152,70" fill="#7B1FA2" />
+                <!-- Small towers -->
+                <rect x="60" y="90" width="12" height="45" />
+                <polygon points="66,70 60,90 72,90" fill="#6A1B9A" />
+                <rect x="148" y="88" width="12" height="47" />
+                <polygon points="154,68 148,88 160,88" fill="#6A1B9A" />
+              </g>
+              <!-- Windows -->
+              <g fill="#FFE082">
+                <rect x="103" y="70" width="6" height="8" rx="1" />
+                <rect x="113" y="70" width="6" height="8" rx="1" />
+                <rect x="103" y="85" width="6" height="8" rx="1" />
+                <rect x="113" y="85" width="6" height="8" rx="1" />
+              </g>
+              <!-- Fireworks -->
+              <g fill="#FF6B35">
+                <circle cx="40" cy="30" r="3" />
+                <circle cx="35" cy="25" r="2" />
+                <circle cx="45" cy="25" r="2" />
+                <circle cx="40" cy="20" r="1.5" />
+              </g>
+              <g fill="#FFD700">
+                <circle cx="180" cy="25" r="3" />
+                <circle cx="175" cy="20" r="2" />
+                <circle cx="185" cy="20" r="2" />
+                <circle cx="180" cy="15" r="1.5" />
+              </g>
+              <!-- Crowd -->
+              <rect x="0" y="130" width="220" height="20" fill="#3E2723" />
+              <g fill="rgba(255,255,255,0.15)" font-size="6">
+                <text x="10" y="143">DISNEYLAND CALIFORNIA</text>
+              </g>
+            </svg>
+            <div class="photo-caption">Disneyland, Anaheim</div>
+          </div>
+
+          <!-- Universal Studios - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="univsky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0D47A1" />
+                  <stop offset="100%" stop-color="#64B5F6" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#univsky)" />
+              <!-- Globe (Universal logo inspired) -->
+              <circle
+                cx="110"
+                cy="65"
+                r="50"
+                fill="none"
+                stroke="rgba(255,255,255,0.15)"
+                stroke-width="1"
+              />
+              <circle cx="110" cy="65" r="50" fill="rgba(30,100,200,0.3)" />
+              <!-- Globe grid lines -->
+              <ellipse
+                cx="110"
+                cy="65"
+                rx="50"
+                ry="20"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                stroke-width="0.8"
+              />
+              <ellipse
+                cx="110"
+                cy="65"
+                rx="50"
+                ry="35"
+                fill="none"
+                stroke="rgba(255,255,255,0.1)"
+                stroke-width="0.8"
+              />
+              <line
+                x1="110"
+                y1="15"
+                x2="110"
+                y2="115"
+                stroke="rgba(255,255,255,0.15)"
+                stroke-width="0.8"
+              />
+              <line
+                x1="60"
+                y1="65"
+                x2="160"
+                y2="65"
+                stroke="rgba(255,255,255,0.15)"
+                stroke-width="0.8"
+              />
+              <!-- Continents suggestion -->
+              <path
+                d="M80 55 Q90 45 105 50 Q115 48 120 55 Q125 65 110 68 Q95 70 80 55Z"
+                fill="#2E7D32"
+                opacity="0.7"
+              />
+              <path
+                d="M115 50 Q128 44 138 52 Q142 60 135 65 Q125 65 115 50Z"
+                fill="#2E7D32"
+                opacity="0.6"
+              />
+              <!-- "UNIVERSAL STUDIOS" text banner -->
+              <rect
+                x="15"
+                y="120"
+                width="190"
+                height="22"
+                fill="rgba(0,0,0,0.5)"
+              />
+              <text
+                x="110"
+                y="135"
+                font-family="Arial"
+                font-weight="900"
+                font-size="10"
+                fill="#FFD700"
+                text-anchor="middle"
+                letter-spacing="2"
+              >
+                UNIVERSAL STUDIOS
+              </text>
+            </svg>
+            <div class="photo-caption">Universal Studios Hollywood</div>
+          </div>
+
+          <!-- Santa Monica Beach - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="beachsky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0288D1" />
+                  <stop offset="60%" stop-color="#4FC3F7" />
+                  <stop offset="100%" stop-color="#B3E5FC" />
+                </linearGradient>
+                <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0277BD" />
+                  <stop offset="100%" stop-color="#4FC3F7" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#beachsky)" />
+              <!-- Ocean -->
+              <rect x="0" y="85" width="220" height="65" fill="url(#ocean)" />
+              <!-- Waves -->
+              <path
+                d="M0 88 Q30 82 60 88 Q90 94 120 88 Q150 82 180 88 Q210 94 220 90 L220 95 Q190 100 160 95 Q130 90 100 95 Q70 100 40 95 Q15 90 0 95Z"
+                fill="rgba(255,255,255,0.4)"
+              />
+              <!-- Sand -->
+              <rect x="0" y="108" width="220" height="42" fill="#F5DEB3" />
+              <!-- Santa Monica Pier -->
+              <rect x="80" y="68" width="4" height="42" fill="#8B4513" />
+              <rect x="90" y="68" width="4" height="42" fill="#8B4513" />
+              <rect x="100" y="68" width="4" height="42" fill="#8B4513" />
+              <rect x="75" y="65" width="35" height="8" fill="#D2691E" />
+              <!-- Ferris wheel -->
+              <circle
+                cx="115"
+                cy="50"
+                r="18"
+                fill="none"
+                stroke="#FF4444"
+                stroke-width="2.5"
+              />
+              <line
+                x1="115"
+                y1="32"
+                x2="115"
+                y2="68"
+                stroke="#FF4444"
+                stroke-width="1.5"
+              />
+              <line
+                x1="97"
+                y1="50"
+                x2="133"
+                y2="50"
+                stroke="#FF4444"
+                stroke-width="1.5"
+              />
+              <circle cx="115" cy="50" r="4" fill="#FFD700" />
+              <!-- Sun -->
+              <circle cx="30" cy="25" r="12" fill="#FFD700" />
+              <!-- Surfers -->
+              <ellipse
+                cx="170"
+                cy="105"
+                rx="10"
+                ry="3"
+                fill="rgba(255,255,255,0.6)"
+              />
+            </svg>
+            <div class="photo-caption">Santa Monica Pier</div>
+          </div>
+
+          <!-- SoFi Stadium - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="sofisky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#212121" />
+                  <stop offset="100%" stop-color="#424242" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#sofisky)" />
+              <!-- Stadium roof (translucent) -->
+              <ellipse
+                cx="110"
+                cy="60"
+                rx="95"
+                ry="30"
+                fill="rgba(200,220,255,0.15)"
+                stroke="rgba(255,255,255,0.3)"
+                stroke-width="1.5"
+              />
+              <!-- Stadium bowl -->
+              <ellipse cx="110" cy="85" rx="85" ry="45" fill="#1B5E20" />
+              <!-- Pitch markings (green) -->
+              <ellipse cx="110" cy="85" rx="85" ry="45" fill="#2E7D32" />
+              <ellipse
+                cx="110"
+                cy="85"
+                rx="60"
+                ry="30"
+                fill="#388E3C"
+                stroke="white"
+                stroke-width="1.5"
+                stroke-dasharray="none"
+              />
+              <ellipse
+                cx="110"
+                cy="85"
+                rx="20"
+                ry="10"
+                fill="none"
+                stroke="white"
+                stroke-width="1.5"
+              />
+              <line
+                x1="25"
+                y1="85"
+                x2="195"
+                y2="85"
+                stroke="white"
+                stroke-width="1.5"
+              />
+              <!-- Seats - ring of color -->
+              <ellipse
+                cx="110"
+                cy="85"
+                rx="85"
+                ry="45"
+                fill="none"
+                stroke="#C62828"
+                stroke-width="8"
+                opacity="0.7"
+              />
+              <!-- Logo on roof -->
+              <text
+                x="110"
+                y="40"
+                font-family="Arial Black"
+                font-weight="900"
+                font-size="10"
+                fill="rgba(255,255,255,0.6)"
+                text-anchor="middle"
+                letter-spacing="1"
+              >
+                SoFi STADIUM
+              </text>
+              <!-- Lights -->
+              <g fill="#FFD700" opacity="0.8">
+                <circle cx="30" cy="50" r="3" />
+                <circle cx="55" cy="40" r="3" />
+                <circle cx="165" cy="40" r="3" />
+                <circle cx="190" cy="50" r="3" />
+              </g>
+            </svg>
+            <div class="photo-caption">SoFi Stadium, Inglewood</div>
+          </div>
+
+          <!-- Venice Beach - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="venicesky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FF8F00" />
+                  <stop offset="50%" stop-color="#FFA726" />
+                  <stop offset="100%" stop-color="#FFE0B2" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#venicesky)" />
+              <!-- Mural wall -->
+              <rect x="0" y="40" width="220" height="110" fill="#F5F5F5" />
+              <!-- Colorful graffiti/mural shapes -->
+              <rect x="0" y="40" width="50" height="110" fill="#E91E63" />
+              <rect x="50" y="40" width="40" height="110" fill="#2196F3" />
+              <rect x="90" y="40" width="40" height="110" fill="#FF9800" />
+              <rect x="130" y="40" width="40" height="110" fill="#4CAF50" />
+              <rect x="170" y="40" width="50" height="110" fill="#9C27B0" />
+              <!-- Abstract shapes on mural -->
+              <circle cx="25" cy="85" r="20" fill="rgba(255,255,255,0.2)" />
+              <circle cx="75" cy="80" r="25" fill="rgba(0,0,0,0.15)" />
+              <!-- Skater silhouettes -->
+              <g fill="#000" opacity="0.6">
+                <circle cx="100" cy="115" r="8" />
+                <rect x="96" y="122" width="8" height="15" rx="3" />
+                <circle cx="150" cy="110" r="8" />
+                <rect x="146" y="117" width="8" height="15" rx="3" />
+              </g>
+              <!-- "VENICE" text on wall -->
+              <text
+                x="110"
+                y="68"
+                font-family="Arial Black"
+                font-weight="900"
+                font-size="18"
+                fill="rgba(255,255,255,0.8)"
+                text-anchor="middle"
+                letter-spacing="2"
+              >
+                VENICE
+              </text>
+            </svg>
+            <div class="photo-caption">Venice Beach Boardwalk</div>
+          </div>
+
+          <!-- Griffith Observatory - colorful -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="griffsky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0D1B2A" />
+                  <stop offset="50%" stop-color="#1B2A4A" />
+                  <stop offset="100%" stop-color="#2C3E6A" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#griffsky)" />
+              <!-- Stars -->
+              <g fill="white" opacity="0.7">
+                <circle cx="20" cy="15" r="1" />
+                <circle cx="60" cy="10" r="1.5" />
+                <circle cx="100" cy="20" r="1" />
+                <circle cx="150" cy="8" r="1.5" />
+                <circle cx="200" cy="18" r="1" />
+                <circle cx="180" cy="30" r="1.5" />
+                <circle cx="40" cy="35" r="1" />
+              </g>
+              <!-- Moon glow -->
+              <circle cx="175" cy="28" r="15" fill="#FFF9C4" opacity="0.9" />
+              <circle cx="172" cy="25" r="12" fill="#FFF9E4" />
+              <!-- Hills in purple/blue -->
+              <path
+                d="M0 110 Q60 75 110 90 Q160 65 220 85 L220 150 L0 150Z"
+                fill="#4A148C"
+              />
+              <path
+                d="M0 120 Q80 100 160 112 L220 108 L220 150 L0 150Z"
+                fill="#311B92"
+              />
+              <!-- Observatory building -->
+              <g fill="#F5F5DC">
+                <rect x="60" y="75" width="100" height="50" />
+                <!-- Main dome -->
+                <ellipse cx="110" cy="73" rx="30" ry="18" fill="#ECEFF1" />
+                <!-- Side domes -->
+                <ellipse cx="68" cy="80" rx="15" ry="10" fill="#ECEFF1" />
+                <ellipse cx="152" cy="80" rx="15" ry="10" fill="#ECEFF1" />
+                <!-- Columns -->
+                <rect x="70" y="90" width="6" height="35" />
+                <rect x="144" y="90" width="6" height="35" />
+              </g>
+              <!-- City lights below -->
+              <g fill="#FFD700" opacity="0.6">
+                <circle cx="20" cy="140" r="1" />
+                <circle cx="40" cy="138" r="1.5" />
+                <circle cx="65" cy="143" r="1" />
+                <circle cx="160" cy="140" r="1.5" />
+                <circle cx="190" cy="137" r="1" />
+                <circle cx="210" cy="142" r="1.5" />
+              </g>
+            </svg>
+            <div class="photo-caption">Griffith Observatory</div>
+          </div>
+
+          <!-- DUPLICATE for infinite loop -->
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lasky2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FF6B35" />
+                  <stop offset="40%" stop-color="#F7C59F" />
+                  <stop offset="70%" stop-color="#87CEEB" />
+                  <stop offset="100%" stop-color="#4A90D9" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#lasky2)" />
+              <circle cx="170" cy="35" r="20" fill="#FFD700" opacity="0.9" />
+              <rect x="30" y="80" width="6" height="70" fill="#1a0a00" />
+              <ellipse cx="33" cy="75" rx="22" ry="12" fill="#1a2a00" />
+              <rect x="180" y="90" width="5" height="60" fill="#1a0a00" />
+              <ellipse cx="182" cy="85" rx="18" ry="10" fill="#1a2a00" />
+              <rect
+                x="0"
+                y="105"
+                width="220"
+                height="20"
+                fill="rgba(255,200,150,0.3)"
+              />
+              <g fill="#0a0a0a">
+                <rect x="80" y="100" width="12" height="50" />
+                <rect x="95" y="90" width="15" height="60" />
+                <rect x="113" y="95" width="10" height="55" />
+                <rect x="126" y="85" width="13" height="65" />
+              </g>
+            </svg>
+            <div class="photo-caption">LA Sunset Sky</div>
+          </div>
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="disneysky2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1565C0" />
+                  <stop offset="100%" stop-color="#42A5F5" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#disneysky2)" />
+              <g fill="#E8C9E0">
+                <rect x="95" y="55" width="30" height="80" />
+                <rect x="70" y="75" width="20" height="60" />
+                <rect x="130" y="70" width="22" height="65" />
+                <polygon points="110,15 95,55 125,55" fill="#7B1FA2" />
+                <polygon points="80,35 70,75 90,75" fill="#9C27B0" />
+                <polygon points="141,28 130,70 152,70" fill="#7B1FA2" />
+              </g>
+              <g fill="#FFE082">
+                <rect x="103" y="70" width="6" height="8" rx="1" />
+                <rect x="113" y="70" width="6" height="8" rx="1" />
+              </g>
+              <g fill="#FF6B35">
+                <circle cx="40" cy="30" r="3" />
+                <circle cx="35" cy="25" r="2" />
+                <circle cx="45" cy="25" r="2" />
+              </g>
+              <rect x="0" y="130" width="220" height="20" fill="#3E2723" />
+            </svg>
+            <div class="photo-caption">Disneyland, Anaheim</div>
+          </div>
+          <div class="la-photo">
+            <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="univsky2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0D47A1" />
+                  <stop offset="100%" stop-color="#64B5F6" />
+                </linearGradient>
+              </defs>
+              <rect width="220" height="150" fill="url(#univsky2)" />
+              <circle cx="110" cy="65" r="50" fill="rgba(30,100,200,0.3)" />
+              <ellipse
+                cx="110"
+                cy="65"
+                rx="50"
+                ry="20"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                stroke-width="0.8"
+              />
+              <line
+                x1="110"
+                y1="15"
+                x2="110"
+                y2="115"
+                stroke="rgba(255,255,255,0.15)"
+                stroke-width="0.8"
+              />
+              <path
+                d="M80 55 Q90 45 105 50 Q115 48 120 55 Q125 65 110 68 Q95 70 80 55Z"
+                fill="#2E7D32"
+                opacity="0.7"
+              />
+              <rect
+                x="15"
+                y="120"
+                width="190"
+                height="22"
+                fill="rgba(0,0,0,0.5)"
+              />
+              <text
+                x="110"
+                y="135"
+                font-family="Arial"
+                font-weight="900"
+                font-size="10"
+                fill="#FFD700"
+                text-anchor="middle"
+                letter-spacing="2"
+              >
+                UNIVERSAL STUDIOS
+              </text>
+            </svg>
+            <div class="photo-caption">Universal Studios Hollywood</div>
+          </div>
+        </div>
+        <!-- Bottom sprocket row -->
+        <div class="strip-sprockets">
+          <div class="strip-holes">
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+            <div class="strip-hole"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identity picker -->
+      <div class="identity-section">
+        <div class="identity-eyebrow">Who are you traveling as?</div>
+        <div class="identity-cards">
+          <div class="identity-card" onclick="setIdentity('family', this)">
+            <span class="icon">👨‍👩‍👧‍👦</span><span class="label">Family</span>
+          </div>
+          <div class="identity-card" onclick="setIdentity('backpacker', this)">
+            <span class="icon">🎒</span><span class="label">Backpacker</span>
+          </div>
+          <div class="identity-card" onclick="setIdentity('football', this)">
+            <span class="icon">⚽</span><span class="label">Football Fan</span>
+          </div>
+          <div class="identity-card" onclick="setIdentity('luxury', this)">
+            <span class="icon">✦</span
+            ><span class="label">Luxury Traveler</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-hint">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="section-divider">
+      <div class="d1"></div>
+      <div class="d2"></div>
+    </div>
+
+    <!-- MATCHES -->
+    <section id="matches">
+      <div class="section-masthead">
+        <div class="section-title">LA Match Schedule</div>
+        <div class="section-folio">SoFi Stadium · Inglewood</div>
+      </div>
+
+      <div class="matches-grid">
+        <!-- M4 -->
+        <div class="match-card" onclick="openMatch('usa-paraguay')">
+          <div class="match-meta">
+            <span class="match-round">Group Stage · Group D · M4</span>
+            <span class="match-date">Jun 12, 2026 · Fri · 18:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">🇺🇸</span>
+              <div class="team-name">USA</div>
+              <div class="team-country">United States</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">🇵🇾</span>
+              <div class="team-name">PAR</div>
+              <div class="team-country">Paraguay</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M15 -->
+        <div class="match-card" onclick="openMatch('iran-newzealand')">
+          <div class="match-meta">
+            <span class="match-round">Group Stage · Group G · M15</span>
+            <span class="match-date">Jun 15, 2026 · Mon · 18:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">🇮🇷</span>
+              <div class="team-name">IRI</div>
+              <div class="team-country">Iran</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">🇳🇿</span>
+              <div class="team-name">NZL</div>
+              <div class="team-country">New Zealand</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M26 -->
+        <div class="match-card" onclick="openMatch('swiss-playoff')">
+          <div class="match-meta">
+            <span class="match-round">Group Stage · Group B · M26</span>
+            <span class="match-date">Jun 18, 2026 · Thu · 12:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">🇨🇭</span>
+              <div class="team-name">SUI</div>
+              <div class="team-country">Switzerland</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">UEFA Playoff A</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M39 -->
+        <div class="match-card" onclick="openMatch('belgium-iran')">
+          <div class="match-meta">
+            <span class="match-round">Group Stage · Group G · M39</span>
+            <span class="match-date">Jun 21, 2026 · Sun · 12:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">🇧🇪</span>
+              <div class="team-name">BEL</div>
+              <div class="team-country">Belgium</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">🇮🇷</span>
+              <div class="team-name">IRI</div>
+              <div class="team-country">Iran</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M59 -->
+        <div class="match-card" onclick="openMatch('playoff-usa')">
+          <div class="match-meta">
+            <span class="match-round">Group Stage · Group D · M59</span>
+            <span class="match-date">Jun 25, 2026 · Thu · 19:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">UEFA Playoff C</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">🇺🇸</span>
+              <div class="team-name">USA</div>
+              <div class="team-country">United States</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M73 -->
+        <div class="match-card" onclick="openMatch('r32-m73')">
+          <div class="match-meta">
+            <span class="match-round">Round of 32 · M73</span>
+            <span class="match-date">Jun 28, 2026 · Sun · 12:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M84 -->
+        <div class="match-card" onclick="openMatch('r32-m84')">
+          <div class="match-meta">
+            <span class="match-round">Round of 32 · M84</span>
+            <span class="match-date">Jul 2, 2026 · Thu · 12:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+
+        <!-- M98 -->
+        <div class="match-card" onclick="openMatch('qf-m98')">
+          <div class="match-meta">
+            <span class="match-round">Quarter-Finals · M98</span>
+            <span class="match-date">Jul 10, 2026 · Fri · 12:00</span>
+          </div>
+          <div class="match-teams">
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+            <div class="match-vs">vs.</div>
+            <div class="team-block">
+              <span class="team-flag">❓</span>
+              <div class="team-name">TBD</div>
+              <div class="team-country">To Be Determined</div>
+            </div>
+          </div>
+          <div class="match-venue">
+            SoFi Stadium, Inglewood · 1001 S. Stadium Dr.
+          </div>
+          <button class="match-cta">View Match Details + Nearby Picks →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MATCH DETAIL OVERLAY -->
+    <div id="matchOverlay">
+      <div class="overlay-inner" id="overlayContent"></div>
+      <button class="overlay-close" onclick="closeMatch()">✕</button>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="section-divider">
+      <div class="d1"></div>
+      <div class="d2"></div>
+    </div>
+
+    <!-- LA COLORFUL SHOWCASE STRIP (full dark section) -->
+    <div id="la-showcase">
+      <div class="showcase-header">
+        <div class="showcase-rule">Now Playing In Glorious Technicolor</div>
+        <div class="showcase-title">THE CITY OF LOS ANGELES</div>
+      </div>
+      <div class="showcase-strip" id="showcaseStrip">
+        <!-- Malibu -->
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="malibu" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0277BD" />
+                <stop offset="55%" stop-color="#29B6F6" />
+                <stop offset="100%" stop-color="#F5DEB3" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#malibu)" />
+            <rect
+              x="0"
+              y="155"
+              width="320"
+              height="65"
+              fill="#0277BD"
+              opacity="0.7"
+            />
+            <path
+              d="M0 158 Q40 148 80 155 Q120 162 160 155 Q200 148 240 155 Q280 162 320 155 L320 170 Q280 175 240 170 Q200 165 160 170 Q120 175 80 170 Q40 165 0 170Z"
+              fill="rgba(255,255,255,0.35)"
+            />
+            <rect x="0" y="168" width="320" height="52" fill="#F5DEB3" />
+            <g fill="#1a0a00">
+              <rect x="20" y="80" width="8" height="90" />
+              <ellipse cx="24" cy="74" rx="30" ry="16" fill="#1a2a00" />
+            </g>
+            <g fill="#1a0a00">
+              <rect x="270" y="95" width="7" height="75" />
+              <ellipse cx="273" cy="89" rx="25" ry="14" fill="#1a2a00" />
+            </g>
+            <circle cx="260" cy="45" r="22" fill="#FFD700" />
+            <g fill="rgba(255,255,255,0.5)">
+              <ellipse cx="80" cy="35" rx="30" ry="10" />
+              <ellipse cx="130" cy="25" rx="25" ry="8" />
+              <ellipse cx="50" cy="50" rx="20" ry="7" />
+            </g>
+          </svg>
+          <div class="photo-label">Malibu Coastline</div>
+        </div>
+        <!-- Getty Center -->
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gettysky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#E3F2FD" />
+                <stop offset="100%" stop-color="#90CAF9" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#gettysky)" />
+            <path
+              d="M0 160 Q80 130 160 145 Q240 110 320 135 L320 220 L0 220Z"
+              fill="#78909C"
+            />
+            <g fill="#F5F5DC">
+              <rect x="80" y="90" width="160" height="80" />
+              <rect x="70" y="100" width="20" height="70" />
+              <rect x="230" y="100" width="20" height="70" />
+              <rect x="60" y="130" width="200" height="40" />
+            </g>
+            <g fill="#BDBDBD">
+              <rect x="90" y="100" width="140" height="5" />
+              <rect x="90" y="150" width="140" height="5" />
+            </g>
+            <g fill="#E0E0E0">
+              <rect x="100" y="110" width="15" height="25" rx="1" />
+              <rect x="125" y="110" width="15" height="25" rx="1" />
+              <rect x="150" y="110" width="15" height="25" rx="1" />
+              <rect x="200" y="110" width="15" height="25" rx="1" />
+            </g>
+            <g fill="rgba(255,255,255,0.6)">
+              <ellipse cx="240" cy="30" rx="25" ry="10" />
+              <ellipse cx="80" cy="25" rx="30" ry="12" />
+            </g>
+          </svg>
+          <div class="photo-label">Getty Center, Bel Air</div>
+        </div>
+        <!-- Hollywood Bowl -->
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bowlsky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0D1B2A" />
+                <stop offset="60%" stop-color="#1565C0" />
+                <stop offset="100%" stop-color="#1976D2" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#bowlsky)" />
+            <g fill="white" opacity="0.6">
+              <circle cx="30" cy="20" r="1.5" />
+              <circle cx="80" cy="12" r="1" />
+              <circle cx="150" cy="18" r="1.5" />
+              <circle cx="220" cy="10" r="1" />
+              <circle cx="290" cy="15" r="1.5" />
+            </g>
+            <!-- Bowl seats -->
+            <ellipse cx="160" cy="160" rx="140" ry="50" fill="#1A237E" />
+            <ellipse cx="160" cy="155" rx="120" ry="42" fill="#283593" />
+            <ellipse cx="160" cy="150" rx="100" ry="34" fill="#303F9F" />
+            <!-- Stage shell -->
+            <ellipse cx="160" cy="130" rx="70" ry="30" fill="#F5F5DC" />
+            <ellipse cx="160" cy="128" rx="55" ry="22" fill="#FFFDE7" />
+            <!-- Stage lights -->
+            <g fill="#FFD700" opacity="0.7">
+              <circle cx="110" cy="95" r="5" />
+              <circle cx="140" cy="88" r="5" />
+              <circle cx="160" cy="85" r="6" />
+              <circle cx="180" cy="88" r="5" />
+              <circle cx="210" cy="95" r="5" />
+            </g>
+            <!-- Crowd silhouettes -->
+            <g fill="rgba(255,255,255,0.15)" font-size="4">
+              <ellipse cx="50" cy="180" rx="15" ry="20" />
+              <ellipse cx="80" cy="175" rx="12" ry="18" />
+              <ellipse cx="240" cy="178" rx="15" ry="20" />
+              <ellipse cx="270" cy="173" rx="12" ry="18" />
+            </g>
+          </svg>
+          <div class="photo-label">Hollywood Bowl</div>
+        </div>
+        <!-- LACMA -->
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="lacmasky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFF9C4" />
+                <stop offset="100%" stop-color="#F57F17" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#lacmasky)" />
+            <!-- Urban Lights installation - colorful lamp posts -->
+            <g>
+              <rect x="25" y="80" width="5" height="120" fill="#888" />
+              <ellipse
+                cx="27"
+                cy="78"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="45" y="70" width="5" height="130" fill="#888" />
+              <ellipse
+                cx="47"
+                cy="68"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="65" y="85" width="5" height="115" fill="#888" />
+              <ellipse
+                cx="67"
+                cy="83"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="85" y="75" width="5" height="125" fill="#888" />
+              <ellipse
+                cx="87"
+                cy="73"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="105" y="90" width="5" height="110" fill="#888" />
+              <ellipse
+                cx="107"
+                cy="88"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="125" y="78" width="5" height="122" fill="#888" />
+              <ellipse
+                cx="127"
+                cy="76"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="145" y="85" width="5" height="115" fill="#888" />
+              <ellipse
+                cx="147"
+                cy="83"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="165" y="72" width="5" height="128" fill="#888" />
+              <ellipse
+                cx="167"
+                cy="70"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="185" y="80" width="5" height="120" fill="#888" />
+              <ellipse
+                cx="187"
+                cy="78"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="205" y="88" width="5" height="112" fill="#888" />
+              <ellipse
+                cx="207"
+                cy="86"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="225" y="76" width="5" height="124" fill="#888" />
+              <ellipse
+                cx="227"
+                cy="74"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="245" y="82" width="5" height="118" fill="#888" />
+              <ellipse
+                cx="247"
+                cy="80"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="265" y="74" width="5" height="126" fill="#888" />
+              <ellipse
+                cx="267"
+                cy="72"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+              <rect x="285" y="86" width="5" height="114" fill="#888" />
+              <ellipse
+                cx="287"
+                cy="84"
+                rx="8"
+                ry="5"
+                fill="#FFF9C4"
+                stroke="#FFD54F"
+                stroke-width="1"
+              />
+            </g>
+            <!-- Path -->
+            <rect x="0" y="195" width="320" height="25" fill="#555" />
+            <g fill="rgba(255,255,255,0.2)" font-family="Arial" font-size="8">
+              <text x="10" y="210">
+                LACMA · LOS ANGELES COUNTY MUSEUM OF ART
+              </text>
+            </g>
+          </svg>
+          <div class="photo-label">LACMA Urban Lights</div>
+        </div>
+        <!-- duplicate first two for loop -->
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="malibu2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0277BD" />
+                <stop offset="55%" stop-color="#29B6F6" />
+                <stop offset="100%" stop-color="#F5DEB3" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#malibu2)" />
+            <rect
+              x="0"
+              y="155"
+              width="320"
+              height="65"
+              fill="#0277BD"
+              opacity="0.7"
+            />
+            <path
+              d="M0 158 Q40 148 80 155 Q120 162 160 155 Q200 148 240 155 Q280 162 320 155 L320 170 Q280 175 240 170 Q200 165 160 170 Q120 175 80 170 Q40 165 0 170Z"
+              fill="rgba(255,255,255,0.35)"
+            />
+            <rect x="0" y="168" width="320" height="52" fill="#F5DEB3" />
+            <g fill="#1a0a00">
+              <rect x="20" y="80" width="8" height="90" />
+              <ellipse cx="24" cy="74" rx="30" ry="16" fill="#1a2a00" />
+            </g>
+            <circle cx="260" cy="45" r="22" fill="#FFD700" />
+          </svg>
+          <div class="photo-label">Malibu Coastline</div>
+        </div>
+        <div class="showcase-photo">
+          <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gettysky2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#E3F2FD" />
+                <stop offset="100%" stop-color="#90CAF9" />
+              </linearGradient>
+            </defs>
+            <rect width="320" height="220" fill="url(#gettysky2)" />
+            <path
+              d="M0 160 Q80 130 160 145 Q240 110 320 135 L320 220 L0 220Z"
+              fill="#78909C"
+            />
+            <g fill="#F5F5DC">
+              <rect x="80" y="90" width="160" height="80" />
+              <rect x="70" y="100" width="20" height="70" />
+              <rect x="230" y="100" width="20" height="70" />
+              <rect x="60" y="130" width="200" height="40" />
+            </g>
+            <g fill="#BDBDBD">
+              <rect x="90" y="100" width="140" height="5" />
+              <rect x="90" y="150" width="140" height="5" />
+            </g>
+            <g fill="rgba(255,255,255,0.6)">
+              <ellipse cx="240" cy="30" rx="25" ry="10" />
+              <ellipse cx="80" cy="25" rx="30" ry="12" />
+            </g>
+          </svg>
+          <div class="photo-label">Getty Center, Bel Air</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="section-divider">
+      <div class="d1"></div>
+      <div class="d2"></div>
+    </div>
+
+    <!-- ITINERARY -->
+    <section id="itinerary">
+      <div class="section-masthead">
+        <div class="section-title">Personalized Itinerary</div>
+        <div class="section-folio">Your Cinematic LA Story</div>
+      </div>
+      <p
+        style="
+          font-family: 'Cormorant Garamond', serif;
+          font-style: italic;
+          color: var(--silver);
+          font-size: 1rem;
+          margin-bottom: 3rem;
+          max-width: 600px;
+          line-height: 1.7;
+        "
+      >
+        Tell us who you are and what you love. We'll craft a cinematic LA World
+        Cup experience just for you.
+      </p>
+
+      <div style="max-width: 900px">
+        <div class="builder-controls">
+          <div class="control-group">
+            <label>Traveler Type</label>
+            <select id="travelerType">
+              <option value="football">⚽ Football Fan</option>
+              <option value="family">👨‍👩‍👧‍👦 Family</option>
+              <option value="backpacker">🎒 Backpacker</option>
+              <option value="luxury">✦ Luxury Traveler</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Budget per Day</label>
+            <select id="budget">
+              <option value="budget">$100–200 (Budget)</option>
+              <option value="mid">$200–400 (Mid-Range)</option>
+              <option value="luxury">$400+ (Luxury)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Days in LA</label>
+            <select id="days">
+              <option value="3">3 Days</option>
+              <option value="5" selected>5 Days</option>
+              <option value="7">7 Days</option>
+            </select>
+          </div>
+        </div>
+        <div class="builder-controls" style="grid-template-columns: 1fr 1fr">
+          <div class="control-group">
+            <label>Match Date to See</label>
+            <select id="matchPref">
+              <option value="jun12">Jun 12 · USA vs Paraguay (M4)</option>
+              <option value="jun15">Jun 15 · Iran vs New Zealand (M15)</option>
+              <option value="jun18">
+                Jun 18 · Switzerland vs UEFA Playoff A (M26)
+              </option>
+              <option value="jun21">Jun 21 · Belgium vs Iran (M39)</option>
+              <option value="jun25">
+                Jun 25 · UEFA Playoff C vs USA (M59)
+              </option>
+              <option value="jun28">Jun 28 · Round of 32 (M73)</option>
+              <option value="jul2">Jul 2 · Round of 32 (M84)</option>
+              <option value="jul10">Jul 10 · Quarter-Finals (M98)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Vibe Preference</label>
+            <select id="vibe">
+              <option value="culture">🏛 Culture & History</option>
+              <option value="beach">🌊 Beach & Nature</option>
+              <option value="nightlife">🌙 Nightlife & Shows</option>
+              <option value="film">🎬 Hollywood & Film</option>
+            </select>
+          </div>
+        </div>
+        <button class="generate-btn" onclick="generateItinerary()">
+          ✦ GENERATE MY CINEMATIC LA EXPERIENCE ✦
+        </button>
+        <div class="itinerary-result" id="itineraryResult">
+          <div
+            class="loading-bar"
+            id="itinLoader"
+            style="display: none; margin-bottom: 2rem"
+          ></div>
+          <div id="itinContent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="section-divider">
+      <div class="d1"></div>
+      <div class="d2"></div>
+    </div>
+
+    <!-- EXPLORE MAP -->
+    <section id="explore">
+      <div class="section-masthead">
+        <div class="section-title">Explore LA Map</div>
+        <div class="section-folio">Greater Los Angeles</div>
+      </div>
+      <div class="explore-layout">
+        <div class="filter-panel">
+          <div class="filter-title">Filter By</div>
+          <div class="filter-group">
+            <div class="filter-group-label">Category</div>
+            <button class="filter-btn active" onclick="filterMap('all',this)">
+              All Locations <span class="count">47</span>
+            </button>
+            <button class="filter-btn" onclick="filterMap('stadium',this)">
+              ⚽ Stadiums <span class="count">1</span>
+            </button>
+            <button class="filter-btn" onclick="filterMap('hotel',this)">
+              🏨 Hotels <span class="count">26</span>
+            </button>
+            <button class="filter-btn" onclick="filterMap('restaurant',this)">
+              🍽 Restaurants <span class="count">32</span>
+            </button>
+            <button class="filter-btn" onclick="filterMap('event',this)">
+              🎉 Fan Events <span class="count">8</span>
+            </button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-group-label">Area</div>
+            <button class="filter-btn" onclick="filterArea('weho')">
+              West Hollywood
+            </button>
+            <button class="filter-btn" onclick="filterArea('dtla')">
+              Downtown LA
+            </button>
+            <button class="filter-btn" onclick="filterArea('hollywood')">
+              Hollywood
+            </button>
+            <button class="filter-btn" onclick="filterArea('santamonica')">
+              Santa Monica
+            </button>
+            <button class="filter-btn" onclick="filterArea('inglewood')">
+              Inglewood / SoFi
+            </button>
+          </div>
+          <div class="filter-group">
+            <div class="filter-group-label">Price Range</div>
+            <button class="filter-btn" onclick="filterPrice('budget')">
+              $ Budget
+            </button>
+            <button class="filter-btn" onclick="filterPrice('mid')">
+              $$ Mid-range
+            </button>
+            <button class="filter-btn" onclick="filterPrice('luxury')">
+              $$$ Luxury
+            </button>
+          </div>
+          <div id="mapInfoPanel"><div id="mapInfoContent"></div></div>
+        </div>
+
+        <div class="map-container" id="mapContainer">
+          <div class="map-bg"></div>
+          <div class="map-grid"></div>
+          <div class="map-roads"></div>
+          <div
+            class="map-pin"
+            style="left: 25%; top: 72%"
+            onclick="showMapInfo('stadium','SoFi Stadium','Inglewood','~70,240 capacity · 8 matches hosted')"
+          >
+            <div class="pin-dot stadium"></div>
+            <div class="pin-label">⚽ SoFi Stadium</div>
+          </div>
+          <div
+            class="map-pin hotel-pin"
+            style="left: 52%; top: 32%"
+            onclick="showMapInfo('hotel','The West Hollywood EDITION','West Hollywood','★★★★★ · $400+/night · 9040 W Sunset Blvd')"
+          >
+            <div class="pin-dot hotel"></div>
+            <div class="pin-label">The EDITION</div>
+          </div>
+          <div
+            class="map-pin hotel-pin"
+            style="left: 49%; top: 36%"
+            onclick="showMapInfo('hotel','Andaz West Hollywood','West Hollywood','★★★★ · $200+/night · Sunset Blvd')"
+          >
+            <div class="pin-dot hotel"></div>
+            <div class="pin-label">Andaz WeHo</div>
+          </div>
+          <div
+            class="map-pin hotel-pin"
+            style="left: 68%; top: 40%"
+            onclick="showMapInfo('hotel','The Biltmore Los Angeles','Downtown LA','★★★★★ · $400+/night · Historic landmark')"
+          >
+            <div class="pin-dot hotel"></div>
+            <div class="pin-label">The Biltmore</div>
+          </div>
+          <div
+            class="map-pin hotel-pin"
+            style="left: 22%; top: 40%"
+            onclick="showMapInfo('hotel','Shutters on the Beach','Santa Monica','★★★★★ · $400+/night · Oceanfront')"
+          >
+            <div class="pin-dot hotel"></div>
+            <div class="pin-label">Shutters</div>
+          </div>
+          <div
+            class="map-pin rest-pin"
+            style="left: 54%; top: 29%"
+            onclick="showMapInfo('restaurant','Norah','West Hollywood','$50-100 · American · ★ 4.6')"
+          >
+            <div class="pin-dot restaurant"></div>
+            <div class="pin-label">Norah</div>
+          </div>
+          <div
+            class="map-pin rest-pin"
+            style="left: 44%; top: 42%"
+            onclick="showMapInfo('restaurant','Night + Market WeHo','West Hollywood','$30-50 · Asian · ★ 4.6')"
+          >
+            <div class="pin-dot restaurant"></div>
+            <div class="pin-label">Night+Market</div>
+          </div>
+          <div
+            class="map-pin rest-pin"
+            style="left: 70%; top: 45%"
+            onclick="showMapInfo('restaurant','Bestia','Downtown LA','$50-100 · Italian · ★ 4.7')"
+          >
+            <div class="pin-dot restaurant"></div>
+            <div class="pin-label">Bestia</div>
+          </div>
+          <div
+            class="map-pin rest-pin"
+            style="left: 19%; top: 46%"
+            onclick="showMapInfo('restaurant','Cassia','Santa Monica','$30-50 · Asian Fusion · ★ 4.5')"
+          >
+            <div class="pin-dot restaurant"></div>
+            <div class="pin-label">Cassia</div>
+          </div>
+          <div
+            class="map-pin event-pin"
+            style="left: 60%; top: 55%"
+            onclick="showMapInfo('event','FIFA Fan Festival™ LA','Exposition Park','Jun 11-15 · Free entry · Live broadcasts + concerts')"
+          >
+            <div class="pin-dot event"></div>
+            <div class="pin-label">Fan Festival</div>
+          </div>
+          <div
+            class="map-pin event-pin"
+            style="left: 55%; top: 25%"
+            onclick="showMapInfo('event','Hollywood Bowl Orchestra Night','Hollywood','Jun 16 · $40-120 · Outdoor summer concert')"
+          >
+            <div class="pin-dot event"></div>
+            <div class="pin-label">Hollywood Bowl</div>
+          </div>
+          <div
+            class="map-pin event-pin"
+            style="left: 53%; top: 22%"
+            onclick="showMapInfo('event','Cinespia Outdoor Movie','Hollywood','Jun 18 · $25-35 · Outdoor cinema')"
+          >
+            <div class="pin-dot event"></div>
+            <div class="pin-label">Cinespia</div>
+          </div>
+          <div
+            class="map-pin event-pin"
+            style="left: 48%; top: 50%"
+            onclick="showMapInfo('event','Farmers Market Fan Zone','Fairfax District','Jun 18-21 · Free · Official FIFA Fan Zone')"
+          >
+            <div class="pin-dot event"></div>
+            <div class="pin-label">Fan Zone</div>
+          </div>
+          <div class="map-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #fff"></div>
+              Stadium
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #aaa"></div>
+              Hotel
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #ccc"></div>
+              Restaurant
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: #888"></div>
+              Event
+            </div>
+          </div>
+          <div
+            style="
+              position: absolute;
+              top: 1rem;
+              left: 50%;
+              transform: translateX(-50%);
+              font-family: 'DM Mono', monospace;
+              font-size: 0.55rem;
+              letter-spacing: 0.2em;
+              text-transform: uppercase;
+              color: rgba(255, 255, 255, 0.2);
+            "
+          >
+            Greater Los Angeles · SoFi Stadium Area
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="section-divider">
+      <div class="d1"></div>
+      <div class="d2"></div>
+    </div>
+
+    <!-- DISCOVER -->
+    <section id="discover">
+      <div class="section-masthead">
+        <div class="section-title">Hotels & Dining</div>
+        <div class="section-folio">The Perfect Stay & Table</div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('hotels',this)">
+          Hotels (26)
+        </button>
+        <button class="tab-btn" onclick="switchTab('restaurants',this)">
+          Restaurants (32)
+        </button>
+        <button class="tab-btn" onclick="switchTab('events',this)">
+          Fan Events
+        </button>
+        <button class="tab-btn" onclick="switchTab('shows',this)">
+          Shows & Entertainment
+        </button>
+      </div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="section-divider"><div class="d1"></div><div class="d2"></div></div>
+
+    <!-- ══════════ ABOUT US ══════════ -->
+    <section id="about">
+      <div class="section-masthead">
+        <div class="section-title">About Us</div>
+        <div class="section-folio">Data · Design · Technology</div>
+      </div>
+
+      <p class="about-lead" style="max-width:700px; margin:0 auto 0.8rem; text-align:center;">
+        Bringing the World Cup to life in Los Angeles through data, design, and technology.
+      </p>
+      <p class="about-body" style="max-width:700px; margin:0 auto 2.5rem; text-align:center;">
+        The FIFA World Cup is more than a sporting event — it's a global experience. Meet the team behind the platform.
+      </p>
+
+      <!-- Team grid — alphabetical by first name -->
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-name">Angeline Yu</div>
+          <div class="team-role">Data &amp; Product Strategy</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Helping data organization and product planning, transforming World Cup match information into a clear, interactive, and user-centered experience.</div>
+        </div>
+        <div class="team-card">
+          <div class="team-name">Bruce Yu</div>
+          <div class="team-role">Team Energy &amp; Operations</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Good boy yeah！</div>
+        </div>
+        <div class="team-card">
+          <div class="team-name">Richard Zhang</div>
+          <div class="team-role">Analytics &amp; Growth</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Passionate about analytics leveraging data-driven insights to scale high-impact brand growth.</div>
+        </div>
+        <div class="team-card">
+          <div class="team-name">Richelle Liu</div>
+          <div class="team-role">Product &amp; User Experience</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Not a big fan of FIFA but big fan of AI, data, product and Day yi.</div>
+        </div>
+        <div class="team-card">
+          <div class="team-name">Rosemary Li</div>
+          <div class="team-role">Machine Learning &amp; NLP</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Machine learning and NLP practitioner building scalable, end-to-end solutions that translate data into real-world impact.</div>
+        </div>
+        <div class="team-card">
+          <div class="team-name">Shenghan Gao</div>
+          <div class="team-role">Backend &amp; Data Engineering</div>
+          <div class="team-rule"></div>
+          <div class="team-bio">Turning messy, real-world data into clean, structured datasets — making it ready for seamless ETL and reliable database integration.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-masthead">LA × WC26</div>
+      <p class="footer-tagline">
+        "The Beautiful Game meets the City of Angels — in Glorious Black &
+        White"
+      </p>
+      <div class="footer-links">
+        <a href="#hero">Home</a><a href="#matches">Matches</a> <a href="#itinerary">Itinerary</a
+        ><a href="#explore">Explore</a>
+        <a href="#discover">Hotels & Dining</a>
+        <a href="https://www.discoverlosangeles.com/fifaworldcupla" target="_blank">Official LA Tourism</a>
+        <a href="#about">About Us</a>
+      </div>
+      <p class="footer-copy">
+        FIFA World Cup 2026™ Los Angeles · June 11 – July 19, 2026 · SoFi
+        Stadium
+      </p>
+    </footer>
+
+    <script>
+      // ═══════════════ PROJECTOR ═══════════════
+      const TOTAL_FRAMES = 6;
+      let currentFrame = 0;
+      let projTimer;
+      const FRAME_DURATION = 3200;
+
+      function runProjector() {
+        const frames = document.querySelectorAll(".film-frame");
+        const counter = document.getElementById("filmCounter");
+        const progress = document.getElementById("projProgress");
+
+        // Animate through frames
+        projTimer = setInterval(() => {
+          frames[currentFrame].classList.remove("active");
+          currentFrame = (currentFrame + 1) % TOTAL_FRAMES;
+          frames[currentFrame].classList.add("active");
+          counter.textContent =
+            String(currentFrame + 1).padStart(2, "0") +
+            " / " +
+            String(TOTAL_FRAMES).padStart(2, "0");
+          progress.style.width =
+            ((currentFrame + 1) / TOTAL_FRAMES) * 100 + "%";
+
+          if (currentFrame === TOTAL_FRAMES - 1) {
+            setTimeout(() => skipProjector(), FRAME_DURATION);
+          }
+        }, FRAME_DURATION);
+
+        // Initial progress
+        progress.style.width = (1 / TOTAL_FRAMES) * 100 + "%";
+      }
+
+      function skipProjector() {
+        clearInterval(projTimer);
+        const screen = document.getElementById("projector-screen");
+        screen.classList.add("fade-out");
+        setTimeout(() => {
+          screen.style.display = "none";
+          document.body.style.overflow = "";
+        }, 1000);
+      }
+
+      // Projector intro disabled — skip directly to main page
+      // window.addEventListener('load', () => {
+      //   document.body.style.overflow = 'hidden';
+      //   setTimeout(runProjector, 500);
+      // });
+
+      // ═══════════════ IDENTITY ═══════════════
+      function setIdentity(type, el) {
+        document
+          .querySelectorAll(".identity-card")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("travelerType").value = type;
+        setTimeout(
+          () =>
+            document
+              .getElementById("itinerary")
+              .scrollIntoView({ behavior: "smooth" }),
+          600
+        );
+      }
+
+      // ═══════════════ MATCH DATA ═══════════════
+      const MATCH_DATA = {
+        "usa-paraguay": {
+          home: { flag: "🇺🇸", name: "USA", country: "United States" },
+          away: { flag: "🇵🇾", name: "PAR", country: "Paraguay" },
+          round: "Group Stage · Group D · M4",
+          date: "June 12, 2026 · Fri · 18:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "USMNT opens the World Cup on home soil against Paraguay in a pivotal Group D clash.",
+          h2h: { total: 5, team1wins: 3, draws: 1 },
+          players: [
+            {
+              num: "10",
+              name: "Christian Pulisic",
+              pos: "Forward · AC Milan",
+              team: "USA",
+            },
+            {
+              num: "25",
+              name: "Ricardo Pepi",
+              pos: "Forward · PSV",
+              team: "USA",
+            },
+            {
+              num: "9",
+              name: "Miguel Almirón",
+              pos: "Midfielder · Newcastle",
+              team: "PAR",
+            },
+            {
+              num: "7",
+              name: "Julio Enciso",
+              pos: "Forward · Brighton",
+              team: "PAR",
+            },
+          ],
+        },
+        "iran-newzealand": {
+          home: { flag: "🇮🇷", name: "IRI", country: "Iran" },
+          away: { flag: "🇳🇿", name: "NZL", country: "New Zealand" },
+          round: "Group Stage · Group G · M15",
+          date: "June 15, 2026 · Mon · 18:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Iran face New Zealand in a decisive Group G encounter at SoFi Stadium.",
+          h2h: { total: 2, team1wins: 1, draws: 0 },
+          players: [
+            {
+              num: "9",
+              name: "Mehdi Taremi",
+              pos: "Forward · Inter Milan",
+              team: "IRI",
+            },
+            {
+              num: "10",
+              name: "Sardar Azmoun",
+              pos: "Forward · Bayer Leverkusen",
+              team: "IRI",
+            },
+            {
+              num: "10",
+              name: "Marco Rojas",
+              pos: "Winger · All Whites",
+              team: "NZL",
+            },
+            {
+              num: "9",
+              name: "Chris Wood",
+              pos: "Forward · Nottm Forest",
+              team: "NZL",
+            },
+          ],
+        },
+        "swiss-playoff": {
+          home: { flag: "🇨🇭", name: "SUI", country: "Switzerland" },
+          away: { flag: "❓", name: "TBD", country: "UEFA Playoff A Winner" },
+          round: "Group Stage · Group B · M26",
+          date: "June 18, 2026 · Thu · 12:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Switzerland take on the UEFA Playoff A qualifier in a must-watch Group B battle.",
+          h2h: { total: 0, team1wins: 0, draws: 0 },
+          players: [
+            {
+              num: "10",
+              name: "Granit Xhaka",
+              pos: "Midfielder · Bayer Leverkusen",
+              team: "SUI",
+            },
+            {
+              num: "9",
+              name: "Breel Embolo",
+              pos: "Forward · Monaco",
+              team: "SUI",
+            },
+          ],
+        },
+        "belgium-iran": {
+          home: { flag: "🇧🇪", name: "BEL", country: "Belgium" },
+          away: { flag: "🇮🇷", name: "IRI", country: "Iran" },
+          round: "Group Stage · Group G · M39",
+          date: "June 21, 2026 · Sun · 12:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Belgium face Iran in a critical Group G match that could determine which teams advance.",
+          h2h: { total: 1, team1wins: 1, draws: 0 },
+          players: [
+            {
+              num: "10",
+              name: "Kevin De Bruyne",
+              pos: "Midfielder · Man City",
+              team: "BEL",
+            },
+            {
+              num: "9",
+              name: "Romelu Lukaku",
+              pos: "Forward · Roma",
+              team: "BEL",
+            },
+            {
+              num: "9",
+              name: "Mehdi Taremi",
+              pos: "Forward · Inter Milan",
+              team: "IRI",
+            },
+            {
+              num: "10",
+              name: "Sardar Azmoun",
+              pos: "Forward · Bayer Leverkusen",
+              team: "IRI",
+            },
+          ],
+        },
+        "playoff-usa": {
+          home: { flag: "❓", name: "TBD", country: "UEFA Playoff C Winner" },
+          away: { flag: "🇺🇸", name: "USA", country: "United States" },
+          round: "Group Stage · Group D · M59",
+          date: "June 25, 2026 · Thu · 19:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "USA's final group stage match — the USMNT push for the knockout rounds in front of their home crowd.",
+          h2h: { total: 0, team1wins: 0, draws: 0 },
+          players: [
+            {
+              num: "10",
+              name: "Christian Pulisic",
+              pos: "Forward · AC Milan",
+              team: "USA",
+            },
+            {
+              num: "25",
+              name: "Ricardo Pepi",
+              pos: "Forward · PSV",
+              team: "USA",
+            },
+          ],
+        },
+        "r32-m73": {
+          home: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          away: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          round: "Round of 32 · M73",
+          date: "June 28, 2026 · Sun · 12:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Round of 32 match — teams to be determined after group stage.",
+          h2h: { total: 0, team1wins: 0, draws: 0 },
+          players: [],
+        },
+        "r32-m84": {
+          home: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          away: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          round: "Round of 32 · M84",
+          date: "July 2, 2026 · Thu · 12:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Round of 32 match — teams to be determined after group stage.",
+          h2h: { total: 0, team1wins: 0, draws: 0 },
+          players: [],
+        },
+        "qf-m98": {
+          home: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          away: { flag: "❓", name: "TBD", country: "To Be Determined" },
+          round: "Quarter-Finals · M98",
+          date: "July 10, 2026 · Fri · 12:00",
+          venue: "SoFi Stadium, Inglewood",
+          highlight:
+            "Quarter-Final — the road to the World Cup Final runs through SoFi Stadium.",
+          h2h: { total: 0, team1wins: 0, draws: 0 },
+          players: [],
+        },
+      };
+
+      const HOTELS = [
+        {
+          name: "The West Hollywood EDITION",
+          region: "West Hollywood",
+          address: "9040 W Sunset Blvd",
+          stars: 5,
+          price: "$400+/night",
+          reviews: 758,
+          emoji: "🌃",
+        },
+        {
+          name: "Petit Ermitage",
+          region: "West Hollywood",
+          address: "8822 Cynthia St",
+          stars: 4,
+          price: "$400+/night",
+          reviews: 720,
+          emoji: "🏡",
+        },
+        {
+          name: "Andaz West Hollywood",
+          region: "West Hollywood",
+          address: "8401 W Sunset Blvd",
+          stars: 4,
+          price: "$200+/night",
+          reviews: 1775,
+          emoji: "🌆",
+        },
+        {
+          name: "Best Western Plus Sunset Plaza",
+          region: "West Hollywood",
+          address: "8400 W Sunset Blvd",
+          stars: 3,
+          price: "$200+/night",
+          reviews: 1246,
+          emoji: "🏨",
+        },
+        {
+          name: "Royal Palace Westwood",
+          region: "Westwood",
+          address: "1052 Tiverton Ave",
+          stars: 3,
+          price: "$100+/night",
+          reviews: 523,
+          emoji: "🏰",
+        },
+        {
+          name: "W Los Angeles - West Beverly Hills",
+          region: "Westwood",
+          address: "930 Hilgard Ave",
+          stars: 5,
+          price: "$400+/night",
+          reviews: 2341,
+          emoji: "✦",
+        },
+        {
+          name: "Hotel Angeleno",
+          region: "Westwood",
+          address: "170 N Church Ln",
+          stars: 4,
+          price: "$200+/night",
+          reviews: 1892,
+          emoji: "🌉",
+        },
+        {
+          name: "Shutters on the Beach",
+          region: "Santa Monica",
+          address: "1 Pico Blvd",
+          stars: 5,
+          price: "$400+/night",
+          reviews: 3120,
+          emoji: "🌊",
+        },
+        {
+          name: "Loews Santa Monica Beach Hotel",
+          region: "Santa Monica",
+          address: "1700 Ocean Ave",
+          stars: 5,
+          price: "$400+/night",
+          reviews: 4230,
+          emoji: "🏖",
+        },
+        {
+          name: "Shore Hotel",
+          region: "Santa Monica",
+          address: "1515 Ocean Ave",
+          stars: 4,
+          price: "$200+/night",
+          reviews: 1856,
+          emoji: "🌅",
+        },
+        {
+          name: "The Biltmore Los Angeles",
+          region: "Downtown LA",
+          address: "506 S Grand Ave",
+          stars: 5,
+          price: "$400+/night",
+          reviews: 2890,
+          emoji: "🏛",
+        },
+        {
+          name: "Hotel Indigo Los Angeles DTLA",
+          region: "Downtown LA",
+          address: "899 Francisco St",
+          stars: 4,
+          price: "$200+/night",
+          reviews: 1432,
+          emoji: "🌃",
+        },
+      ];
+
+      const RESTAURANTS = [
+        {
+          name: "Norah",
+          region: "West Hollywood",
+          address: "8279 Santa Monica Blvd",
+          price: "$50–100",
+          flavor: "American",
+          score: 4.6,
+          emoji: "🥩",
+        },
+        {
+          name: "Night + Market WeHo",
+          region: "West Hollywood",
+          address: "9041 Sunset Blvd",
+          price: "$30–50",
+          flavor: "Asian",
+          score: 4.6,
+          emoji: "🍜",
+        },
+        {
+          name: "Katsuya West Hollywood",
+          region: "West Hollywood",
+          address: "8929 Sunset Blvd",
+          price: "$50–100",
+          flavor: "Asian",
+          score: 4.4,
+          emoji: "🍣",
+        },
+        {
+          name: "Dialog Cafe",
+          region: "West Hollywood",
+          address: "8766 Holloway Dr",
+          price: "$20–30",
+          flavor: "American",
+          score: 4.5,
+          emoji: "☕",
+        },
+        {
+          name: "Bestia",
+          region: "Downtown LA",
+          address: "2121 E 7th Pl",
+          price: "$50–100",
+          flavor: "Italian",
+          score: 4.7,
+          emoji: "🍝",
+        },
+        {
+          name: "Cassia",
+          region: "Santa Monica",
+          address: "1314 7th St",
+          price: "$30–50",
+          flavor: "Asian Fusion",
+          score: 4.5,
+          emoji: "🥗",
+        },
+        {
+          name: "Nobu Malibu",
+          region: "Malibu",
+          address: "22706 Pacific Coast Hwy",
+          price: "$100+",
+          flavor: "Japanese",
+          score: 4.6,
+          emoji: "🍱",
+        },
+        {
+          name: "Guelaguetza",
+          region: "Downtown LA",
+          address: "3014 W Olympic Blvd",
+          price: "$20–30",
+          flavor: "South American",
+          score: 4.5,
+          emoji: "🌮",
+        },
+        {
+          name: "Bavel",
+          region: "Downtown LA",
+          address: "500 Mateo St",
+          price: "$50–100",
+          flavor: "Middle Eastern",
+          score: 4.6,
+          emoji: "🧆",
+        },
+        {
+          name: "Gjusta",
+          region: "Venice",
+          address: "320 Sunset Ave",
+          price: "$20–30",
+          flavor: "American",
+          score: 4.6,
+          emoji: "🥐",
+        },
+        {
+          name: "Tar & Roses",
+          region: "Santa Monica",
+          address: "602 Santa Monica Blvd",
+          price: "$30–50",
+          flavor: "American",
+          score: 4.6,
+          emoji: "🌹",
+        },
+        {
+          name: "Perle",
+          region: "Downtown LA",
+          address: "123 S Figueroa St",
+          price: "$20–30",
+          flavor: "South American",
+          score: 4.4,
+          emoji: "🥘",
+        },
+      ];
+
+      const FAN_EVENTS = [
+        {
+          name: "FIFA Fan Festival™ LA",
+          area: "Exposition Park",
+          date: "Jun 11–15",
+          price: "Free",
+          desc: "Live match broadcasts, concerts, cultural programming",
+          emoji: "🎊",
+        },
+        {
+          name: "Fan Zone – Farmers Market",
+          area: "Fairfax District",
+          date: "Jun 18–21",
+          price: "Free",
+          desc: "Official FIFA Fan Zone at The Original Farmers Market",
+          emoji: "⚽",
+        },
+        {
+          name: "Fan Zone – Union Station",
+          area: "Downtown LA",
+          date: "Jun 25–28",
+          price: "Free",
+          desc: "Live match viewing at historic transit hub",
+          emoji: "🚂",
+        },
+        {
+          name: "Fan Zone – Hansen Dam",
+          area: "San Fernando Valley",
+          date: "Jul 2–5",
+          price: "Free",
+          desc: "Outdoor lakeside match viewing",
+          emoji: "🏞",
+        },
+        {
+          name: "Fan Zone – City of Downey",
+          area: "Downey",
+          date: "Jun 20",
+          price: "Free",
+          desc: "Community fan experience at Stonewood Center",
+          emoji: "🏟",
+        },
+        {
+          name: "2026 Suite & Lounge Events",
+          area: "Various",
+          date: "Jun 11 – Jul 19",
+          price: "$$$",
+          desc: "Premium hospitality events and viewing parties",
+          emoji: "🥂",
+        },
+      ];
+
+      const SHOWS = [
+        {
+          name: "Hollywood Bowl Orchestra Night",
+          venue: "Hollywood Bowl",
+          date: "Jun 16",
+          price: "$40–$120",
+          desc: "Classic LA summer concert experience",
+          emoji: "🎻",
+        },
+        {
+          name: "Cinespia Outdoor Movie",
+          venue: "Hollywood Forever Cemetery",
+          date: "Jun 18",
+          price: "$25–$35",
+          desc: "Open-air film night with picnic seating",
+          emoji: "🎬",
+        },
+        {
+          name: "Hollywood Improv Stand-up",
+          venue: "Hollywood Improv",
+          date: "Jun 17",
+          price: "$25–$60",
+          desc: "Club-style stand-up with recognizable comedians",
+          emoji: "😂",
+        },
+        {
+          name: "The Comedy Store Stand-up",
+          venue: "The Comedy Store",
+          date: "Jun 20",
+          price: "$20–$50",
+          desc: "Legendary Sunset Strip comedy",
+          emoji: "🎤",
+        },
+        {
+          name: "Troubadour Live Concert",
+          venue: "The Troubadour",
+          date: "Jun 22",
+          price: "$20–$50",
+          desc: "Intimate West Hollywood rock concert",
+          emoji: "🎸",
+        },
+        {
+          name: "Hollywood Bowl Jazz Night",
+          venue: "Hollywood Bowl",
+          date: "Jun 26",
+          price: "$30–$80",
+          desc: "Summer jazz under the stars",
+          emoji: "🎷",
+        },
+      ];
+
+      function openMatch(id) {
+        const m = MATCH_DATA[id];
+        document.getElementById("overlayContent").innerHTML = `
+    <div style="border-bottom:3px solid var(--ink); margin-bottom:2rem; padding-bottom:0.5rem; display:flex; justify-content:space-between; align-items:baseline;">
+      <span style="font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--silver);">${
+        m.round
+      }</span>
+      <span style="font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--silver);">${
+        m.date
+      }</span>
+    </div>
+    <div class="detail-hero">
+      <div class="detail-team"><span class="detail-flag">${
+        m.home.flag
+      }</span><div class="detail-name">${
+          m.home.name
+        }</div><div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--silver);">${
+          m.home.country
+        }</div></div>
+      <div class="detail-vs-block"><span class="detail-vs">versus</span><div class="detail-match-info">${
+        m.venue
+      }</div></div>
+      <div class="detail-team"><span class="detail-flag">${
+        m.away.flag
+      }</span><div class="detail-name">${
+          m.away.name
+        }</div><div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--silver);">${
+          m.away.country
+        }</div></div>
+    </div>
+    <div style="margin-bottom:2.5rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.8rem;">Match Storyline</div>
+      <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;line-height:1.7;color:var(--charcoal);">${
+        m.highlight
+      }</p>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Head-to-Head Record</div>
+    <div class="h2h-block">
+      <div class="h2h-stat"><div class="h2h-num">${
+        m.h2h.total
+      }</div><div class="h2h-label">Total Meetings</div></div>
+      <div class="h2h-stat"><div class="h2h-num">${
+        m.h2h.team1wins
+      }</div><div class="h2h-label">${m.home.name} Wins</div></div>
+      <div class="h2h-stat"><div class="h2h-num">${
+        m.h2h.draws
+      }</div><div class="h2h-label">Draws</div></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Star Players to Watch</div>
+    <div class="players-row" style="margin-bottom:2.5rem;">
+      ${m.players
+        .map(
+          (p) =>
+            `<div class="player-card"><div class="player-number">${p.num}</div><div><div class="player-name">${p.name}</div><div class="player-pos">${p.pos}</div><div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--silver);margin-top:0.15rem;">${p.team}</div></div></div>`
+        )
+        .join("")}
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:1rem;">Nearby: Hotels & Dining</div>
+    <div class="nearby-tabs">
+      <button class="nearby-tab active" onclick="toggleNearby('hotels-d')">Hotels</button>
+      <button class="nearby-tab" onclick="toggleNearby('restaurants-d')">Restaurants</button>
+      <button class="nearby-tab" onclick="toggleNearby('events-d')">Events</button>
+    </div>
+    <div id="hotels-d" class="nearby-grid">${HOTELS.slice(0, 6)
+      .map(
+        (h) =>
+          `<div class="nearby-card"><div class="nearby-name">${
+            h.name
+          }</div><div class="nearby-sub">${
+            h.region
+          }</div><div class="nearby-price">${h.price} · ${"★".repeat(
+            h.stars
+          )}</div></div>`
+      )
+      .join("")}</div>
+    <div id="restaurants-d" class="nearby-grid" style="display:none">${RESTAURANTS.slice(
+      0,
+      6
+    )
+      .map(
+        (r) =>
+          `<div class="nearby-card"><div class="nearby-name">${r.name}</div><div class="nearby-sub">${r.flavor} · ${r.region}</div><div class="nearby-price">${r.price} · ★ ${r.score}</div></div>`
+      )
+      .join("")}</div>
+    <div id="events-d" class="nearby-grid" style="display:none">${FAN_EVENTS.slice(
+      0,
+      6
+    )
+      .map(
+        (e) =>
+          `<div class="nearby-card"><div class="nearby-name">${e.emoji} ${e.name}</div><div class="nearby-sub">${e.area} · ${e.date}</div><div class="nearby-price">${e.price}</div></div>`
+      )
+      .join("")}</div>
+  `;
+        document.getElementById("matchOverlay").style.display = "block";
+        document.body.style.overflow = "hidden";
+      }
+      function closeMatch() {
+        document.getElementById("matchOverlay").style.display = "none";
+        document.body.style.overflow = "";
+      }
+      function toggleNearby(id) {
+        ["hotels-d", "restaurants-d", "events-d"].forEach((pid) => {
+          const el = document.getElementById(pid);
+          if (el) el.style.display = "none";
+        });
+        const t = document.getElementById(id);
+        if (t) t.style.display = "grid";
+        event.currentTarget
+          .closest(".nearby-tabs")
+          .querySelectorAll(".nearby-tab")
+          .forEach((b) => b.classList.remove("active"));
+        event.currentTarget.classList.add("active");
+      }
+
+      // ═══════════════ ITINERARY ═══════════════
+      const ITIN_TEMPLATES = {
+        football: {
+          budget: [
+            {
+              time: "09:00",
+              title: "Walk the Hollywood Walk of Fame",
+              desc: "Snap iconic star shots before the crowds hit",
+            },
+            {
+              time: "11:30",
+              title: "Lunch at Grand Central Market",
+              desc: "LA's legendary indoor market — $10-15 meals, huge variety",
+            },
+            {
+              time: "14:00",
+              title: "Fan Zone – Farmers Market",
+              desc: "Official FIFA Fan Zone · live match replays · free",
+            },
+            {
+              time: "19:00",
+              title: "Match Day Pre-Game at Sports Bar",
+              desc: "Yard House or O'Brien's — watch pre-match coverage",
+            },
+            {
+              time: "21:00",
+              title: "⚽ MATCH AT SOFI STADIUM",
+              desc: "Kickoff! Experience the atmosphere of 70,000+ fans",
+            },
+          ],
+          mid: [
+            {
+              time: "09:30",
+              title: "Brunch at Gjusta",
+              desc: "Legendary Venice bakery — arrive early to avoid lines",
+            },
+            {
+              time: "11:30",
+              title: "FIFA Fan Festival at Exposition Park",
+              desc: "Live broadcasts, music, interactive fan experiences",
+            },
+            {
+              time: "14:00",
+              title: "Pre-match hotel check-in & rest",
+              desc: "Andaz West Hollywood · prime Sunset Strip location",
+            },
+            {
+              time: "17:00",
+              title: "Dinner at Night + Market WeHo",
+              desc: "Thai street food on Sunset · $30-50pp",
+            },
+            {
+              time: "21:00",
+              title: "⚽ MATCH AT SOFI STADIUM",
+              desc: "VIP seating · premium World Cup atmosphere",
+            },
+          ],
+          luxury: [
+            {
+              time: "09:00",
+              title: "Breakfast at The West Hollywood EDITION",
+              desc: "Rooftop views over Sunset Strip · champagne morning",
+            },
+            {
+              time: "11:00",
+              title: "Private Stadium Tour · SoFi Stadium",
+              desc: "Behind-the-scenes access · locker rooms · press box",
+            },
+            {
+              time: "14:00",
+              title: "Lunch at Nobu Malibu",
+              desc: "Oceanfront Japanese dining · celebrity hotspot · $100+",
+            },
+            {
+              time: "18:00",
+              title: "Pre-match cocktails at The Roof at The Edition",
+              desc: "Sunset views · curated cocktails · see and be seen",
+            },
+            {
+              time: "21:00",
+              title: "⚽ MATCH AT SOFI STADIUM · Luxury Box",
+              desc: "Premium hospitality suite · catered · unobstructed views",
+            },
+          ],
+        },
+        family: {
+          budget: [
+            {
+              time: "09:00",
+              title: "Venice Beach Boardwalk",
+              desc: "Street performers, skate park, beach — kids love it · Free",
+            },
+            {
+              time: "11:30",
+              title: "Lunch at Original Farmers Market",
+              desc: "Fan Zone + food court · something for everyone · $15-25",
+            },
+            {
+              time: "14:00",
+              title: "Natural History Museum",
+              desc: "Exposition Park · T-Rex skeletons · $15 adults, $7 kids",
+            },
+            {
+              time: "17:00",
+              title: "Santa Monica Pier",
+              desc: "Ferris wheel, games, Pacific Park · Golden hour views",
+            },
+            {
+              time: "19:30",
+              title: "Dinner at In-N-Out Burger",
+              desc: "California classic · the kids will thank you · $10pp",
+            },
+          ],
+          mid: [
+            {
+              time: "09:30",
+              title: "Universal Studios Hollywood",
+              desc: "Theme park · World Cup-themed activations in 2026",
+            },
+            {
+              time: "13:00",
+              title: "Lunch at Katsuya West Hollywood",
+              desc: "Family-friendly Japanese · kid-friendly sushi options",
+            },
+            {
+              time: "15:00",
+              title: "FIFA Fan Festival",
+              desc: "Interactive football games · kids' zone · face painting",
+            },
+            {
+              time: "18:00",
+              title: "Santa Monica Pier at sunset",
+              desc: "Iconic Pacific Park · Ferris wheel · golden hour photos",
+            },
+            {
+              time: "20:00",
+              title: "Dinner along the 3rd Street Promenade",
+              desc: "Open-air pedestrian mall · plenty of family-friendly options",
+            },
+          ],
+          luxury: [
+            {
+              time: "09:00",
+              title: "Private LA Helicopter Tour",
+              desc: "Hollywood Sign · Griffith Observatory · SoFi Stadium from above",
+            },
+            {
+              time: "11:30",
+              title: "Lunch at Shutters on the Beach",
+              desc: "Oceanfront Santa Monica · perfect for families · $50-80pp",
+            },
+            {
+              time: "14:00",
+              title: "Disney Experience",
+              desc: "Anaheim · or Warner Bros Studio Tour · behind the magic",
+            },
+            {
+              time: "18:30",
+              title: "Sunset Cruise from Marina del Rey",
+              desc: "Champagne for adults, mocktails for kids · 90 mins",
+            },
+            {
+              time: "21:00",
+              title: "⚽ MATCH AT SOFI STADIUM · Family Suite",
+              desc: "Private suite · catered · safe and comfortable for all ages",
+            },
+          ],
+        },
+        backpacker: {
+          budget: [
+            {
+              time: "08:00",
+              title: "Griffith Observatory sunrise hike",
+              desc: "Free access · city views · Hollywood sign backdrop",
+            },
+            {
+              time: "10:30",
+              title: "Brunch at Grand Central Market",
+              desc: "DTLA · $8-12 · diverse options",
+            },
+            {
+              time: "13:00",
+              title: "LACMA + Tar Pits walk",
+              desc: "Free entry with student ID · La Brea Tar Pits next door",
+            },
+            {
+              time: "16:00",
+              title: "Venice Beach → Muscle Beach",
+              desc: "Classic free LA experience · street art · skateboarding",
+            },
+            {
+              time: "20:00",
+              title: "FIFA Fan Zone party · Hansen Dam",
+              desc: "Free outdoor screening · meet international fans",
+            },
+          ],
+          mid: [
+            {
+              time: "08:30",
+              title: "Runyon Canyon hike",
+              desc: "Hollywood Hills · celebrity dog park · Instagram-worthy views",
+            },
+            {
+              time: "11:00",
+              title: "Echo Park neighborhood explore",
+              desc: "Coffee at Valerie · vintage shops · lake views",
+            },
+            {
+              time: "14:00",
+              title: "The Echo live music",
+              desc: "Indie venue on Sunset · $15-30 · local scene",
+            },
+            {
+              time: "18:00",
+              title: "Dinner at Night + Market WeHo",
+              desc: "Thai street food · bold flavors · $30-50pp",
+            },
+            {
+              time: "21:00",
+              title: "Hollywood Improv or Comedy Store",
+              desc: "Classic LA nightlife · $25-60 · possible celebrity drop-ins",
+            },
+          ],
+          luxury: [
+            {
+              time: "09:00",
+              title: "Brunch at Gjusta",
+              desc: "Venice · legendary bakery · $20-30pp",
+            },
+            {
+              time: "11:00",
+              title: "Art galleries walk in Culver City",
+              desc: "Free · emerging LA artists · gallery hopping",
+            },
+            {
+              time: "14:00",
+              title: "The Getty Center visit",
+              desc: "Free admission · world-class art · panoramic views",
+            },
+            {
+              time: "18:00",
+              title: "Dinner at Bestia",
+              desc: "Downtown LA · Italian · $60-80pp · book ahead",
+            },
+            {
+              time: "21:00",
+              title: "Cinespia Outdoor Movie",
+              desc: "Hollywood Forever Cemetery · $25-35 · picnic vibes",
+            },
+          ],
+        },
+        luxury: {
+          budget: null,
+          mid: null,
+          luxury: [
+            {
+              time: "10:00",
+              title: "In-Suite breakfast · The West Hollywood EDITION",
+              desc: "Private terrace · city views · personally curated menu",
+            },
+            {
+              time: "12:00",
+              title: "Private Shopping on Rodeo Drive",
+              desc: "Personal shopper arranged · Gucci, Hermès, Louis Vuitton",
+            },
+            {
+              time: "15:00",
+              title: "Spa at Four Seasons Beverly Hills",
+              desc: "Signature treatments · 3-hour wellness ritual",
+            },
+            {
+              time: "19:00",
+              title: "Dinner at Providence",
+              desc: "2-Michelin star · chef's tasting menu with wine pairing · $250+",
+            },
+            {
+              time: "21:30",
+              title: "Private Rooftop World Cup Party",
+              desc: "The Edition Rooftop · exclusive hire · live entertainment",
+            },
+          ],
+        },
+      };
+
+      function generateItinerary() {
+        const type = document.getElementById("travelerType").value;
+        const budget = document.getElementById("budget").value;
+        const days = parseInt(document.getElementById("days").value);
+        const matchDate = document.getElementById("matchPref").value;
+        const vibe = document.getElementById("vibe").value;
+        const result = document.getElementById("itineraryResult");
+        const loader = document.getElementById("itinLoader");
+        const content = document.getElementById("itinContent");
+        result.classList.add("visible");
+        loader.style.display = "block";
+        content.innerHTML = "";
+        const budgetKey =
+          budget === "budget" ? "budget" : budget === "mid" ? "mid" : "luxury";
+        const typeTemplate = ITIN_TEMPLATES[type] || ITIN_TEMPLATES["football"];
+        let template =
+          typeTemplate[budgetKey] ||
+          typeTemplate["mid"] ||
+          ITIN_TEMPLATES["football"]["mid"];
+        const matchDates = {
+          jun12: { date: "June 12", label: "USA vs Paraguay (M4)" },
+          jun15: { date: "June 15", label: "Iran vs New Zealand (M15)" },
+          jun18: {
+            date: "June 18",
+            label: "Switzerland vs UEFA Playoff A (M26)",
+          },
+          jun21: { date: "June 21", label: "Belgium vs Iran (M39)" },
+          jun25: { date: "June 25", label: "UEFA Playoff C vs USA (M59)" },
+          jun28: { date: "June 28", label: "Round of 32 (M73)" },
+          jul2: { date: "July 2", label: "Round of 32 (M84)" },
+          jul10: { date: "July 10", label: "Quarter-Finals (M98)" },
+        };
+        const md = matchDates[matchDate];
+        const vibeActivities = {
+          culture: {
+            time: "10:00",
+            title: "Getty Center visit",
+            desc: "World-class art museum · panoramic LA views · free admission",
+          },
+          beach: {
+            time: "10:00",
+            title: "Malibu coastal drive",
+            desc: "PCH road trip · Point Dume · Zuma Beach · $0 entry",
+          },
+          nightlife: {
+            time: "22:00",
+            title: "Sunset Strip nightlife",
+            desc: "WeHo club crawl · Skybar · Catch LA · dress to impress",
+          },
+          film: {
+            time: "10:00",
+            title: "Warner Bros. Studio Tour",
+            desc: "Hollywood sets · props · $70/person · book in advance",
+          },
+        };
+        const dayLabels = [
+          "Day 1 · Arrival & First Impressions",
+          "Day 2 · The Beautiful Game",
+          `Day 3 · Match Day — ${md.label}`,
+          "Day 4 · Explore LA",
+          "Day 5 · Hollywood & Departure",
+          "Day 6 · LA Beaches",
+          "Day 7 · Final Day",
+        ];
+        setTimeout(() => {
+          loader.style.display = "none";
+          let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Personalized LA World Cup Experience</div>
+      <p style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--charcoal);">
+        Curated for: <strong>${
+          type.charAt(0).toUpperCase() + type.slice(1)
+        }</strong> · Budget: <strong>${
+            budget.charAt(0).toUpperCase() + budget.slice(1)
+          }</strong> · ${days} days · Match: <strong>${md.date} · ${
+            md.label
+          }</strong>
+      </p></div>`;
+          for (let d = 0; d < days; d++) {
+            const isMatchDay = d === 2 && days >= 3;
+            const vibeActivity = vibeActivities[vibe];
+            html += `<div class="day-block"><div class="day-label">${
+              dayLabels[d] || `Day ${d + 1}`
+            }</div>
+        ${(isMatchDay
+          ? template
+          : d === 0
+          ? [vibeActivity, ...template.slice(1)]
+          : template
+        )
+          .map(
+            (item) => `
+          <div class="timeline-item"><div class="timeline-time">${item.time}</div><div class="timeline-content"><div class="title">${item.title}</div><div class="desc">${item.desc}</div></div></div>`
+          )
+          .join("")}
+      </div>`;
+          }
+          html += `<div style="margin-top:2rem;padding:1.2rem;border:1.5px solid var(--border-med);background:var(--paper);">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.3rem;">✦ Your LA World Cup Story is Ready</div>
+      <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);">Estimated budget: ${
+        budget === "budget"
+          ? "$150–250/day"
+          : budget === "mid"
+          ? "$350–500/day"
+          : "$700+/day"
+      } · Matches: SoFi Stadium · 39 days of World Cup activities across LA</p></div>`;
+          content.innerHTML = html;
+        }, 800);
+      }
+
+      // ═══════════════ MAP ═══════════════
+      function filterMap(type, btn) {
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".map-pin").forEach((pin) => {
+          if (type === "all") pin.style.display = "block";
+          else if (type === "stadium")
+            pin.style.display = pin.querySelector(".pin-dot.stadium")
+              ? "block"
+              : "none";
+          else if (type === "hotel")
+            pin.style.display = pin.classList.contains("hotel-pin")
+              ? "block"
+              : "none";
+          else if (type === "restaurant")
+            pin.style.display = pin.classList.contains("rest-pin")
+              ? "block"
+              : "none";
+          else if (type === "event")
+            pin.style.display = pin.classList.contains("event-pin")
+              ? "block"
+              : "none";
+        });
+      }
+      function filterArea(area) {}
+      function filterPrice(price) {}
+      function showMapInfo(type, name, location, details) {
+        const panel = document.getElementById("mapInfoPanel");
+        const content = document.getElementById("mapInfoContent");
+        content.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--charcoal);margin-bottom:0.3rem;">${
+          {
+            stadium: "Stadium",
+            hotel: "Hotel",
+            restaurant: "Restaurant",
+            event: "Event",
+          }[type]
+        }</div><div style="font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:600;margin-bottom:0.2rem;">${name}</div><div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--silver);margin-bottom:0.2rem;">${location}</div><div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--silver);line-height:1.5;">${details}</div>`;
+        panel.style.display = "block";
+      }
+
+      // ═══════════════ CARDS ═══════════════
+      function switchTab(tab, btn) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderCards(tab);
+      }
+      function renderCards(tab) {
+        const grid = document.getElementById("cardsGrid");
+        let data = [],
+          template;
+        if (tab === "hotels") {
+          data = HOTELS;
+          template = (h) =>
+            `<div class="rec-card"><div class="rec-card-img">${
+              h.emoji
+            }</div><div class="rec-card-body"><div class="rec-card-tag">Hotel · ${
+              h.region
+            }</div><div class="rec-card-name">${
+              h.name
+            }</div><div class="rec-card-sub">${
+              h.address
+            }</div><div class="rec-card-price">${
+              h.price
+            } · <span class="stars">${"★".repeat(
+              h.stars
+            )}</span></div></div></div>`;
+        } else if (tab === "restaurants") {
+          data = RESTAURANTS;
+          template = (r) =>
+            `<div class="rec-card"><div class="rec-card-img">${r.emoji}</div><div class="rec-card-body"><div class="rec-card-tag">${r.flavor} · ${r.region}</div><div class="rec-card-name">${r.name}</div><div class="rec-card-sub">${r.address}</div><div class="rec-card-price">${r.price} · <span class="stars">★</span> ${r.score}</div></div></div>`;
+        } else if (tab === "events") {
+          data = FAN_EVENTS;
+          template = (e) =>
+            `<div class="rec-card"><div class="rec-card-img">${e.emoji}</div><div class="rec-card-body"><div class="rec-card-tag">Fan Event · ${e.area}</div><div class="rec-card-name">${e.name}</div><div class="rec-card-sub">${e.desc}</div><div class="rec-card-price">${e.date} · ${e.price}</div></div></div>`;
+        } else if (tab === "shows") {
+          data = SHOWS;
+          template = (s) =>
+            `<div class="rec-card"><div class="rec-card-img">${s.emoji}</div><div class="rec-card-body"><div class="rec-card-tag">Entertainment · ${s.venue}</div><div class="rec-card-name">${s.name}</div><div class="rec-card-sub">${s.desc}</div><div class="rec-card-price">${s.date} · ${s.price}</div></div></div>`;
+        }
+        grid.innerHTML = data.map(template).join("");
+      }
+      renderCards("hotels");
+
+      // Scroll animations
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.style.opacity = "1";
+              e.target.style.transform = "translateY(0)";
+            }
+          });
+        },
+        { threshold: 0.08 }
+      );
+      document.querySelectorAll(".match-card,.rec-card").forEach((el) => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(16px)";
+        el.style.transition = "opacity 0.4s,transform 0.4s";
+        observer.observe(el);
+      });
+    </script>
+  </body>
+</html>
