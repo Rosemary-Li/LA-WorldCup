@@ -308,6 +308,51 @@ def get_map_data():
 
 
 # ─────────────────────────────────────────
+# 11. Itinerary helpers
+# ─────────────────────────────────────────
+
+def get_events_by_categories(category_ids, limit=80):
+    """Return events in the given category_id list, joined with experience detail."""
+    placeholders = ','.join(['%s'] * len(category_ids))
+    return query(f"""
+        SELECT e.event_id, e.event_name, e.category,
+               e.venue_name, e.area, e.city,
+               e.start_date, e.end_date, e.event_time,
+               c.category AS category_label,
+               ed.ticket_price, ed.admission_info, ed.recommended_duration
+        FROM fact_event e
+        LEFT JOIN dim_event_category c ON e.event_category_id = c.event_category_id
+        LEFT JOIN event_experience_detail ed ON e.event_id = ed.event_id
+        WHERE e.event_category_id::int IN ({placeholders})
+        ORDER BY e.event_id
+        LIMIT %s
+    """, category_ids + [limit])
+
+def get_hotel_for_budget(price_band):
+    """Return up to 3 hotels matching the price band, ordered by star rating."""
+    return query("""
+        SELECT hotel_id, hotel_name, region, address,
+               star_rating, price_band, google_reviews_count
+        FROM fact_hotel
+        WHERE price_band = %s
+        ORDER BY star_rating DESC, google_reviews_count DESC
+        LIMIT 3
+    """, [price_band])
+
+def get_restaurants_for_budget(price_ranges, limit=20):
+    """Return restaurants matching any of the given price_range values."""
+    placeholders = ','.join(['%s'] * len(price_ranges))
+    return query(f"""
+        SELECT restaurant_id, restaurant_name, region,
+               address, price_range, flavor, google_review_score
+        FROM fact_restaurant
+        WHERE price_range IN ({placeholders})
+        ORDER BY google_review_score DESC
+        LIMIT %s
+    """, price_ranges + [limit])
+
+
+# ─────────────────────────────────────────
 # Test (run this file directly to verify)
 # ─────────────────────────────────────────
 if __name__ == "__main__":

@@ -2,159 +2,91 @@
 //  ITINERARY — identity selector, itinerary builder
 // ═══════════════════════════════════════════════════
 
+const API_BASE = "http://127.0.0.1:5000";
+
 // ═══════════════ IDENTITY ═══════════════
-      function setIdentity(type, el) {
-        document
-          .querySelectorAll(".identity-card")
-          .forEach((c) => c.classList.remove("active"));
-        el.classList.add("active");
-        document.getElementById("travelerType").value = type;
-        setTimeout(
-          () =>
-            document
-              .getElementById("itinerary")
-              .scrollIntoView({ behavior: "smooth" }),
-          600
-        );
-      }
+function setIdentity(type, el) {
+  document.querySelectorAll(".identity-card").forEach((c) => c.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("travelerType").value = type;
+  setTimeout(
+    () => document.getElementById("itinerary").scrollIntoView({ behavior: "smooth" }),
+    600
+  );
+}
 
+// ═══════════════ MAIN ENTRY ═══════════════
 function generateItinerary() {
-        const type = document.getElementById("travelerType").value;
-        const budget = document.getElementById("budget").value;
-        const days = parseInt(document.getElementById("days").value);
-        const matchDate = document.getElementById("matchPref").value;
-        const vibe = document.getElementById("vibe").value;
-        const result = document.getElementById("itineraryResult");
-        const loader = document.getElementById("itinLoader");
-        const content = document.getElementById("itinContent");
-        result.classList.add("visible");
-        loader.style.display = "block";
-        content.innerHTML = "";
-        // "luxury" traveler type only has a luxury budget template;
-        // force budgetKey to luxury for that type so it doesn't silently
-        // fall back to a football template.
-        const budgetKey =
-          type === "luxury"
-            ? "luxury"
-            : budget === "budget" ? "budget" : budget === "mid" ? "mid" : "luxury";
-        const typeTemplate = ITIN_TEMPLATES[type] || ITIN_TEMPLATES["football"];
-        let template =
-          typeTemplate[budgetKey] ||
-          typeTemplate["luxury"] ||
-          typeTemplate["mid"] ||
-          ITIN_TEMPLATES["football"]["mid"];
-        const matchDates = {
-          jun12: { date: "June 12", label: "USA vs Paraguay (M4)" },
-          jun15: { date: "June 15", label: "Iran vs New Zealand (M15)" },
-          jun18: {
-            date: "June 18",
-            label: "Switzerland vs UEFA Playoff A (M26)",
-          },
-          jun21: { date: "June 21", label: "Belgium vs Iran (M39)" },
-          jun25: { date: "June 25", label: "UEFA Playoff C vs USA (M59)" },
-          jun28: { date: "June 28", label: "Round of 32 (M73)" },
-          jul2: { date: "July 2", label: "Round of 32 (M84)" },
-          jul10: { date: "July 10", label: "Quarter-Finals (M98)" },
-        };
-        const md = matchDates[matchDate];
-        const vibeActivities = {
-          culture: {
-            time: "10:00",
-            title: "Getty Center visit",
-            desc: "World-class art museum · panoramic LA views · free admission",
-          },
-          beach: {
-            time: "10:00",
-            title: "Malibu coastal drive",
-            desc: "PCH road trip · Point Dume · Zuma Beach · $0 entry",
-          },
-          nightlife: {
-            time: "22:00",
-            title: "Sunset Strip nightlife",
-            desc: "WeHo club crawl · Skybar · Catch LA · dress to impress",
-          },
-          film: {
-            time: "10:00",
-            title: "Warner Bros. Studio Tour",
-            desc: "Hollywood sets · props · $70/person · book in advance",
-          },
-        };
-        const dayLabels = [
-          "Day 1 · Arrival & First Impressions",
-          "Day 2 · The Beautiful Game",
-          `Day 3 · Match Day — ${md.label}`,
-          "Day 4 · Explore LA",
-          "Day 5 · Hollywood & Departure",
-          "Day 6 · LA Beaches",
-          "Day 7 · Final Day",
-        ];
-        // Per-day variants: rotate the same type's activities so days feel
-        // different without mixing in activities from another traveler type.
-        const dayVariants = [
-          template,
-          [...template.slice(2), ...template.slice(0, 2)],  // Day 2: rotate by 2
-          template,                                           // Day 3: match day (overridden below)
-          [...template.slice(1), template[0]],               // Day 4: rotate by 1
-          [...template.slice(3), ...template.slice(0, 3)],  // Day 5: rotate by 3
-          [...template.slice(2), ...template.slice(0, 2)],  // Day 6
-          [...template.slice(1), template[0]],               // Day 7
-        ];
+  const type      = document.getElementById("travelerType").value;
+  const budget    = document.getElementById("budget").value;
+  const days      = parseInt(document.getElementById("days").value);
+  const matchDate = document.getElementById("matchPref").value;
+  const vibe      = document.getElementById("vibe").value;
+  const result    = document.getElementById("itineraryResult");
+  const loader    = document.getElementById("itinLoader");
+  const content   = document.getElementById("itinContent");
 
-        const matchActivity = {
-          time: "19:00",
-          title: "⚽ MATCH AT SOFI STADIUM",
-          desc: `${md.label} · 1001 S. Stadium Drive, Inglewood · Kickoff!`,
-        };
+  result.classList.add("visible");
+  loader.style.display = "block";
+  content.innerHTML = "";
 
-        setTimeout(() => {
-          loader.style.display = "none";
-          let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
-      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Personalized LA World Cup Experience</div>
-      <p style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--charcoal);">
-        Curated for: <strong>${
-          type.charAt(0).toUpperCase() + type.slice(1)
-        }</strong> · Budget: <strong>${
-            budget.charAt(0).toUpperCase() + budget.slice(1)
-          }</strong> · ${days} days · Match: <strong>${md.date} · ${
-            md.label
-          }</strong>
-      </p></div>`;
-          for (let d = 0; d < days; d++) {
-            const isMatchDay = d === 2 && days >= 3;
-            const vibeActivity = vibeActivities[vibe];
+  const url = `${API_BASE}/api/itinerary?type=${type}&budget=${budget}&days=${days}&match_date=${matchDate}&vibe=${vibe}`;
 
-            let dayActivities;
-            if (isMatchDay) {
-              // Match day: replace last activity with the actual match
-              dayActivities = [...template.slice(0, -1), matchActivity];
-            } else if (d === 0) {
-              // Day 1 (Arrival): append vibe activity at END so times stay in order
-              dayActivities = [...template.slice(0, -1), vibeActivity];
-            } else {
-              // Other days: use per-day variant so they're not all identical
-              dayActivities = dayVariants[d] || template;
-            }
+  fetch(url)
+    .then((r) => { if (!r.ok) throw new Error("API error"); return r.json(); })
+    .then((data) => {
+      loader.style.display = "none";
+      content.innerHTML = renderItinerary(data);
+    })
+    .catch(() => {
+      loader.style.display = "none";
+      content.innerHTML = `<p style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--silver);padding:2rem;">
+        Unable to connect to the server. Please make sure the Flask API is running.
+      </p>`;
+    });
+}
 
-            html += `<div class="day-block"><div class="day-label">${
-              dayLabels[d] || `Day ${d + 1}`
-            }</div>
-        ${dayActivities
-          .map(
-            (item) => `
-          <div class="timeline-item"><div class="timeline-time">${item.time}</div><div class="timeline-content"><div class="title">${item.title}</div><div class="desc">${item.desc}</div></div></div>`
-          )
-          .join("")}
-      </div>`;
-          }
-          html += `<div style="margin-top:2rem;padding:1.2rem;border:1.5px solid var(--border-med);background:var(--paper);">
-      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.3rem;">✦ Your LA World Cup Story is Ready</div>
-      <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);">Estimated budget: ${
-        budget === "budget"
-          ? "$150–250/day"
-          : budget === "mid"
-          ? "$350–500/day"
-          : "$700+/day"
-      } · ${days}-day itinerary · Match: ${md.date} at SoFi Stadium</p></div>`;
-          content.innerHTML = html;
-        }, 800);
-      }
+// ═══════════════ RENDER ═══════════════
+function renderItinerary(data) {
+  const budgetLabel =
+    data.budget_label === "budget" ? "$150–250/day" :
+    data.budget_label === "mid"    ? "$350–500/day" : "$700+/day";
+  const typeLabel = data.traveler
+    ? data.traveler.charAt(0).toUpperCase() + data.traveler.slice(1)
+    : "";
+
+  let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Personalized LA World Cup Experience</div>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--charcoal);">
+      Curated for: <strong>${typeLabel}</strong> · Budget: <strong>${data.budget_label?.charAt(0).toUpperCase() + data.budget_label?.slice(1)}</strong> · ${data.days.length} days · Match: <strong>${data.match.date} · ${data.match.label}</strong>
+    </p>`;
+
+  if (data.hotel) {
+    html += `<p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);margin-top:0.4rem;">
+      🏨 Recommended stay: <strong>${data.hotel.hotel_name}</strong> · ${data.hotel.region} · ${data.hotel.star_rating}★ · $${data.hotel.price_band}/night
+    </p>`;
+  }
+  html += `</div>`;
+
+  for (const day of data.days) {
+    html += `<div class="day-block"><div class="day-label">${day.label}</div>`;
+    for (const act of day.activities) {
+      html += `
+        <div class="timeline-item">
+          <div class="timeline-time">${act.time}</div>
+          <div class="timeline-content">
+            <div class="title">${act.title}</div>
+            <div class="desc">${act.desc}</div>
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div style="margin-top:2rem;padding:1.2rem;border:1.5px solid var(--border-med);background:var(--paper);">
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.3rem;">✦ Your LA World Cup Story is Ready</div>
+    <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);">Estimated budget: ${budgetLabel} · ${data.days.length}-day itinerary · Match: ${data.match.date} at SoFi Stadium</p>
+  </div>`;
+
+  return html;
+}
