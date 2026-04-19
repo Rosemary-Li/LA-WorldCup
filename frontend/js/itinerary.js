@@ -30,11 +30,17 @@ function generateItinerary() {
         result.classList.add("visible");
         loader.style.display = "block";
         content.innerHTML = "";
+        // "luxury" traveler type only has a luxury budget template;
+        // force budgetKey to luxury for that type so it doesn't silently
+        // fall back to a football template.
         const budgetKey =
-          budget === "budget" ? "budget" : budget === "mid" ? "mid" : "luxury";
+          type === "luxury"
+            ? "luxury"
+            : budget === "budget" ? "budget" : budget === "mid" ? "mid" : "luxury";
         const typeTemplate = ITIN_TEMPLATES[type] || ITIN_TEMPLATES["football"];
         let template =
           typeTemplate[budgetKey] ||
+          typeTemplate["luxury"] ||
           typeTemplate["mid"] ||
           ITIN_TEMPLATES["football"]["mid"];
         const matchDates = {
@@ -82,6 +88,24 @@ function generateItinerary() {
           "Day 6 · LA Beaches",
           "Day 7 · Final Day",
         ];
+        // Per-day variants: rotate the same type's activities so days feel
+        // different without mixing in activities from another traveler type.
+        const dayVariants = [
+          template,
+          [...template.slice(2), ...template.slice(0, 2)],  // Day 2: rotate by 2
+          template,                                           // Day 3: match day (overridden below)
+          [...template.slice(1), template[0]],               // Day 4: rotate by 1
+          [...template.slice(3), ...template.slice(0, 3)],  // Day 5: rotate by 3
+          [...template.slice(2), ...template.slice(0, 2)],  // Day 6
+          [...template.slice(1), template[0]],               // Day 7
+        ];
+
+        const matchActivity = {
+          time: "19:00",
+          title: "⚽ MATCH AT SOFI STADIUM",
+          desc: `${md.label} · 1001 S. Stadium Drive, Inglewood · Kickoff!`,
+        };
+
         setTimeout(() => {
           loader.style.display = "none";
           let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
@@ -98,15 +122,23 @@ function generateItinerary() {
           for (let d = 0; d < days; d++) {
             const isMatchDay = d === 2 && days >= 3;
             const vibeActivity = vibeActivities[vibe];
+
+            let dayActivities;
+            if (isMatchDay) {
+              // Match day: replace last activity with the actual match
+              dayActivities = [...template.slice(0, -1), matchActivity];
+            } else if (d === 0) {
+              // Day 1 (Arrival): append vibe activity at END so times stay in order
+              dayActivities = [...template.slice(0, -1), vibeActivity];
+            } else {
+              // Other days: use per-day variant so they're not all identical
+              dayActivities = dayVariants[d] || template;
+            }
+
             html += `<div class="day-block"><div class="day-label">${
               dayLabels[d] || `Day ${d + 1}`
             }</div>
-        ${(isMatchDay
-          ? template
-          : d === 0
-          ? [vibeActivity, ...template.slice(1)]
-          : template
-        )
+        ${dayActivities
           .map(
             (item) => `
           <div class="timeline-item"><div class="timeline-time">${item.time}</div><div class="timeline-content"><div class="title">${item.title}</div><div class="desc">${item.desc}</div></div></div>`
@@ -122,7 +154,7 @@ function generateItinerary() {
           : budget === "mid"
           ? "$350–500/day"
           : "$700+/day"
-      } · Matches: SoFi Stadium · 39 days of World Cup activities across LA</p></div>`;
+      } · ${days}-day itinerary · Match: ${md.date} at SoFi Stadium</p></div>`;
           content.innerHTML = html;
         }, 800);
       }

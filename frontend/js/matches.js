@@ -505,7 +505,7 @@ function openMatch(id) {
           : budget === "mid"
           ? "$350–500/day"
           : "$700+/day"
-      } · Matches: SoFi Stadium · 39 days of World Cup activities across LA</p></div>`;
+      } · ${days}-day itinerary · Match: ${md.date} at SoFi Stadium</p></div>`;
           content.innerHTML = html;
         }, 800);
       }
