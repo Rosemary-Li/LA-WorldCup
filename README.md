@@ -1,6 +1,6 @@
 # LA × FIFA World Cup 2026™ — An Old Hollywood Production
 
-A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, combining a normalized SQL database with a pure-static frontend. Built as an academic project for APAN5310.
+A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, built as a full-stack web application with a normalized PostgreSQL database, a Flask REST API, and a pure-static frontend. Academic project for APAN5310.
 
 > **Also available in:** [中文 README](README.cn.md)
 
@@ -8,9 +8,14 @@ A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches, combin
 
 ## Project Overview
 
-This project covers the full pipeline from raw data → cleaned CSVs → relational database design → frontend website. It targets visitors planning to attend World Cup matches at SoFi Stadium in Inglewood, CA (June–July 2026), helping them find matches, buy tickets, book hotels, discover restaurants, and plan day itineraries.
+This project covers the full pipeline from raw data → cleaned CSVs → relational database → REST API → frontend website. It targets visitors planning to attend World Cup matches at SoFi Stadium in Inglewood, CA (June–July 2026), helping them find matches, buy tickets, book hotels, discover restaurants, and plan day itineraries.
 
-**Status:** Database and data layers are complete. Frontend is connected to the Flask API backend.
+**Tech stack:**
+- **Database:** PostgreSQL (hosted on DigitalOcean)
+- **Backend:** Python / Flask REST API (`psycopg2`, `flask-cors`)
+- **Frontend:** Pure HTML / CSS / JavaScript — no frameworks, no build step
+
+**Current status:** All three layers are complete and connected. The frontend loads live data from the Flask API on startup, with hardcoded fallback data if the API is unavailable.
 
 ---
 
@@ -20,7 +25,7 @@ This project covers the full pipeline from raw data → cleaned CSVs → relatio
 LA_WorldCup/
 ├── backend/                            # Python / Flask API server
 │   ├── app.py                          # Flask routes (/api/matches, /api/hotels, ...)
-│   ├── queries.py                      # SQL query functions (psycopg2)
+│   ├── queries.py                      # SQL query functions via psycopg2
 │   └── setup_database.py              # One-time DB setup: CREATE TABLE + CSV import
 │
 ├── frontend/                           # Static website (pure HTML/CSS/JS)
@@ -51,11 +56,52 @@ LA_WorldCup/
 
 ---
 
+## Running Locally
+
+```bash
+# Terminal 1 — Start the Flask API
+cd backend
+python3 app.py
+# API runs at http://127.0.0.1:5000
+
+# Terminal 2 — Serve the frontend
+cd frontend
+python3 -m http.server 8080
+# Visit http://localhost:8080
+```
+
+**Dependencies** (install once):
+```bash
+pip install flask flask-cors psycopg2-binary pandas
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/matches` | All 8 LA matches |
+| GET | `/api/matches/<match_number>` | Single match detail |
+| GET | `/api/tickets` | All ticket options |
+| GET | `/api/tickets/<match_number>` | Tickets for a match |
+| GET | `/api/teams` | All LA teams |
+| GET | `/api/players` | All players |
+| GET | `/api/players/stars` | Star players only |
+| GET | `/api/hotels` | All hotels |
+| GET | `/api/restaurants` | All restaurants |
+| GET | `/api/events` | All events |
+| GET | `/api/rankings` | FIFA rankings |
+| GET | `/api/routes` | Airport → SoFi transport routes |
+| GET | `/api/map-data` | Geo coordinates for map pins |
+
+---
+
 ## Database Design
 
 ### Entity-Relationship Model
 
-The schema follows a star-schema / dimensional model with dimension tables and fact tables. The ER diagram is at `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`.
+The schema follows a star-schema / dimensional model. ER diagram: `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`
 
 ### Tables
 
@@ -63,7 +109,7 @@ The schema follows a star-schema / dimensional model with dimension tables and f
 
 | Table | Rows | Description |
 |---|---|---|
-| `dim_team` | 8 | Teams playing in LA, with federation, group, LA match numbers, FIFA status |
+| `dim_team` | 8 | Teams playing in LA — federation, group, LA match numbers, FIFA status |
 | `dim_player` | 26 | Star players per team — position, club, age, caps, goals |
 | `dim_place` | 10 | Venues, airports, and transport hubs (with lat/lon) |
 | `dim_mode` | 3 | Transport modes: transit, rideshare, drive |
@@ -75,7 +121,7 @@ The schema follows a star-schema / dimensional model with dimension tables and f
 |---|---|---|
 | `fact_match` | 8 | All LA matches — date, time, teams, group, stage, venue |
 | `fact_ticket` | 46 | Ticket options per match — section, level, category, price (USD), availability |
-| `fact_hotel` | 21 | Hotels — region, address, star rating, room count, price band, coordinates |
+| `fact_hotel` | 21 | Hotels — region, address, star rating, price band, coordinates |
 | `fact_restaurant` | 32 | Restaurants — region, cuisine, price range, Google review score |
 | `fact_event` | 139 | All events — fan festivals, sports (MLB/NBA/tennis/etc.), shows, fan zones |
 | `fact_route` | 4 | Airport-to-SoFi routes — mode, duration (min), cost range |
@@ -85,12 +131,10 @@ The schema follows a star-schema / dimensional model with dimension tables and f
 
 | Table | Rows | Description |
 |---|---|---|
-| `event_experience_detail` | 111 | Rich attributes for experience events: duration, intensity, photo value, transportation, planning tag |
+| `event_experience_detail` | 111 | Rich attributes: duration, intensity, photo value, transportation, planning tag |
 | `event_sports_detail` | 28 | Sports-specific fields: sport type, ticket price, competition info |
 
-### Clean Data (CSV)
-
-All cleaned, import-ready CSVs are in `database/clean_data/`. Naming convention: `clean_<table_name>.csv`.
+All cleaned CSVs are in `database/clean_data/`. Naming convention: `clean_<table_name>.csv`.
 
 ---
 
@@ -113,7 +157,7 @@ All matches at **SoFi Stadium**, 1001 S. Stadium Drive, Inglewood, CA 90301.
 
 ## Ticket Pricing Reference
 
-Prices sourced from `clean_fact_ticket.csv` (46 options across all 8 matches):
+46 options across all 8 matches (source: `database/clean_data/clean_fact_ticket.csv`):
 
 | Category | Price (USD) | Notes |
 |---|---|---|
@@ -126,41 +170,10 @@ Prices sourced from `clean_fact_ticket.csv` (46 options across all 8 matches):
 
 ## Transport: Airports → SoFi Stadium
 
-From `database/clean_data/clean_fact_route.csv`:
-
 | Origin | Mode | Duration | Cost |
 |---|---|---|---|
 | LAX | Public Transit | 46 min | $2–4 |
 | BUR (Burbank) | Public Transit | 112 min | $12–16 |
-
----
-
-## Frontend (In Progress)
-
-The website is built as a pure static site — no framework, no build step.
-
-**Current state:** All sections render from `sections/*.js` injecting HTML into mount points in `index.html`. `js/api.js` fetches live data from the Flask backend at startup and overrides the hardcoded fallback data in `js/data.js`.
-
-### Running locally
-
-```bash
-# 1. Start the Flask API (terminal 1)
-cd backend
-python3 app.py
-# API runs at http://127.0.0.1:5000
-
-# 2. Serve the frontend (terminal 2)
-cd frontend
-python3 -m http.server 8080
-# Visit http://localhost:8080
-```
-
-### Tech stack
-
-- Pure HTML / CSS / JavaScript — no frameworks, no bundlers
-- Fonts: Playfair Display, IM Fell English, Cormorant Garamond, DM Mono (Google Fonts)
-- Scroll animations via `IntersectionObserver`
-- Film projector intro animation (currently disabled — re-enable in `app.js`)
 
 ---
 
