@@ -6,6 +6,10 @@ async function apiFetch(endpoint) {
   return res.json();
 }
 
+function cleanParenthetical(value) {
+  return (value || "").replace(/\s*\([^)]*\)/g, "").trim();
+}
+
 export async function loadSiteData() {
   const [
     matches,
@@ -29,9 +33,11 @@ export async function loadSiteData() {
     apiFetch("/api/map-data").catch(() => null),
   ]);
 
-  const showCats = new Set([12, 13, 14, 15, 18, 19, 20, 23]);
+  const showCats = new Set([12, 13, 14, 15]);
+  const fanEventCats = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 23]);
   const fanEvents = [];
   const shows = [];
+  const allEvents = [];
 
   events.forEach((event) => {
     if (!event.event_name) return;
@@ -44,10 +50,13 @@ export async function loadSiteData() {
       price: "See details",
       desc: event.event_type || event.category || "",
       venue: event.venue_name || "",
+      category: event.category_label || event.category || "",
+      categoryId: catId,
       emoji: showCats.has(catId) ? "🎭" : "🎉",
     };
+    allEvents.push(item);
     if (showCats.has(catId)) shows.push(item);
-    else fanEvents.push(item);
+    else if (fanEventCats.has(catId)) fanEvents.push(item);
   });
 
   return {
@@ -55,7 +64,7 @@ export async function loadSiteData() {
     players,
     hotels: hotels.filter((h) => h.hotel_name).map((h) => ({
       name: h.hotel_name,
-      region: h.region || "",
+      region: cleanParenthetical(h.region),
       address: h.address || "",
       stars: Math.round(h.star_rating) || 3,
       price: h.price_band ? `${h.price_band}/night` : "N/A",
@@ -75,6 +84,7 @@ export async function loadSiteData() {
     })),
     fanEvents,
     shows,
+    allEvents,
     rankings,
     teams,
     routes,

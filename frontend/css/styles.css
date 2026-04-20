@@ -57,7 +57,6 @@
       /* ── Snap sections ─────────────────────────── */
       #mount-photohero,
       #mount-matches,
-      #mount-tournament,
       #mount-showcase,
       #mount-itinerary,
       #mount-explore,
@@ -781,7 +780,6 @@
       }
 
       /* Full-page: all snap-mounted sections fill their container */
-      #mount-tournament > section,
       #mount-itinerary > section,
       #mount-explore > section,
       #mount-discover > section,
@@ -828,9 +826,13 @@
    MATCHES — editorial sports page
 ══════════════════════════════════ */
       #matches {
-        background: var(--bg-section);
+        --ms-table-width: min(820px, calc(100vw - 420px));
+        background:
+          linear-gradient(rgba(245, 243, 238, 0.58), rgba(245, 243, 238, 0.68)),
+          url("../images/match.jpg") center / cover no-repeat;
         display: flex;
         flex-direction: column;
+        position: relative;
         height: 100%;
         padding: var(--nav-h, 82px) 4vw 1.5rem;
         box-sizing: border-box;
@@ -841,6 +843,9 @@
       .ms-header {
         flex-shrink: 0;
         margin-bottom: 1.4rem;
+        text-align: center;
+        position: relative;
+        z-index: 1;
       }
       .ms-eyebrow {
         font-family: "DM Mono", monospace;
@@ -871,6 +876,14 @@
         flex: 1;
         min-height: 0;
         border-top: 2px solid var(--ink);
+        width: var(--ms-table-width);
+        max-width: 100%;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        background: rgba(250, 248, 242, 0.86);
+        backdrop-filter: blur(3px);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.08);
       }
 
       .ms-item {
@@ -987,6 +1000,73 @@
         text-transform: uppercase;
         color: var(--silver);
         text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .ms-nav-btn {
+        position: absolute;
+        top: 56%;
+        transform: translateY(-50%);
+        z-index: 5;
+        width: 142px;
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        border: 2px solid var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+        box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.16);
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        font-weight: 600;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: transform 0.18s, box-shadow 0.18s, background 0.18s, color 0.18s;
+      }
+      .ms-home-btn { left: max(2rem, calc((100% - var(--ms-table-width)) / 2 - 166px)); }
+      .ms-explore-btn { right: max(2rem, calc((100% - var(--ms-table-width)) / 2 - 166px)); }
+      .ms-nav-arrow {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        line-height: 1;
+      }
+      .ms-nav-text {
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+      .ms-home-btn:hover {
+        transform: translateY(-50%) translateX(4px);
+        background: var(--paper);
+        color: var(--ink);
+        box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.18);
+      }
+      .ms-explore-btn:hover {
+        transform: translateY(-50%) translateX(-4px);
+        background: var(--paper);
+        color: var(--ink);
+        box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      @media (max-width: 1100px) {
+        #matches {
+          --ms-table-width: min(900px, calc(100vw - 8vw));
+          padding-bottom: 5.5rem;
+        }
+        .ms-nav-btn {
+          top: auto;
+          bottom: 1.25rem;
+          transform: none;
+          width: 150px;
+          min-height: 48px;
+        }
+        .ms-home-btn { left: calc(50% - 170px); }
+        .ms-explore-btn { right: calc(50% - 170px); }
+        .ms-home-btn:hover { transform: translateX(4px); }
+        .ms-explore-btn:hover { transform: translateX(-4px); }
       }
 
       @media (max-width: 680px) {
@@ -994,6 +1074,16 @@
         .ms-item-name { font-size: 0.78rem; }
         .ms-item-flag { font-size: 1.1rem; }
         .ms-item-flag.tbd { font-size: 0.6rem; }
+        .ms-nav-btn {
+          top: auto;
+          bottom: 1rem;
+          width: calc(50% - 1.5rem);
+          min-height: 48px;
+          font-size: 0.56rem;
+          box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.14);
+        }
+        .ms-home-btn { left: 1rem; }
+        .ms-explore-btn { right: 1rem; }
       }
 
       /* ══════════════════════════════════
@@ -1136,6 +1226,130 @@
         font-family: "DM Mono", monospace;
         font-size: 0.6rem;
         color: var(--silver);
+      }
+
+      .match-intel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+        gap: 1px;
+        background: var(--border-ink);
+        margin: 0 0 2.5rem;
+      }
+      .team-intel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border-ink);
+      }
+      .team-intel-card,
+      .ranking-snapshot {
+        background: var(--white);
+        padding: 1rem;
+        min-width: 0;
+      }
+      .team-intel-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.7rem;
+      }
+      .team-intel-label,
+      .ranking-title {
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+      .team-intel-flag {
+        font-size: 1.45rem;
+      }
+      .team-intel-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.45rem;
+        font-weight: 900;
+        line-height: 1.05;
+        color: var(--ink);
+        margin-bottom: 0.65rem;
+      }
+      .team-intel-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.65rem;
+      }
+      .team-intel-meta span,
+      .team-intel-change {
+        font-family: "DM Mono", monospace;
+        font-size: 0.56rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+      }
+      .team-intel-meta span {
+        border: 1px solid var(--border-med);
+        padding: 0.22rem 0.36rem;
+      }
+      .team-intel-status {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.92rem;
+        line-height: 1.35;
+        color: var(--charcoal);
+        min-height: 2.4rem;
+        margin-bottom: 0.8rem;
+      }
+      .team-intel-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--border-med);
+        margin-bottom: 0.65rem;
+      }
+      .team-intel-stats div {
+        background: var(--paper);
+        padding: 0.6rem 0.45rem;
+      }
+      .team-intel-stats strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        color: var(--ink);
+        line-height: 1.05;
+        overflow-wrap: anywhere;
+      }
+      .team-intel-stats span {
+        display: block;
+        margin-top: 0.18rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.48rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+      .ranking-title {
+        margin-bottom: 0.75rem;
+      }
+      .ranking-row {
+        display: grid;
+        grid-template-columns: 42px 1fr auto;
+        gap: 0.55rem;
+        align-items: baseline;
+        border-top: 1px solid var(--border-med);
+        padding: 0.48rem 0;
+      }
+      .ranking-row span,
+      .ranking-row em {
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        color: var(--silver);
+        font-style: normal;
+      }
+      .ranking-row strong {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.95rem;
+        color: var(--ink);
+        line-height: 1.05;
       }
 
       .nearby-tabs {
@@ -2018,6 +2232,10 @@
         .nearby-grid {
           grid-template-columns: 1fr;
         }
+        .match-intel,
+        .team-intel-grid {
+          grid-template-columns: 1fr;
+        }
         .detail-hero {
           flex-direction: column;
           gap: 1.5rem;
@@ -2171,46 +2389,382 @@
         50% { opacity: 0.8; }
       }
 
-      #tournament {
-        position: relative;
-        min-height: 100%;
-        background: var(--bg-page);
-        padding: var(--nav-h, 82px) 4vw 2rem;
-        box-sizing: border-box;
-      }
-      #tournamentGrid { margin-top: 1.2rem; }
-      .tour-nav-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        border: 2px solid var(--ink);
-        background: var(--ink);
-        color: var(--paper);
-        font-family: "DM Mono", monospace;
-        font-size: 0.62rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        min-height: 46px;
-        padding: 0 1rem;
-        cursor: pointer;
-        box-shadow: 6px 6px 0 rgba(0,0,0,0.14);
-        transition: transform 0.18s, box-shadow 0.18s, background 0.18s, color 0.18s;
-      }
-      .tour-back-btn { left: 3vw; }
-      .tour-next-btn { right: 3vw; }
-      .tour-back-btn:hover {
-        transform: translateY(-50%) translateX(4px);
-        background: var(--paper);
-        color: var(--ink);
-        box-shadow: 9px 9px 0 rgba(0,0,0,0.16);
-      }
-      .tour-next-btn:hover {
-        transform: translateY(-50%) translateX(-4px);
-        background: var(--paper);
-        color: var(--ink);
-        box-shadow: 9px 9px 0 rgba(0,0,0,0.16);
-      }
       .rec-card {
         border: 0;
         text-decoration: none;
+      }
+
+      /* ══════════════════════════════════
+   REACT EXPLORE LA + SYNC MAP
+══════════════════════════════════ */
+      #la-showcase {
+        height: 100%;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        padding: calc(var(--nav-h, 82px) + 0.8rem) 2.5vw 1.25rem;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .lg-header {
+        text-align: center;
+        flex-shrink: 0;
+        margin-bottom: 0.78rem;
+      }
+      .lg-eyebrow {
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgba(0,0,0,0.35);
+        margin-bottom: 0.35rem;
+      }
+      .lg-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2rem, 4.2vw, 3.35rem);
+        font-weight: 900;
+        color: #111;
+        line-height: 1;
+        margin: 0 0 0.3rem;
+      }
+      .lg-sub {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 0.95rem;
+        color: rgba(0,0,0,0.45);
+        margin: 0;
+      }
+      .lg-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+        gap: 10px;
+        flex: 1;
+        min-height: 0;
+      }
+      .lg-left,
+      .lg-map-panel {
+        min-width: 0;
+        min-height: 0;
+      }
+      .lg-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-rows: minmax(0, 1fr);
+        gap: 8px;
+        flex: 1;
+        height: auto;
+        min-height: 0;
+      }
+      .lg-picker {
+        height: 100%;
+        min-height: 0;
+        background: rgba(250, 248, 242, 0.96);
+        border: 2px solid #111;
+        box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .lg-picker-top {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 2px solid #111;
+        background: #fff;
+      }
+      .lg-back-btn {
+        border: 1.5px solid #111;
+        background: #111;
+        color: #fff;
+        min-height: 38px;
+        padding: 0 0.8rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .lg-back-btn:hover {
+        background: #fff;
+        color: #111;
+      }
+      .lg-picker-kicker {
+        font-family: "DM Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(0,0,0,0.38);
+        margin-bottom: 0.15rem;
+      }
+      .lg-picker-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.4rem, 3vw, 2.35rem);
+        font-weight: 900;
+        line-height: 1;
+        color: #111;
+      }
+      .lg-category-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0.9rem 1rem 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.12);
+        background: #fbfaf6;
+      }
+      .lg-category-tabs button {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        border: 1.5px solid rgba(0,0,0,0.2);
+        background: #fff;
+        color: #333;
+        padding: 0.45rem 0.35rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.57rem;
+        letter-spacing: 0.12em;
+        line-height: 1.25;
+        text-transform: uppercase;
+        text-align: center;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+        transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+      }
+      .lg-category-tabs button.active,
+      .lg-category-tabs button:hover {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+      }
+      .lg-check-list {
+        overflow-y: auto;
+        padding: 0.75rem 1rem 1rem;
+        display: grid;
+        gap: 0.65rem;
+      }
+      .lg-check-row {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 0.75rem;
+        align-items: start;
+        padding: 0.8rem;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.12);
+        cursor: pointer;
+        transition: border-color 0.16s, transform 0.16s, box-shadow 0.16s;
+      }
+      .lg-check-row:hover {
+        border-color: #111;
+        transform: translateY(-1px);
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.08);
+      }
+      .lg-check-row input {
+        margin-top: 0.12rem;
+        accent-color: #111;
+      }
+      .lg-check-row strong {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #111;
+        line-height: 1.15;
+      }
+      .lg-check-row em {
+        display: block;
+        margin-top: 0.2rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.56rem;
+        font-style: normal;
+        color: rgba(0,0,0,0.48);
+        line-height: 1.45;
+      }
+      .lg-card {
+        appearance: none;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        cursor: pointer;
+        perspective: 1000px;
+        outline: 0;
+      }
+      .lg-large { grid-column: span 2; grid-row: span 2; }
+      .lg-wide { grid-column: span 2; }
+      .lg-photo-wide { grid-column: span 2; }
+      .lg-photo {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        background-image: var(--lg-img);
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+      }
+      .lg-photo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.08);
+      }
+      .lg-card-inner {
+        position: absolute;
+        inset: 0;
+        display: block;
+        transform-style: preserve-3d;
+        transition: transform 0.72s cubic-bezier(.2,.7,.2,1);
+      }
+      .lg-card:hover .lg-card-inner,
+      .lg-card:focus-visible .lg-card-inner,
+      .lg-card.map-active .lg-card-inner {
+        transform: rotateY(180deg);
+        transition-delay: 0.2s;
+      }
+      .lg-face {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        backface-visibility: hidden;
+      }
+      .lg-front {
+        background-image: var(--lg-img);
+        background-size: cover;
+        background-position: center;
+      }
+      .lg-front::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.36), rgba(0,0,0,0.04));
+      }
+      .lg-back {
+        transform: rotateY(180deg);
+        background: #111;
+        color: #fff;
+        padding: 1.15rem;
+        box-sizing: border-box;
+        border: 1px solid #111;
+        text-align: center;
+      }
+      .lg-back::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: var(--lg-img);
+        background-size: cover;
+        background-position: center;
+        opacity: 0.34;
+        transform: scaleX(-1) scale(1.06);
+      }
+      .lg-back::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.46);
+      }
+      .lg-kicker,
+      .lg-name,
+      .lg-action {
+        position: relative;
+        z-index: 1;
+      }
+      .lg-kicker {
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.72);
+        margin-bottom: 0.65rem;
+      }
+      .lg-name {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.55rem, 2.7vw, 2.8rem);
+        font-weight: 900;
+        line-height: 0.96;
+        text-align: center;
+        text-shadow: 0 2px 18px rgba(0,0,0,0.42);
+      }
+      .lg-action {
+        font-family: "DM Mono", monospace;
+        font-size: 0.64rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.78);
+        margin-top: 0.95rem;
+      }
+      .lg-map-panel {
+        display: flex;
+        flex-direction: column;
+        background: #111;
+        border: 2px solid #111;
+        box-shadow: 8px 8px 0 rgba(0,0,0,0.12);
+      }
+      .lg-map-head {
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0 1rem;
+        background: #f7f4ed;
+        border-bottom: 2px solid #111;
+        font-family: "DM Mono", monospace;
+        font-size: 0.56rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(0,0,0,0.55);
+      }
+      .lg-map-head strong {
+        color: #111;
+        font-weight: 700;
+      }
+      #showcase-map {
+        flex: 1;
+        min-height: 0;
+        background: #111;
+      }
+      @media (max-width: 980px) {
+        #la-showcase {
+          overflow-y: auto;
+        }
+        .lg-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-rows: repeat(2, minmax(210px, 1fr));
+        }
+        .lg-split {
+          grid-template-columns: 1fr;
+          grid-template-rows: minmax(420px, 1fr) minmax(360px, 44vh);
+        }
+        .lg-category-tabs {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 768px) {
+        #la-showcase {
+          padding: var(--nav-h, 82px) 1rem 1rem;
+        }
+        .lg-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: repeat(3, minmax(150px, 1fr));
+        }
+        .lg-large,
+        .lg-wide {
+          grid-column: span 1;
+          grid-row: span 1;
+        }
+        .lg-map-panel {
+          min-height: 360px;
+        }
+        .lg-category-tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
       }

@@ -13,12 +13,12 @@ import {
 const matchRows = [
   { key: "M4", badge: "#1D428A", group: "Group D", teams: ["🇺🇸", "USA", "Paraguay", "🇵🇾"], date: "June 12", sub: "Friday · 6:00 pm PT" },
   { key: "M15", badge: "#239F40", group: "Group G", teams: ["🇮🇷", "IR Iran", "New Zealand", "🇳🇿"], date: "June 15", sub: "Monday · 6:00 pm PT" },
-  { key: "M26", badge: "#C8102E", group: "Group B", teams: ["🇨🇭", "Switzerland", "Bosnia & Herz.", "🇧🇦"], date: "June 18", sub: "Thursday · 12:00 pm PT" },
+  { key: "M26", badge: "#C8102E", group: "Group B", teams: ["🇨🇭", "Switzerland", "TBD", ""], date: "June 18", sub: "Thursday · 12:00 pm PT", awayTbd: true },
   { key: "M39", badge: "#C49A00", group: "Group G", teams: ["🇧🇪", "Belgium", "IR Iran", "🇮🇷"], date: "June 21", sub: "Sunday · 12:00 pm PT" },
-  { key: "M59", badge: "#E30A17", group: "Group D", teams: ["🇹🇷", "Türkiye", "USA", "🇺🇸"], date: "June 25", sub: "Thursday · 7:00 pm PT" },
-  { key: "M73", badge: "#5C4033", group: "Round of 32", teams: ["2A", "TBD", "TBD", "2B"], date: "June 28", sub: "Sunday · 12:00 pm PT", tbd: true },
-  { key: "M84", badge: "#37474F", group: "Round of 32", teams: ["1C", "TBD", "TBD", "2D"], date: "July 2", sub: "Thursday · 12:00 pm PT", tbd: true },
-  { key: "M98", badge: "#1A1A2E", group: "Quarter-Final", teams: ["W61", "TBD", "TBD", "W62"], date: "July 10", sub: "Friday · 12:00 pm PT", tbd: true },
+  { key: "M59", badge: "#E30A17", group: "Group D", teams: ["", "TBD", "USA", "🇺🇸"], date: "June 25", sub: "Thursday · 7:00 pm PT", homeTbd: true },
+  { key: "M73", badge: "#5C4033", group: "Round of 32", teams: ["", "TBD", "TBD", ""], date: "June 28", sub: "Sunday · 12:00 pm PT", homeTbd: true, awayTbd: true },
+  { key: "M84", badge: "#37474F", group: "Round of 32", teams: ["", "TBD", "TBD", ""], date: "July 2", sub: "Thursday · 12:00 pm PT", homeTbd: true, awayTbd: true },
+  { key: "M98", badge: "#1A1A2E", group: "Quarter-Final", teams: ["", "TBD", "TBD", ""], date: "July 10", sub: "Friday · 12:00 pm PT", homeTbd: true, awayTbd: true },
 ];
 
 const matchMeta = {
@@ -46,9 +46,8 @@ function Nav() {
         <ul className="nav-links">
           <li><a href="#matches">Matches</a></li>
           <li><a href="#la-showcase">Explore LA</a></li>
-          <li><a href="#tournament">Tournament</a></li>
           <li><a href="#itinerary">Journey</a></li>
-          <li><a href="#explore">Map</a></li>
+          <li><a href="#la-showcase">Map</a></li>
           <li><a href="#about">About Us</a></li>
         </ul>
         <div className="nav-rule">SoFi Stadium · Inglewood</div>
@@ -86,7 +85,6 @@ function PhotoHero() {
           <span className="ph-cta-arrow">↓</span>
         </button>
       </div>
-      <div className="ph-scroll-hint"><span>Scroll</span><div className="ph-scroll-line" /></div>
     </div>
   );
 }
@@ -107,11 +105,11 @@ function Matches({ data, onOpenMatch }) {
               <div className="ms-item-group">{row.group}</div>
             </div>
             <div className="ms-item-teams">
-              <span className={row.tbd ? "ms-item-flag tbd" : "ms-item-flag"}>{row.teams[0]}</span>
+              {!row.homeTbd && <span className="ms-item-flag">{row.teams[0]}</span>}
               <span className="ms-item-name">{row.teams[1]}</span>
               <span className="ms-item-vs">vs</span>
               <span className="ms-item-name">{row.teams[2]}</span>
-              <span className={row.tbd ? "ms-item-flag tbd" : "ms-item-flag"}>{row.teams[3]}</span>
+              {!row.awayTbd && <span className="ms-item-flag">{row.teams[3]}</span>}
             </div>
             <div className="ms-item-right">
               <div className="ms-item-date">{row.date}</div>
@@ -122,59 +120,226 @@ function Matches({ data, onOpenMatch }) {
         ))}
       </div>
       <div className="ms-footer-hint">Click any match to view details, tickets &amp; nearby picks</div>
+      <button className="ms-nav-btn ms-home-btn" type="button" onClick={() => scrollToId("photo-hero")}>
+        <span className="ms-nav-arrow">←</span>
+        <span className="ms-nav-text">Home</span>
+      </button>
+      <button className="ms-nav-btn ms-explore-btn" type="button" onClick={() => scrollToId("la-showcase")}>
+        <span className="ms-nav-text">Explore LA</span>
+        <span className="ms-nav-arrow">→</span>
+      </button>
     </section>
   );
 }
 
-function Tournament({ data, apiReady }) {
-  const [tab, setTab] = useState("teams");
-  const confColors = { UEFA: "#003399", CONCACAF: "#c8102e", AFC: "#006633", CAF: "#009f3d", CONMEBOL: "#fcdd04" };
-  const rows = tab === "teams" ? data.teams : data.rankings;
-  return (
-    <section id="tournament">
-      <div className="section-masthead"><div className="section-title">Tournament Guide</div><div className="section-folio">Teams · FIFA Rankings</div></div>
-      <div className="tab-bar">
-        <button className={`tab-btn tournament-tab ${tab === "teams" ? "active" : ""}`} onClick={() => setTab("teams")}>Teams</button>
-        <button className={`tab-btn tournament-tab ${tab === "rankings" ? "active" : ""}`} onClick={() => setTab("rankings")}>FIFA Rankings</button>
-      </div>
-      <div className="cards-grid" id="tournamentGrid">
-        {!apiReady ? <DataNotice title="Loading tournament data" detail="The page is waiting for the Flask API." /> : rows.map((item) => tab === "teams" ? (
-          <div className="rec-card" key={item.country}><div className="rec-card-img">⚽</div><div className="rec-card-body"><div className="rec-card-tag" style={{ color: confColors[item.federation] || "var(--silver)" }}>{item.federation}</div><div className="rec-card-name">{item.country}</div><div className="rec-card-sub">Group {item.group_stage || "TBD"} · {item.status || "Qualified"}</div><div className="rec-card-price">{item.matches_in_la} match{item.matches_in_la !== 1 ? "es" : ""} in Los Angeles</div></div></div>
-        ) : (
-          <div className="rec-card" key={`${item.country}-${item.rank}`}><div className="rec-card-img" style={{ fontFamily: "'DM Mono', monospace", fontSize: "1.6rem", fontWeight: 700 }}>#{item.rank}</div><div className="rec-card-body"><div className="rec-card-tag">{item.confederation}</div><div className="rec-card-name">{item.country}</div><div className="rec-card-sub">{Number.parseFloat(item.total_points).toFixed(1)} FIFA points</div><div className="rec-card-price">{item.rank_change > 0 ? `▲${item.rank_change}` : item.rank_change < 0 ? `▼${Math.abs(item.rank_change)}` : "–"} from previous ranking</div></div></div>
-        ))}
-      </div>
-      <button className="tour-nav-btn tour-back-btn" type="button" onClick={() => scrollToId("matches")}>← Matches</button>
-      <button className="tour-nav-btn tour-next-btn" type="button" onClick={() => scrollToId("la-showcase")}>Explore LA →</button>
-    </section>
-  );
-}
-
-function ExploreLA({ openDiscoverTab }) {
+function ExploreLA({ data, apiReady, apiError }) {
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [hoverCategory, setHoverCategory] = useState("stadium");
+  const [selectedIds, setSelectedIds] = useState([]);
   const cards = [
-    { tab: "hotels", label: "Hotels", kicker: "Stay", action: "View picks ↓", img: "LA1.jpg", cls: "lg-large" },
-    { tab: "restaurants", label: "Restaurants", kicker: "Taste", action: "View dining ↓", img: "LA2.jpg" },
-    { tab: "events", label: "Fan Events", kicker: "Gather", action: "View events ↓", img: "LA3.jpg" },
-    { tab: "shows", label: "Shows", kicker: "After Dark", action: "View shows ↓", img: "LA4.jpg" },
-    { photo: true, img: "LA10.jpg" },
-    { tab: "routes", label: "Getting There", kicker: "Arrive", action: "View routes ↓", img: "LA8.jpg", cls: "lg-wide" },
-    { photo: true, img: "LA5.jpg" },
-    { photo: true, img: "LA6.jpg" },
+    { category: "hotels", label: "Hotels", kicker: "Stay", action: "Choose stays", img: "LA1.jpg" },
+    { category: "restaurants", label: "Restaurants", kicker: "Taste", action: "Choose dining", img: "LA2.jpg" },
+    { category: "events", label: "Fan Events", kicker: "Gather", action: "Choose events", img: "LA3.jpg" },
+    { category: "shows", label: "Shows", kicker: "After Dark", action: "Choose shows", img: "LA4.jpg" },
+    { category: "attractions", label: "Attractions", kicker: "Theme Park", action: "Choose activities", img: "LA7.jpg" },
   ];
+  const categories = [
+    ["hotels", "Hotels"],
+    ["restaurants", "Restaurants"],
+    ["events", "Fan Events"],
+    ["shows", "Shows"],
+    ["attractions", "Attractions"],
+  ];
+  const exploreItems = useMemo(() => {
+    const attractionCats = new Set([16, 17, 18, 19, 20, 21, 22]);
+    const areaCoords = {
+      "West Hollywood": [34.0901, -118.376],
+      WeHo: [34.0901, -118.376],
+      Westwood: [34.061, -118.443],
+      "Downtown LA": [34.043, -118.267],
+      Downtown: [34.043, -118.267],
+      "Arts District": [34.0401, -118.2311],
+      Hollywood: [34.1017, -118.329],
+      Fairfax: [34.074, -118.3614],
+      "Santa Monica": [34.0143, -118.4912],
+      Venice: [33.985, -118.4695],
+      Inglewood: [33.9534, -118.3391],
+      Anaheim: [33.8121, -117.919],
+      "Orange County": [33.8121, -117.919],
+      Burbank: [34.1808, -118.309],
+      Carson: [33.8317, -118.2817],
+      "Long Beach": [33.7701, -118.1937],
+      "South El Monte": [34.0519, -118.0467],
+      Pomona: [34.0551, -117.7499],
+      Downey: [33.94, -118.1332],
+      "East Los Angeles": [34.0333, -118.1667],
+      "Los Feliz": [34.1083, -118.2872],
+      "Studio City": [34.1396, -118.3871],
+    };
+    const coordsFor = (text = "", index = 0) => {
+      const hit = Object.entries(areaCoords).find(([key]) => text.toLowerCase().includes(key.toLowerCase()));
+      const base = hit ? hit[1] : [34.043, -118.32];
+      const offset = (index % 5) * 0.006;
+      return [base[0] + offset, base[1] - offset];
+    };
+    const hotels = (data.hotels || [])
+      .filter((h) => h.lat && h.lon)
+      .map((h, i) => ({ id: `hotel-${i}-${h.name}`, type: "hotel", name: h.name, lat: Number(h.lat), lng: Number(h.lon), detail: `${h.region} · ${h.price}` }));
+    const restaurants = (data.restaurants || [])
+      .map((r, i) => {
+        const [lat, lng] = coordsFor(`${r.region} ${r.address}`, i);
+        return { id: `restaurant-${i}-${r.name}`, type: "restaurant", name: r.name, lat, lng, detail: `${r.region} · ${r.flavor} · ${r.price}` };
+      });
+    const events = (data.fanEvents || [])
+      .map((e, i) => {
+        const [lat, lng] = coordsFor(`${e.area} ${e.venue} ${e.name}`, i);
+        return { id: `event-${e.id || i}`, type: "event", name: e.name, lat, lng, detail: `${e.area || "Los Angeles"} · ${e.desc}` };
+      });
+    const shows = (data.shows || [])
+      .map((s, i) => {
+        const [lat, lng] = coordsFor(`${s.area} ${s.venue} ${s.name}`, i);
+        return { id: `show-${s.id || i}`, type: "event", name: s.name, lat, lng, detail: `${s.area || s.venue || "Los Angeles"} · ${s.desc}` };
+      });
+    const attractions = (data.allEvents || [])
+      .filter((item) => attractionCats.has(item.categoryId))
+      .map((item, i) => {
+        const [lat, lng] = coordsFor(`${item.area} ${item.venue} ${item.name}`, i);
+        return { id: `attraction-${item.id || i}`, type: "attraction", name: item.name, lat, lng, detail: `${item.area || item.venue || "Los Angeles"} · ${item.desc}` };
+      });
+    return {
+      hotels,
+      restaurants,
+      events,
+      shows,
+      attractions,
+    };
+  }, [data.allEvents, data.hotels, data.restaurants, data.fanEvents, data.shows]);
+  const currentCategory = activeCategory || hoverCategory;
+  const visibleItems = exploreItems[activeCategory] || [];
+  const previewItems = activeCategory ? visibleItems.filter((item) => selectedIds.includes(item.id)) : exploreItems[currentCategory] || [];
+  const toggleItem = (id) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((itemId) => itemId !== id) : [...ids, id]);
+  const openCategory = (category) => {
+    setActiveCategory(category);
+    setHoverCategory(category);
+    setSelectedIds((exploreItems[category] || []).slice(0, 2).map((item) => item.id));
+  };
   return (
     <section id="la-showcase">
-      <div className="lg-header"><div className="lg-eyebrow">Choose Your Los Angeles Scene</div><h2 className="lg-title">Explore LA</h2><p className="lg-sub">Hover a photo, pick a chapter, then jump straight into the live database view.</p></div>
-      <div className="lg-grid">
-        {cards.map((card, i) => card.photo ? (
-          <div key={i} className="lg-photo" style={{ "--lg-img": `url('images/${card.img}')` }} aria-hidden="true" />
-        ) : (
-          <button key={card.tab} className={`lg-card ${card.cls || ""}`} type="button" onClick={() => openDiscoverTab(card.tab)} aria-label={`Open ${card.label}`} style={{ "--lg-img": `url('images/${card.img}')` }}>
-            <span className="lg-card-inner"><span className="lg-face lg-front" /><span className="lg-face lg-back"><span className="lg-kicker">{card.kicker}</span><span className="lg-name">{card.label}</span><span className="lg-action">{card.action}</span></span></span>
-          </button>
-        ))}
+      <div className="lg-header">
+        <h2 className="lg-title">Explore LA</h2>
+        {activeCategory && <p className="lg-sub">Choose one or more places and watch them appear on the live map.</p>}
       </div>
+      {!activeCategory ? (
+        <div className="lg-grid">
+          {cards.map((card, i) => card.photo ? (
+            <div key={i} className={`lg-photo ${card.cls || ""}`} style={{ "--lg-img": `url('images/${card.img}')` }} aria-hidden="true" />
+          ) : (
+            <button
+              key={card.category}
+              className={`lg-card ${card.cls || ""} ${hoverCategory === card.category ? "map-active" : ""}`}
+              type="button"
+              onMouseEnter={() => setHoverCategory(card.category)}
+              onMouseLeave={() => setHoverCategory("stadium")}
+              onFocus={() => setHoverCategory(card.category)}
+              onClick={() => openCategory(card.category)}
+              aria-label={`Open ${card.label}`}
+              style={{ "--lg-img": `url('images/${card.img}')` }}
+            >
+              <span className="lg-card-inner"><span className="lg-face lg-front" /><span className="lg-face lg-back"><span className="lg-kicker">{card.kicker}</span><span className="lg-name">{card.label}</span><span className="lg-action">{card.action}</span></span></span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="lg-split">
+          <div className="lg-left">
+            <div className="lg-picker">
+              <div className="lg-picker-top">
+                <button className="lg-back-btn" type="button" onClick={() => setActiveCategory(null)}>← All</button>
+                <div>
+                  <div className="lg-picker-kicker">Build Your Map</div>
+                  <div className="lg-picker-title">{categories.find(([key]) => key === activeCategory)?.[1]}</div>
+                </div>
+              </div>
+              <div className="lg-category-tabs">
+                {categories.map(([key, label]) => (
+                  <button key={key} className={key === activeCategory ? "active" : ""} type="button" aria-pressed={key === activeCategory} onClick={() => openCategory(key)}>{label}</button>
+                ))}
+              </div>
+              <div className="lg-check-list">
+                {apiError ? (
+                  <DataNotice title="Backend API is unavailable" detail="Start the Flask server and reload the page to load database-backed places." />
+                ) : !apiReady ? (
+                  <DataNotice title="Loading database content" detail="The page is waiting for the Flask API before rendering selectable places." />
+                ) : visibleItems.length === 0 ? (
+                  <DataNotice title="No database rows found" detail="This category has no rows from the current backend query." />
+                ) : visibleItems.map((item) => (
+                  <label key={item.id} className="lg-check-row">
+                    <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleItem(item.id)} />
+                    <span>
+                      <strong>{item.name}</strong>
+                      <em>{item.detail}</em>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="lg-map-panel">
+            <div className="lg-map-head">
+              <span>Live Map</span>
+              <strong>{`${selectedIds.length} Selected`}</strong>
+            </div>
+            <SyncMap mode={currentCategory} places={previewItems} />
+          </div>
+        </div>
+      )}
     </section>
   );
+}
+
+function SyncMap({ mode, places = [] }) {
+  const mapRef = useRef(null);
+  const layerRef = useRef(null);
+  const defaultCenter = [33.9534, -118.3391];
+
+  useEffect(() => {
+    if (!window.L || mapRef.current) return;
+    const map = window.L.map("showcase-map", { center: defaultCenter, zoom: 13, zoomControl: false, attributionControl: true });
+    mapRef.current = map;
+    layerRef.current = window.L.layerGroup().addTo(map);
+    window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OSM © CARTO", subdomains: "abcd", maxZoom: 19 }).addTo(map);
+    window.L.control.zoom({ position: "bottomright" }).addTo(map);
+    return () => { map.remove(); mapRef.current = null; layerRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (!window.L || !mapRef.current || !layerRef.current) return;
+    const color = { stadium: "#f4d35e", hotel: "#9fd3ff", restaurant: "#f7a072", event: "#c2f970", attraction: "#ff8ac6", route: "#d7b8ff" };
+    const icon = (type) => window.L.divIcon({
+      className: "",
+      html: `<div style="width:${type === "stadium" ? 18 : 11}px;height:${type === "stadium" ? 18 : 11}px;border-radius:50%;background:${color[type] || "#ddd"};border:2px solid #fff;box-shadow:${type === "stadium" ? "0 0 18px rgba(244,211,94,.95)" : "0 0 10px rgba(255,255,255,.35)"};"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
+    const stadium = { type: "stadium", name: "SoFi Stadium", lat: defaultCenter[0], lng: defaultCenter[1], detail: "World Cup match venue · Inglewood" };
+    const visiblePlaces = [stadium, ...places];
+    layerRef.current.clearLayers();
+    const markers = visiblePlaces.map((p) => {
+      const marker = window.L.marker([p.lat, p.lng], { icon: icon(p.type) })
+        .bindPopup(`<div class="lf-popup"><div class="lf-popup-type">${p.type}</div><div class="lf-popup-name">${p.name}</div><div class="lf-popup-detail">${p.detail}</div></div>`, { className: "lf-popup-wrap", closeButton: false });
+      marker.addTo(layerRef.current);
+      if (p.type === "stadium") marker.openPopup();
+      return marker;
+    });
+    if (mode === "stadium" || markers.length === 1) {
+      mapRef.current.flyTo(defaultCenter, 13, { duration: 0.8 });
+    } else {
+      const bounds = window.L.featureGroup(markers).getBounds();
+      mapRef.current.fitBounds(bounds.pad(0.25), { maxZoom: 13, animate: true });
+    }
+  }, [mode, places]);
+
+  return <div id="showcase-map" />;
 }
 
 function DataNotice({ title, detail }) {
@@ -332,14 +497,83 @@ function About() {
     ["Bruce Yu", "Team Energy & Operations", "Good boy yeah！", "https://github.com/Hongqiuzi", "BruceYu", "c0d9ee"],
     ["Richard Zhang", "Analytics & Growth", "Passionate about analytics leveraging data-driven insights to scale high-impact brand growth.", "https://github.com/richardzhang1028-glitch", "RichardZhang", "d8e7c7"],
     ["Richelle Liu", "Product & User Experience", "Not a big fan of FIFA but big fan of AI, data, product and Day yi.", "https://github.com/ririchelle", "RichelleLiu", "f3c5d8"],
-    ["Rosemary Li", "Machine Learning & NLP", "Machine learning and NLP practitioner building scalable, end-to-end solutions that translate data into real-world impact.", "https://github.com/Rosemary-Li", "RosemaryLi", "e8d7b5"],
+    ["Rosemary Li", "Full-Stack & Data Engineering Lead", "Building the project across the full stack: designing database-backed API logic and connecting PostgreSQL data to a React interface for World Cup visitors.", "https://github.com/Rosemary-Li", "RosemaryLi", "e8d7b5"],
     ["Shenghan Gao", "Backend & Data Engineering", "Turning messy, real-world data into clean, structured datasets — making it ready for seamless ETL and reliable database integration.", "https://github.com/Shenghan-Gao", "ShenghanGao", "c7d8d6"],
   ];
   return <section id="about"><div className="about-header"><div className="about-title">Meet Our Team</div><a className="about-team-link" href="https://github.com/Rosemary-Li/LA-WorldCup" target="_blank" rel="noreferrer">Project GitHub</a></div><div className="team-grid">{team.map(([name, role, bio, github, seed, bg]) => <div className="team-card" key={name}><img className="team-photo" src={`https://api.dicebear.com/8.x/notionists/svg?seed=${seed}&backgroundColor=${bg}`} alt={`${name} cartoon avatar`} /><div className="team-info"><div className="team-name">{name}</div><div className="team-role">{role}</div><div className="team-bio">{bio}</div><a className="team-github" href={github} target="_blank" rel="noreferrer">GitHub</a></div></div>)}</div></section>;
 }
 
 function Footer() {
-  return <footer><div className="footer-masthead">LA × WC26</div><div className="footer-links"><a href="#photo-hero">Home</a><a href="#matches">Matches</a><a href="#tournament">Tournament</a><a href="#itinerary">Journey</a><a href="#explore">Explore</a><a href="https://www.discoverlosangeles.com/fifaworldcupla" target="_blank" rel="noreferrer">Official LA Tourism</a><a href="#about">About Us</a></div><p className="footer-copy">FIFA World Cup 2026™ Los Angeles · June 11 – July 19, 2026 · SoFi Stadium</p></footer>;
+  return <footer><div className="footer-masthead">LA × WC26</div><div className="footer-links"><a href="#photo-hero">Home</a><a href="#matches">Matches</a><a href="#itinerary">Journey</a><a href="#la-showcase">Explore</a><a href="https://www.discoverlosangeles.com/fifaworldcupla" target="_blank" rel="noreferrer">Official LA Tourism</a><a href="#about">About Us</a></div><p className="footer-copy">FIFA World Cup 2026™ Los Angeles · June 11 – July 19, 2026 · SoFi Stadium</p></footer>;
+}
+
+const countryAliases = {
+  "united states": "usa",
+  "us": "usa",
+  "u.s.": "usa",
+  "ir iran": "iran",
+};
+
+function countryKey(value = "") {
+  const key = String(value).trim().toLowerCase();
+  return countryAliases[key] || key;
+}
+
+function findTeamInfo(teams, metaTeam, dbName) {
+  const keys = [dbName, metaTeam.country, metaTeam.name].filter(Boolean).map(countryKey);
+  return teams.find((team) => keys.includes(countryKey(team.country))) || null;
+}
+
+function findRankingInfo(rankings, metaTeam, teamInfo) {
+  const keys = [teamInfo?.country, metaTeam.country, metaTeam.name].filter(Boolean).map(countryKey);
+  return rankings.find((ranking) => keys.includes(countryKey(ranking.country))) || null;
+}
+
+function rankChangeText(change) {
+  const value = Number(change);
+  if (!Number.isFinite(value) || value === 0) return "No change";
+  return value > 0 ? `Up ${value}` : `Down ${Math.abs(value)}`;
+}
+
+function TeamIntelCard({ label, metaTeam, teamInfo, ranking }) {
+  return (
+    <div className="team-intel-card">
+      <div className="team-intel-top">
+        <span className="team-intel-label">{label}</span>
+        <span className="team-intel-flag">{metaTeam.flag}</span>
+      </div>
+      <div className="team-intel-name">{teamInfo?.country || metaTeam.country}</div>
+      <div className="team-intel-meta">
+        <span>{teamInfo?.federation || ranking?.confederation || "TBD"}</span>
+        <span>Group {teamInfo?.group_stage || "TBD"}</span>
+      </div>
+      <div className="team-intel-status">{teamInfo?.status || "Team details will update when confirmed."}</div>
+      <div className="team-intel-stats">
+        <div><strong>{ranking ? `#${ranking.rank}` : "TBD"}</strong><span>FIFA Rank</span></div>
+        <div><strong>{ranking ? Number.parseFloat(ranking.total_points).toFixed(1) : "TBD"}</strong><span>Points</span></div>
+        <div><strong>{teamInfo?.matches_in_la || "TBD"}</strong><span>LA Match</span></div>
+      </div>
+      {ranking && <div className="team-intel-change">{rankChangeText(ranking.rank_change)} from previous ranking</div>}
+    </div>
+  );
+}
+
+function RankingSnapshot({ rankings, activeCountries }) {
+  const activeKeys = activeCountries.map(countryKey);
+  const rows = rankings.filter((ranking) => activeKeys.includes(countryKey(ranking.country)));
+  const fallbackRows = rows.length ? rows : rankings.slice(0, 6);
+  return (
+    <aside className="ranking-snapshot">
+      <div className="ranking-title">FIFA Ranking Snapshot</div>
+      {fallbackRows.map((ranking) => (
+        <div className="ranking-row" key={`${ranking.country}-${ranking.rank}`}>
+          <span>#{ranking.rank}</span>
+          <strong>{ranking.country}</strong>
+          <em>{Number.parseFloat(ranking.total_points).toFixed(1)}</em>
+        </div>
+      ))}
+    </aside>
+  );
 }
 
 function MatchOverlay({ matchNumber, data, onClose }) {
@@ -349,13 +583,33 @@ function MatchOverlay({ matchNumber, data, onClose }) {
   if (!matchNumber) return null;
   const dbMatch = data.matches.find((m) => m.match_number === matchNumber) || {};
   const meta = matchMeta[matchNumber] || matchMeta.M4;
-  const players = data.players.filter((p) => [dbMatch.team1, dbMatch.team2, meta.home.country, meta.away.country].includes(p.team)).slice(0, 4);
+  const homeTeam = findTeamInfo(data.teams, meta.home, dbMatch.team1);
+  const awayTeam = findTeamInfo(data.teams, meta.away, dbMatch.team2);
+  const homeRanking = findRankingInfo(data.rankings, meta.home, homeTeam);
+  const awayRanking = findRankingInfo(data.rankings, meta.away, awayTeam);
+  const activeCountries = [homeTeam?.country, awayTeam?.country, meta.home.country, meta.away.country].filter(Boolean);
+  const playerTeams = [homeTeam?.country, awayTeam?.country, dbMatch.team1, dbMatch.team2, meta.home.name, meta.away.name].filter(Boolean).map(countryKey);
+  const players = data.players.filter((p) => playerTeams.includes(countryKey(p.team))).slice(0, 4);
   async function openTickets() { setPanel("tickets"); if (!tickets && dbMatch.match_number) setTickets(await loadTickets(dbMatch.match_number).catch(() => [])); }
-  async function openSquad() { setPanel("squad"); if (!squad) { const rows = await Promise.all([loadPlayersByTeam(meta.home.country).catch(() => []), loadPlayersByTeam(meta.away.country).catch(() => [])]); setSquad(rows.flat()); } }
+  async function openSquad() {
+    setPanel("squad");
+    if (!squad) {
+      const teamNames = [homeTeam?.country, awayTeam?.country].filter((name) => name && countryKey(name) !== "to be determined" && !countryKey(name).includes("playoff"));
+      const rows = await Promise.all(teamNames.map((name) => loadPlayersByTeam(name).catch(() => [])));
+      setSquad(rows.flat());
+    }
+  }
   return (
     <div id="matchOverlay" className="overlay" style={{ display: "block" }}><button className="overlay-close" onClick={onClose}>×</button><div className="overlay-inner"><div id="overlayContent">
       <div style={{ borderBottom: "3px solid var(--ink)", marginBottom: "2rem", paddingBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)" }}>{dbMatch.stage || meta.round} · {matchNumber}</span><span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.62rem", color: "var(--silver)" }}>{dbMatch.date || ""}</span></div>
       <div className="detail-hero"><div className="detail-team"><span className="detail-flag">{meta.home.flag}</span><div className="detail-name">{meta.home.name}</div><div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", color: "var(--silver)" }}>{meta.home.country}</div></div><div className="detail-vs-block"><span className="detail-vs">versus</span><div className="detail-match-info">{dbMatch.venue || "SoFi Stadium, Inglewood"}</div>{dbMatch.venue_address && <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.55rem", color: "var(--silver)", marginTop: "0.3rem" }}>{dbMatch.venue_address}</div>}</div><div className="detail-team"><span className="detail-flag">{meta.away.flag}</span><div className="detail-name">{meta.away.name}</div><div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", color: "var(--silver)" }}>{meta.away.country}</div></div></div>
+      <div className="match-intel">
+        <div className="team-intel-grid">
+          <TeamIntelCard label="Home Team" metaTeam={meta.home} teamInfo={homeTeam} ranking={homeRanking} />
+          <TeamIntelCard label="Away Team" metaTeam={meta.away} teamInfo={awayTeam} ranking={awayRanking} />
+        </div>
+        <RankingSnapshot rankings={data.rankings} activeCountries={activeCountries} />
+      </div>
       <div style={{ marginBottom: "2.5rem" }}><div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.8rem" }}>Match Storyline</div><p style={{ fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic", fontSize: "1.1rem", lineHeight: 1.7, color: "var(--charcoal)" }}>{meta.highlight}</p></div>
       <div className="h2h-block"><div className="h2h-stat"><div className="h2h-num">{meta.h2h.total}</div><div className="h2h-label">Total Meetings</div></div><div className="h2h-stat"><div className="h2h-num">{meta.h2h.team1wins}</div><div className="h2h-label">{meta.home.name} Wins</div></div><div className="h2h-stat"><div className="h2h-num">{meta.h2h.draws}</div><div className="h2h-label">Draws</div></div></div>
       <div className="players-row" style={{ marginBottom: "2.5rem" }}>{players.map((p) => <div className="player-card" key={p.player_id}><div className="player-number">{p.player_id}</div><div><div className="player-name">{p.player_name}</div><div className="player-pos">{p.position} · {p.club}</div><div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", color: "var(--silver)", marginTop: "0.15rem" }}>{p.team}</div></div></div>)}</div>
@@ -371,9 +625,10 @@ function Nearby({ name, sub, price }) {
 
 function TicketCard({ t }) {
   const statusColor = t.ticket_status === "Available" ? "#2d8a3e" : t.ticket_status === "Sold Out" ? "#c0392b" : "var(--silver)";
+  const ticketCategory = (t.ticket_category || "").replace(/\s*\([^)]*[\u3400-\u9fff][^)]*\)/g, "");
   return (
     <div className="nearby-card">
-      <div className="nearby-name">{t.ticket_category}</div>
+      <div className="nearby-name">{ticketCategory}</div>
       <div className="nearby-sub">{t.seating_section}{t.section_level ? ` · ${t.section_level}` : ""}{t.stage ? ` · ${t.stage}` : ""}</div>
       <div className="nearby-price" style={{ color: statusColor }}>${Number.parseFloat(t.price_usd).toFixed(0)} · {t.ticket_status}</div>
     </div>
@@ -444,20 +699,13 @@ function App() {
   const [discoverTab, setDiscoverTab] = useState("hotels");
   const [matchNumber, setMatchNumber] = useState(null);
   const [eventId, setEventId] = useState(null);
-  const [focusArea, setFocusArea] = useState(null);
 
   useEffect(() => {
     loadSiteData().then((loaded) => { setData(loaded); setApiReady(true); setApiError(null); }).catch((err) => { setApiError(err); setApiReady(false); });
   }, []);
 
-  function openDiscoverTab(tab) {
-    setDiscoverTab(tab);
-    setTimeout(() => scrollToId("discover"), 40);
-  }
-
   function viewMap(area) {
-    setFocusArea(area);
-    setTimeout(() => scrollToId("explore"), 40);
+    setTimeout(() => scrollToId("la-showcase"), 40);
   }
 
   return (
@@ -465,11 +713,9 @@ function App() {
       <Nav />
       <div id="mount-photohero"><PhotoHero /></div>
       <div id="mount-matches"><Matches data={data} onOpenMatch={setMatchNumber} /></div>
-      <div id="mount-tournament"><Tournament data={data} apiReady={apiReady} /></div>
-      <div id="mount-showcase"><ExploreLA openDiscoverTab={openDiscoverTab} /></div>
+      <div id="mount-showcase"><ExploreLA data={data} apiReady={apiReady} apiError={apiError} /></div>
       <div id="mount-discover"><Discover data={data} apiReady={apiReady} apiError={apiError} activeTab={discoverTab} setActiveTab={setDiscoverTab} onOpenEvent={setEventId} /></div>
       <div id="mount-itinerary"><Journey onViewMap={viewMap} /></div>
-      <div id="mount-explore"><MapSection focusArea={focusArea} /></div>
       <div id="mount-about"><About /></div>
       <div id="mount-footer"><Footer /></div>
       <MatchOverlay matchNumber={matchNumber} data={data} onClose={() => setMatchNumber(null)} />

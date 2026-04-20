@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 # ─────────────────────────────────────────
-# 1. 数据库连接
+# 1. Database connection
 # ─────────────────────────────────────────
 conn = psycopg2.connect(
     host=os.getenv("DB_HOST"),
@@ -17,13 +17,13 @@ conn = psycopg2.connect(
     sslmode=os.getenv("DB_SSLMODE", "require"),
 )
 cur = conn.cursor()
-print("✅ 数据库连接成功")
+print("Database connection successful")
 
 # ─────────────────────────────────────────
-# 2. 建表 (先建没有FK的表，再建有FK的表)
+# 2. Create tables (tables without foreign keys first, then dependent tables)
 # ─────────────────────────────────────────
 
-# ── Dimension Tables (先建) ──
+# -- Dimension tables first --
 
 cur.execute("""
 CREATE TABLE IF NOT EXISTS dim_event_category (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS dim_player (
 );
 """)
 
-# ── Fact Tables (後建) ──
+# -- Fact tables after dimensions --
 
 cur.execute("""
 CREATE TABLE IF NOT EXISTS fact_match (
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS fact_ticket (
 );
 """)
 
-# ── Detail Tables (最後建) ──
+# -- Detail tables last --
 
 cur.execute("""
 CREATE TABLE IF NOT EXISTS event_experience_detail (
@@ -240,10 +240,10 @@ CREATE TABLE IF NOT EXISTS event_sports_detail (
 """)
 
 conn.commit()
-print("✅ 所有表建立成功")
+print("All tables created successfully")
 
 # ─────────────────────────────────────────
-# 3. 导入数据 (ETL)
+# 3. Import data (ETL)
 # ─────────────────────────────────────────
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../database/clean_data")
@@ -252,23 +252,23 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../database
 def load_csv(filename, table_name):
     filepath = os.path.join(DATA_DIR, filename)
     df = pd.read_csv(filepath)
-    df = df.where(pd.notnull(df), None)  # 把NaN转成None
+    df = df.where(pd.notnull(df), None)  # Convert NaN to None
     cols = ", ".join([f'"{c}"' for c in df.columns])
     placeholders = ", ".join(["%s"] * len(df.columns))
     sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
     for _, row in df.iterrows():
         cur.execute(sql, list(row))
     conn.commit()
-    print(f"✅ {filename} → {table_name} ({len(df)} 行)")
+    print(f"{filename} -> {table_name} ({len(df)} rows)")
 
 
-# 先导入没有FK的表
+# Import tables without foreign keys first
 load_csv("clean_dim_event_category.csv", "dim_event_category")
 load_csv("clean_dim_mode.csv",           "dim_mode")
 load_csv("clean_dim_place.csv",          "dim_place")
 load_csv("clean_dim_team.csv",           "dim_team")
 
-# 再导入有FK的表
+# Import tables with foreign keys next
 load_csv("clean_dim_player.csv",         "dim_player")
 load_csv("clean_fact_match.csv",         "fact_match")
 load_csv("clean_fact_ranking.csv",       "fact_ranking")
@@ -278,14 +278,14 @@ load_csv("clean_fact_event.csv",         "fact_event")
 load_csv("clean_fact_route.csv",         "fact_route")
 load_csv("clean_fact_ticket.csv",        "fact_ticket")
 
-# 最後导入detail表
+# Import detail tables last
 load_csv("clean_event_experience_detail.csv", "event_experience_detail")
 load_csv("clean_event_sports_detail.csv",     "event_sports_detail")
 
-print("\n🎉 所有数据导入完成！")
+print("\nAll data imported successfully")
 
 # ─────────────────────────────────────────
-# 4. 验证数据
+# 4. Verify data
 # ─────────────────────────────────────────
 
 tables = [
@@ -295,12 +295,12 @@ tables = [
     "event_experience_detail", "event_sports_detail"
 ]
 
-print("\n── 各表行数 ──")
+print("\n-- Table row counts --")
 for table in tables:
     cur.execute(f"SELECT COUNT(*) FROM {table}")
     count = cur.fetchone()[0]
-    print(f"  {table}: {count} 行")
+    print(f"  {table}: {count} rows")
 
 cur.close()
 conn.close()
-print("\n✅ 数据库连接已关闭")
+print("\nDatabase connection closed")
