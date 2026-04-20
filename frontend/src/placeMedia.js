@@ -126,11 +126,11 @@ const PLACE_URLS = {
 };
 
 const FALLBACK_IMAGES = {
-  hotels: "images/LA1.jpg",
-  restaurants: "images/LA2.jpg",
-  events: "images/LA3.jpg",
-  shows: "images/LA4.jpg",
-  attractions: "images/LA7.jpg",
+  hotels: "images/hotel.jpg",
+  restaurants: "images/Resturant.jpg",
+  events: "images/fanevent.jpg",
+  shows: "images/shows.jpg",
+  attractions: "images/attraction.jpg",
 };
 
 function keyFor(value = "") {

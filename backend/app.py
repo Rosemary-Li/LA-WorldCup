@@ -192,12 +192,23 @@ def _event_to_activity(evt, time_slot):
         "id":     evt["event_id"],
     }
 
+def _meal_label(time_slot):
+    try:
+        hour = int(str(time_slot).split(":", 1)[0])
+    except (TypeError, ValueError):
+        return "Meal"
+    if hour < 11:
+        return "Breakfast"
+    if hour < 16:
+        return "Lunch"
+    return "Dinner"
+
 def _rest_to_activity(rest, time_slot):
     score = f"⭐ {rest['google_review_score']}" if rest.get("google_review_score") else ""
     parts = [p for p in [rest.get("region"), rest.get("flavor"), rest.get("price_range"), score] if p]
     return {
         "time":   time_slot,
-        "title":  f"Dinner at {rest['restaurant_name']}",
+        "title":  f"{_meal_label(time_slot)} at {rest['restaurant_name']}",
         "desc":   " · ".join(parts),
         "source": "restaurant",
         "id":     rest["restaurant_id"],
@@ -237,7 +248,7 @@ def _parse_explore_picks(raw):
 def _pick_to_activity(pick, time_slot):
     category = pick.get("category", "pick")
     prefix = {
-        "restaurants": "Dinner at",
+        "restaurants": f"{_meal_label(time_slot)} at",
         "events": "Fan event:",
         "shows": "Show:",
         "attractions": "Visit",
@@ -380,4 +391,4 @@ def itinerary():
 # Run
 # ─────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

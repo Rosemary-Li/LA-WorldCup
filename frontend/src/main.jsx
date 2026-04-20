@@ -573,47 +573,67 @@ function Journey({ explorePicks = [] }) {
   const [loading, setLoading] = useState(false);
   const [journey, setJourney] = useState(null);
   const [error, setError] = useState("");
+  const resultRef = useRef(null);
   const update = (key, value) => setForm((old) => ({ ...old, [key]: value }));
   async function submit() {
     setLoading(true); setError(""); setJourney(null);
+    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     const journeyPicks = explorePicks.slice(0, 12).map(({ id, category, name, detail, officialUrl, lat, lng, markerType }) => ({ id, category, name, detail, officialUrl, lat, lng, markerType }));
-    try { setJourney(await generateJourney({ ...form, picks: journeyPicks })); }
-    catch { setError("Unable to connect to the server. Please make sure the Flask API is running."); }
+    try {
+      const result = await generateJourney({ ...form, picks: journeyPicks });
+      setJourney(result);
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    }
+    catch {
+      setError("Unable to connect to the server. Please make sure the Flask API is running.");
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    }
     finally { setLoading(false); }
   }
   return (
     <section id="itinerary" className="journey-section">
       <div className="journey-shell">
-        <div className="journey-hero">
-          <div className="journey-kicker">Personalized Plan</div>
-          <h1>Plan Your LA World Cup Journey</h1>
-          <p>Craft a personalized travel experience in seconds, then turn your Explore LA picks into a real day-by-day route.</p>
-        </div>
-        <div className="journey-builder-card">
-          {explorePicks.length > 0 && (
-            <div className="journey-picks-note">
-              <span>{explorePicks.length} Explore LA picks connected</span>
-              <em>{explorePicks.slice(0, 3).map((pick) => pick.name).join(" · ")}{explorePicks.length > 3 ? ` · +${explorePicks.length - 3} more` : ""}</em>
+        <div className="journey-planner-screen">
+          <div className="journey-hero">
+            <div className="journey-kicker">Personalized Plan</div>
+            <h1>Plan Your LA World Cup Journey</h1>
+            <p>Craft a personalized travel experience in seconds, then turn your Explore LA picks into a real day-by-day route.</p>
+            <div className="journey-hero-stats">
+              <span>SoFi Stadium</span>
+              <span>Explore LA Picks</span>
+              <span>Live Route Map</span>
             </div>
-          )}
-          <div className="journey-form-grid">
-            {JOURNEY_SELECTS.map((field) => (
-              <Select
-                key={field.key}
-                icon={field.icon}
-                label={field.label}
-                value={form[field.key]}
-                onChange={(v) => update(field.key, v)}
-                options={field.options}
-                wide={field.wide}
-              />
-            ))}
           </div>
-          <button className="generate-btn" onClick={submit} disabled={loading}>
-            {loading ? "Crafting your journey..." : "Generate My Journey"}
-          </button>
+          <div className="journey-builder-card">
+            {explorePicks.length > 0 && (
+              <div className="journey-picks-note">
+                <span>{explorePicks.length} Explore LA picks connected</span>
+                <em>{explorePicks.slice(0, 3).map((pick) => pick.name).join(" · ")}{explorePicks.length > 3 ? ` · +${explorePicks.length - 3} more` : ""}</em>
+              </div>
+            )}
+            <div className="journey-form-grid">
+              {JOURNEY_SELECTS.map((field) => (
+                <Select
+                  key={field.key}
+                  icon={field.icon}
+                  label={field.label}
+                  value={form[field.key]}
+                  onChange={(v) => update(field.key, v)}
+                  options={field.options}
+                  wide={field.wide}
+                />
+              ))}
+            </div>
+            <button className="generate-btn" onClick={submit} disabled={loading}>
+              {loading ? "Crafting your journey..." : "Generate My Journey"}
+            </button>
+          </div>
+          <div className="journey-screen-footer">
+            <span>Scroll or generate to view your timeline and map</span>
+            <span>↓</span>
+          </div>
         </div>
-        <div className={`itinerary-result ${loading || journey || error ? "visible" : ""}`}>
+        <div ref={resultRef} className={`itinerary-result ${loading || journey || error ? "visible" : ""}`}>
           {loading && <div className="journey-loading"><div className="loading-bar" /><span>Crafting your journey...</span></div>}
           {error && <p className="journey-error">{error}</p>}
           {journey && <JourneyResult data={journey} />}

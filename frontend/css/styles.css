@@ -780,7 +780,14 @@
       }
 
       /* Full-page: all snap-mounted sections fill their container */
-      #mount-itinerary > section,
+      #mount-itinerary > section {
+        height: 100%;
+        overflow-y: auto;
+        padding-top: calc(var(--nav-h, 82px) + 1rem);
+        padding-bottom: 2rem;
+        box-sizing: border-box;
+      }
+
       #mount-explore > section,
       #mount-discover > section,
       #mount-about > section {
@@ -1486,67 +1493,94 @@
 ══════════════════════════════════ */
       #itinerary {
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.86), rgba(247,246,242,0.96)),
-          var(--bg-page);
+          linear-gradient(180deg, rgba(255,255,255,0.48), rgba(247,246,242,0.58)),
+          url("../images/journey.jpg") center / cover no-repeat;
       }
 
       .journey-section {
-        padding: 4rem 6vw;
+        padding: 0 6vw 2rem;
       }
       .journey-shell {
         max-width: 1180px;
         margin: 0 auto;
       }
+      .journey-planner-screen {
+        min-height: calc(100vh - var(--nav-h, 82px) - 1rem);
+        display: grid;
+        grid-template-columns: minmax(280px, 0.72fr) minmax(520px, 1.28fr);
+        column-gap: clamp(1.5rem, 4vw, 4rem);
+        row-gap: 1.2rem;
+        align-items: center;
+        position: relative;
+        padding: 2rem 0 4.2rem;
+      }
       .journey-hero {
-        max-width: 760px;
-        margin-bottom: 2rem;
+        max-width: 520px;
+        margin-bottom: 0;
       }
       .journey-kicker {
         font-family: "DM Mono", monospace;
-        font-size: 0.68rem;
+        font-size: 0.62rem;
         letter-spacing: 0.24em;
         text-transform: uppercase;
         color: #9c7b2f;
-        margin-bottom: 0.8rem;
+        margin-bottom: 0.55rem;
       }
       .journey-hero h1 {
         font-family: "Playfair Display", serif;
-        font-size: clamp(2.6rem, 6vw, 5.3rem);
-        line-height: 0.92;
+        font-size: clamp(2.8rem, 5.2vw, 4.75rem);
+        line-height: 0.9;
         letter-spacing: 0;
         color: var(--ink);
         margin: 0;
       }
       .journey-hero p {
         font-family: "Cormorant Garamond", serif;
-        font-size: 1.35rem;
-        line-height: 1.45;
+        font-size: 1.12rem;
+        line-height: 1.35;
         color: var(--charcoal);
         max-width: 620px;
-        margin-top: 1rem;
+        margin-top: 0.85rem;
+      }
+      .journey-hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.6rem;
+      }
+      .journey-hero-stats span {
+        border: 1px solid rgba(156,123,47,0.35);
+        background: rgba(255,255,255,0.72);
+        border-radius: 999px;
+        color: #6d5522;
+        font-family: "DM Mono", monospace;
+        font-size: 0.54rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        padding: 0.42rem 0.68rem;
       }
 
       .journey-builder-card {
         background: rgba(255,255,255,0.9);
         border: 1px solid rgba(20,20,20,0.12);
         box-shadow: 0 18px 60px rgba(0,0,0,0.08);
-        padding: clamp(1.1rem, 3vw, 2rem);
-        margin-bottom: 2rem;
+        padding: clamp(1rem, 2vw, 1.45rem);
+        margin-bottom: 0;
         border-radius: 8px;
       }
 
       .journey-form-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
+        gap: 0.7rem;
       }
       .control-group {
         position: relative;
         background: var(--white);
         border: 1px solid rgba(20,20,20,0.12);
         border-radius: 8px;
-        padding: 1rem;
-        min-height: 112px;
+        padding: 0.78rem;
+        min-height: 88px;
         transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
       }
       .control-group:hover {
@@ -1561,16 +1595,16 @@
         font-family: "DM Mono", monospace;
         font-size: 0.72rem;
         color: #9c7b2f;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.42rem;
       }
       .control-group label {
         display: block;
         font-family: "DM Mono", monospace;
-        font-size: 0.6rem;
-        letter-spacing: 0.2em;
+        font-size: 0.52rem;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--silver);
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.25rem;
       }
       .control-group select {
         width: 100%;
@@ -1578,9 +1612,9 @@
         border: 0;
         border-top: 1px solid rgba(20,20,20,0.1);
         color: var(--ink);
-        padding: 0.7rem 1.5rem 0 0;
+        padding: 0.45rem 1.25rem 0 0;
         font-family: "Playfair Display", serif;
-        font-size: 1.08rem;
+        font-size: 0.98rem;
         font-weight: 700;
         appearance: none;
         cursor: pointer;
@@ -1594,8 +1628,8 @@
       .journey-picks-note {
         border: 1.5px solid var(--ink);
         background: var(--white);
-        padding: 0.85rem 1rem;
-        margin-bottom: 1.5rem;
+        padding: 0.58rem 0.75rem;
+        margin-bottom: 0.8rem;
         display: flex;
         justify-content: space-between;
         gap: 1rem;
@@ -1603,28 +1637,28 @@
       }
       .journey-picks-note span {
         font-family: "DM Mono", monospace;
-        font-size: 0.62rem;
-        letter-spacing: 0.16em;
+        font-size: 0.54rem;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--ink);
         white-space: nowrap;
       }
       .journey-picks-note em {
         font-family: "Cormorant Garamond", serif;
-        font-size: 0.95rem;
+        font-size: 0.82rem;
         color: var(--charcoal);
         text-align: right;
       }
 
       .generate-btn {
         display: block;
-        width: min(420px, 100%);
-        margin: 2rem auto 0;
-        padding: 1rem 1.5rem;
+        width: min(360px, 100%);
+        margin: 1rem auto 0;
+        padding: 0.82rem 1.4rem;
         background: var(--ink);
         color: var(--white);
         font-family: "Playfair Display", serif;
-        font-size: 1.18rem;
+        font-size: 1.04rem;
         font-weight: 700;
         letter-spacing: 0;
         border: none;
@@ -1646,6 +1680,7 @@
 
       .itinerary-result {
         display: none;
+        scroll-margin-top: calc(var(--nav-h, 82px) + 1rem);
       }
       .itinerary-result.visible {
         display: block;
@@ -1817,6 +1852,23 @@
         font-size: 0.62rem;
         line-height: 1.65;
         padding: 0.9rem 1rem;
+      }
+
+      .journey-screen-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid rgba(20,20,20,0.16);
+        color: var(--silver);
+        font-family: "DM Mono", monospace;
+        font-size: 0.56rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding-top: 0.9rem;
       }
 
       .loading-bar {
@@ -2315,9 +2367,17 @@
         .matches-grid {
           grid-template-columns: 1fr;
         }
+        .journey-planner-screen,
         .journey-form-grid,
         .journey-result-layout {
           grid-template-columns: 1fr;
+        }
+        .journey-planner-screen {
+          min-height: auto;
+          padding: 1rem 0 3rem;
+        }
+        .journey-hero h1 {
+          font-size: 3rem;
         }
         .control-group--wide {
           grid-column: auto;

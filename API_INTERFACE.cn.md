@@ -34,7 +34,7 @@
 所有前端请求集中在 `frontend/src/api.js`。
 
 ```js
-export const API_BASE = "http://127.0.0.1:5000";
+export const API_BASE = "http://127.0.0.1:5001";
 ```
 
 ```js
@@ -47,7 +47,7 @@ async function apiFetch(endpoint) {
 
 每个请求都会：
 
-- 访问 Flask 后端 `http://127.0.0.1:5000`。
+- 访问 Flask 后端 `http://127.0.0.1:5001`。
 - 期待 JSON 返回。
 - 如果 Flask 返回非 2xx 状态码，就抛出错误。
 
@@ -528,7 +528,7 @@ def itinerary():
 前端只知道：
 
 ```js
-API_BASE = "http://127.0.0.1:5000"
+API_BASE = "http://127.0.0.1:5001"
 ```
 
 前端不知道：
@@ -557,8 +557,8 @@ python3 app.py
 再测试接口：
 
 ```bash
-curl -s http://127.0.0.1:5000/api/matches
-curl -s http://127.0.0.1:5000/api/hotels
-curl -s http://127.0.0.1:5000/api/events
-curl -s "http://127.0.0.1:5000/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
+curl -s http://127.0.0.1:5001/api/matches
+curl -s http://127.0.0.1:5001/api/hotels
+curl -s http://127.0.0.1:5001/api/events
+curl -s "http://127.0.0.1:5001/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
 ```

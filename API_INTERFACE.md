@@ -34,7 +34,7 @@ Team, player, ticket, and FIFA ranking context is shown from the match detail ov
 All frontend API calls are centralized in `frontend/src/api.js`.
 
 ```js
-export const API_BASE = "http://127.0.0.1:5000";
+export const API_BASE = "http://127.0.0.1:5001";
 ```
 
 ```js
@@ -47,7 +47,7 @@ async function apiFetch(endpoint) {
 
 Every request:
 
-- Uses Flask at `http://127.0.0.1:5000`.
+- Uses Flask at `http://127.0.0.1:5001`.
 - Expects JSON.
 - Throws if Flask returns a non-2xx response.
 
@@ -518,7 +518,7 @@ Frontend usage:
 The frontend only knows:
 
 ```js
-API_BASE = "http://127.0.0.1:5000"
+API_BASE = "http://127.0.0.1:5001"
 ```
 
 It does not know:
@@ -547,8 +547,8 @@ python3 app.py
 Then test:
 
 ```bash
-curl -s http://127.0.0.1:5000/api/matches
-curl -s http://127.0.0.1:5000/api/hotels
-curl -s http://127.0.0.1:5000/api/events
-curl -s "http://127.0.0.1:5000/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
+curl -s http://127.0.0.1:5001/api/matches
+curl -s http://127.0.0.1:5001/api/hotels
+curl -s http://127.0.0.1:5001/api/events
+curl -s "http://127.0.0.1:5001/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
 ```

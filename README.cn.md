@@ -109,7 +109,7 @@ python3 app.py
 后端地址：
 
 ```text
-http://127.0.0.1:5000
+http://127.0.0.1:5001
 ```
 
 ### 前端
@@ -357,7 +357,7 @@ npm run build
 测试 API：
 
 ```bash
-curl http://127.0.0.1:5000/api/matches
-curl http://127.0.0.1:5000/api/hotels
-curl "http://127.0.0.1:5000/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
+curl http://127.0.0.1:5001/api/matches
+curl http://127.0.0.1:5001/api/hotels
+curl "http://127.0.0.1:5001/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
 ```
