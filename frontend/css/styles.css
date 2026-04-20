@@ -1691,7 +1691,45 @@
    ABOUT US
 ══════════════════════════════════ */
       #about {
-        background: var(--bg-page);
+        background: #f8f8f6;
+        height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: var(--nav-h, 82px) 5vw 2rem;
+        overflow: hidden;
+      }
+
+      .about-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 2rem;
+        max-width: 1120px;
+        width: 100%;
+        margin: 0 auto 0.8rem;
+      }
+
+      .about-title {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(2rem, 4.4vw, 3.4rem);
+        font-weight: 300;
+        letter-spacing: 0.02em;
+        color: #2f2f2f;
+        line-height: 1;
+      }
+
+      .about-team-link {
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #2f2f2f;
+        text-decoration: underline;
+        text-underline-offset: 0.22rem;
+        white-space: nowrap;
       }
 
       .about-layout {
@@ -1705,11 +1743,13 @@
       .about-lead {
         font-family: "Playfair Display", serif;
         font-style: italic;
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+        font-size: clamp(1rem, 1.7vw, 1.25rem);
         font-weight: 400;
-        color: var(--ink);
-        line-height: 1.5;
-        margin-bottom: 1.5rem;
+        color: rgba(0,0,0,0.55);
+        line-height: 1.35;
+        max-width: 1120px;
+        margin: 0 auto 1.6rem;
+        text-align: left;
       }
 
       .about-body {
@@ -1813,86 +1853,114 @@
       .team-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 1.5px;
-        max-width: 1100px;
-        margin: 2.5rem auto 0;
-        background: var(--border-med);
-        border: 1.5px solid var(--border-med);
+        gap: 0.65rem;
+        max-width: 1120px;
+        width: 100%;
+        margin: 1.4rem auto 0;
+        background: transparent;
+        border: 0;
       }
       .team-card {
-        background: var(--white);
-        padding: 1.8rem 1.6rem;
-        transition: all 0.25s;
+        background: rgba(255,255,255,0.82);
+        border: 1px solid rgba(0,0,0,0.12);
+        border-radius: 16px;
+        padding: 0.82rem 0.9rem;
+        transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
         position: relative;
         overflow: hidden;
+        min-height: 130px;
+        display: flex;
+        align-items: center;
+        gap: 0.82rem;
       }
-      .team-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--ink);
+      .team-photo {
+        width: 68px;
+        height: 68px;
+        border-radius: 18px;
+        object-fit: cover;
+        flex-shrink: 0;
+        filter: saturate(0.85);
       }
       .team-card:hover {
-        background: var(--ink);
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.08);
+        border-color: rgba(0,0,0,0.24);
       }
-      .team-card:hover .team-name,
-      .team-card:hover .team-role,
-      .team-card:hover .team-bio {
-        color: #fff !important;
-      }
-      .team-card:hover .team-role {
-        opacity: 0.6;
-      }
-      .team-card:hover .team-rule {
-        background: rgba(255, 255, 255, 0.2);
+      .team-info {
+        min-width: 0;
+        flex: 1;
       }
       .team-name {
-        font-family: "Playfair Display", serif;
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--ink);
-        margin-bottom: 0.3rem;
-        transition: color 0.25s;
+        font-family: "DM Mono", monospace;
+        font-size: 0.94rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        color: #2f2f2f;
+        display: inline-block;
+        border-bottom: 1px solid currentColor;
+        padding-bottom: 0.12rem;
+        margin-bottom: 0.32rem;
       }
       .team-role {
         font-family: "DM Mono", monospace;
-        font-size: 0.58rem;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--silver);
-        margin-bottom: 0.8rem;
-        transition: color 0.25s;
-      }
-      .team-rule {
-        height: 1px;
-        background: var(--border-ink);
-        margin-bottom: 0.8rem;
-        transition: background 0.25s;
+        font-size: 0.5rem;
+        letter-spacing: 0;
+        text-transform: none;
+        color: #1f1f1f;
+        margin-bottom: 0.25rem;
       }
       .team-bio {
-        font-family: "Cormorant Garamond", serif;
-        font-style: italic;
-        font-size: 0.92rem;
-        color: var(--charcoal);
-        line-height: 1.6;
-        transition: color 0.25s;
+        font-family: "DM Mono", monospace;
+        font-style: normal;
+        font-size: 0.56rem;
+        color: rgba(0,0,0,0.62);
+        line-height: 1.32;
+      }
+      .team-github {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 0.34rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #2f2f2f;
+        text-decoration: none;
+        border-bottom: 1px solid currentColor;
+        padding-bottom: 0.15rem;
+      }
+      .team-github:hover {
+        opacity: 0.7;
       }
 
       @media (max-width: 900px) {
+        #about {
+          height: auto;
+          min-height: 100%;
+          overflow: visible;
+        }
         .team-grid {
           grid-template-columns: repeat(2, 1fr);
         }
       }
       @media (max-width: 768px) {
+        #about {
+          padding: var(--nav-h, 82px) 1rem 1rem;
+        }
+        .about-header {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 0.8rem;
+        }
         .about-layout {
           grid-template-columns: 1fr;
           gap: 2rem;
         }
         .team-grid {
           grid-template-columns: 1fr;
+        }
+        .team-card {
+          min-height: 112px;
         }
       }
 
