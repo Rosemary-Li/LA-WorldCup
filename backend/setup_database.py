@@ -1,17 +1,20 @@
+import os
 import psycopg2
 import pandas as pd
-import os
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 # ─────────────────────────────────────────
 # 1. 数据库连接
 # ─────────────────────────────────────────
 conn = psycopg2.connect(
-    host="db-postgresql-nyc1-44203-do-user-8018943-0.b.db.ondigitalocean.com",
-    port=25060,
-    dbname="wc1",
-    user="team1",
-    password="AVNS_bOAJIRjLfR2RbWztITa",
-    sslmode="require"
+    host=os.getenv("DB_HOST"),
+    port=int(os.getenv("DB_PORT", 5432)),
+    dbname=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    sslmode=os.getenv("DB_SSLMODE", "require"),
 )
 cur = conn.cursor()
 print("✅ 数据库连接成功")

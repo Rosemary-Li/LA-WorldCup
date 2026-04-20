@@ -1,8 +1,11 @@
+import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import hashlib
 import random
 import queries
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 app = Flask(__name__)
 CORS(app)  # Allow frontend to call this API
@@ -53,7 +56,10 @@ def team_detail(country):
 
 @app.route("/api/players")
 def players():
-    return jsonify(queries.get_all_players())
+    limit  = request.args.get("limit",  500, type=int)
+    offset = request.args.get("offset", 0,   type=int)
+    search = request.args.get("search")
+    return jsonify(queries.get_all_players(limit=limit, offset=offset, search=search))
 
 @app.route("/api/players/stars")
 def star_players():
@@ -87,7 +93,7 @@ def hotels_by_region(region):
 
 @app.route("/api/hotels/price/<price_band>")
 def hotels_by_price(price_band):
-    return jsonify(queries.get_hotels_by_price(price_band))
+    return jsonify(queries.get_hotels_by_price_band(price_band))
 
 
 # ─────────────────────────────────────────
@@ -96,7 +102,11 @@ def hotels_by_price(price_band):
 
 @app.route("/api/restaurants")
 def restaurants():
-    return jsonify(queries.get_all_restaurants())
+    limit  = request.args.get("limit",  500, type=int)
+    offset = request.args.get("offset", 0,   type=int)
+    search = request.args.get("search")
+    region = request.args.get("region")
+    return jsonify(queries.get_all_restaurants(limit=limit, offset=offset, search=search, region=region))
 
 @app.route("/api/restaurants/flavor/<flavor>")
 def restaurants_by_flavor(flavor):
@@ -109,7 +119,11 @@ def restaurants_by_flavor(flavor):
 
 @app.route("/api/events")
 def events():
-    return jsonify(queries.get_all_events())
+    limit  = request.args.get("limit",  500, type=int)
+    offset = request.args.get("offset", 0,   type=int)
+    search = request.args.get("search")
+    area   = request.args.get("area")
+    return jsonify(queries.get_all_events(limit=limit, offset=offset, search=search, area=area))
 
 @app.route("/api/events/category/<category>")
 def events_by_category(category):
@@ -224,8 +238,8 @@ def itinerary():
     try:
         events       = queries.get_events_by_categories(type_cats)
         vibe_events  = queries.get_events_by_categories(vibe_cats) if vibe_cats else []
-        hotels       = queries.get_hotel_for_budget(_HOTEL_BAND.get(budget, "200+"))
-        restaurants  = queries.get_restaurants_for_budget(_REST_PRICE.get(budget, ["$30-50"]))
+        hotels       = queries.recommend_hotels_for_budget(_HOTEL_BAND.get(budget, "200+"))
+        restaurants  = queries.recommend_restaurants_for_budget(_REST_PRICE.get(budget, ["$30-50"]))
     except Exception:
         app.logger.exception("Could not build journey")
         return jsonify({"error": "Could not build journey"}), 500

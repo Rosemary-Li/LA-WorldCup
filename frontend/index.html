@@ -9,54 +9,11 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   </head>
   <body>
-    <!-- ══════════════════════════════════════════════════
-       SECTION MOUNT POINTS
-       Each section is loaded from sections/*.js
-  ══════════════════════════════════════════════════ -->
-    <div id="mount-projector"></div>
-    <div id="mount-nav"></div>
-    <div id="mount-photohero"></div>
-    <div id="mount-matches"></div>
-    <div id="mount-overlay"></div>
-    <div id="mount-showcase"></div>
-    <div id="mount-itinerary"></div>
-    <div id="mount-explore"></div>
-    <div id="mount-discover"></div>
-    <div id="mount-about"></div>
-    <div id="mount-footer"></div>
-
-    <!-- ── HTML Sections ──────────────────────────── -->
-    <script src="sections/nav.js"></script>
-    <script src="sections/photohero.js"></script>
-    <script src="sections/matches.js"></script>
-    <script src="sections/overlay.js"></script>
-    <script src="sections/showcase.js"></script>
-    <script src="sections/itinerary.js"></script>
-    <script src="sections/explore.js"></script>
-    <script src="sections/discover.js"></script>
-    <script src="sections/about.js"></script>
-    <script src="sections/footer.js"></script>
-
-    <!-- ── Leaflet ──────────────────────────────────── -->
+    <div id="root"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- ── Data ───────────────────────────────────── -->
-    <script src="js/data.js"></script>
-
-    <!-- ── API (overrides hardcoded data with live DB) ── -->
-    <script src="js/api.js"></script>
-
-    <!-- ── Feature Logic ──────────────────────────── -->
-    <script src="js/matches.js"></script>
-    <script src="js/itinerary.js"></script>
-    <script src="js/explore.js"></script>
-    <script src="js/app.js"></script>
-
-    <!-- ── Full-page scroll ──────────────────────── -->
-    <script src="js/fullpage.js"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

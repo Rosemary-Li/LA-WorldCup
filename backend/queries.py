@@ -1,28 +1,68 @@
+import logging
+import os
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool
+from contextlib import contextmanager
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
+log = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────
-# Database Connection
+# Connection Pool (lazy-initialized)
 # ─────────────────────────────────────────
-def get_connection():
-    return psycopg2.connect(
-        host="db-postgresql-nyc1-44203-do-user-8018943-0.b.db.ondigitalocean.com",
-        port=25060,
-        dbname="wc1",
-        user="team1",
-        password="AVNS_bOAJIRjLfR2RbWztITa",
-        sslmode="require"
-    )
+_pool = None
 
-def query(sql, params=None):
-    """Execute a query and return a list of dicts."""
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(sql, params or [])
-    results = cur.fetchall()
-    cur.close()
-    conn.close()
-    return [dict(r) for r in results]
+def _get_pool():
+    global _pool
+    if _pool is None:
+        _pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=2,
+            maxconn=10,
+            host=os.getenv("DB_HOST"),
+            port=int(os.getenv("DB_PORT", 5432)),
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            sslmode=os.getenv("DB_SSLMODE", "require"),
+        )
+    return _pool
+
+@contextmanager
+def _conn():
+    """Borrow a connection from the pool; rollback and return it on error."""
+    pool = _get_pool()
+    conn = pool.getconn()
+    try:
+        yield conn
+    except psycopg2.Error:
+        conn.rollback()  # reset broken transaction before returning to pool
+        raise
+    finally:
+        pool.putconn(conn)
+
+def query(sql, params=None, conn=None):
+    """Execute a query and return a list of dicts.
+
+    Pass conn= to reuse an existing connection (avoids extra round-trips
+    in functions that run multiple queries, e.g. get_event_detail).
+    Raises psycopg2.Error on DB failure — callers can catch if needed.
+    """
+    def _run(c):
+        with c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            try:
+                cur.execute(sql, params or [])
+                return [dict(r) for r in cur.fetchall()]
+            except psycopg2.Error as exc:
+                log.error("Query failed: %s | params=%s | error=%s", sql.strip(), params, exc)
+                raise
+
+    if conn is not None:
+        return _run(conn)
+    with _conn() as c:
+        return _run(c)
 
 
 # ─────────────────────────────────────────
@@ -100,14 +140,24 @@ def get_team_by_country(country):
 # 4. Players
 # ─────────────────────────────────────────
 
-def get_all_players():
-    """Return all players."""
+def get_all_players(limit=500, offset=0, search=None):
+    """Return players with optional name/team search and pagination."""
+    if search:
+        return query("""
+            SELECT player_id, player_name, team, position,
+                   club, age, caps, goals, is_star
+            FROM dim_player
+            WHERE player_name ILIKE %s OR team ILIKE %s
+            ORDER BY team, is_star DESC
+            LIMIT %s OFFSET %s
+        """, [f"%{search}%", f"%{search}%", limit, offset])
     return query("""
         SELECT player_id, player_name, team, position,
                club, age, caps, goals, is_star
         FROM dim_player
         ORDER BY team, is_star DESC
-    """)
+        LIMIT %s OFFSET %s
+    """, [limit, offset])
 
 def get_players_by_team(team_country):
     """Return all players for a given team."""
@@ -169,7 +219,7 @@ def get_hotels_by_region(region):
         ORDER BY star_rating DESC
     """, [f"%{region}%"])
 
-def get_hotels_by_price(price_band):
+def get_hotels_by_price_band(price_band):
     """Return hotels filtered by price band."""
     return query("""
         SELECT hotel_id, hotel_name, region, address,
@@ -184,15 +234,26 @@ def get_hotels_by_price(price_band):
 # 7. Restaurants
 # ─────────────────────────────────────────
 
-def get_all_restaurants():
-    """Return all restaurants ordered by review score."""
-    return query("""
+def get_all_restaurants(limit=500, offset=0, search=None, region=None):
+    """Return restaurants with optional name/region search and pagination."""
+    conditions = []
+    params = []
+    if search:
+        conditions.append("restaurant_name ILIKE %s")
+        params.append(f"%{search}%")
+    if region:
+        conditions.append("region ILIKE %s")
+        params.append(f"%{region}%")
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    return query(f"""
         SELECT restaurant_id, restaurant_name, region,
                address, price_range, flavor,
                google_review_score, review_count, disability_access
         FROM fact_restaurant
+        {where}
         ORDER BY google_review_score DESC
-    """)
+        LIMIT %s OFFSET %s
+    """, params + [limit, offset])
 
 def get_restaurants_by_flavor(flavor):
     """Return restaurants filtered by cuisine type."""
@@ -209,9 +270,18 @@ def get_restaurants_by_flavor(flavor):
 # 8. Events
 # ─────────────────────────────────────────
 
-def get_all_events():
-    """Return all events with category label."""
-    return query("""
+def get_all_events(limit=500, offset=0, search=None, area=None):
+    """Return events with optional name/area search and pagination."""
+    conditions = []
+    params = []
+    if search:
+        conditions.append("e.event_name ILIKE %s")
+        params.append(f"%{search}%")
+    if area:
+        conditions.append("(e.area ILIKE %s OR e.city ILIKE %s)")
+        params.extend([f"%{area}%", f"%{area}%"])
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    return query(f"""
         SELECT e.event_id, e.event_name, e.category,
                e.event_category_id,
                e.event_type, e.venue_name, e.area, e.city,
@@ -220,8 +290,10 @@ def get_all_events():
         FROM fact_event e
         LEFT JOIN dim_event_category c
                ON e.event_category_id = c.event_category_id
+        {where}
         ORDER BY e.start_date
-    """)
+        LIMIT %s OFFSET %s
+    """, params + [limit, offset])
 
 def get_events_by_category(category):
     """Return events filtered by category."""
@@ -236,28 +308,29 @@ def get_events_by_category(category):
 
 def get_event_detail(event_id):
     """Return full event detail including experience or sports sub-detail."""
-    base = query("""
-        SELECT e.*, c.category AS category_label
-        FROM fact_event e
-        LEFT JOIN dim_event_category c
-               ON e.event_category_id = c.event_category_id
-        WHERE e.event_id = %s
-    """, [event_id])
+    with _conn() as conn:
+        base = query("""
+            SELECT e.*, c.category AS category_label
+            FROM fact_event e
+            LEFT JOIN dim_event_category c
+                   ON e.event_category_id = c.event_category_id
+            WHERE e.event_id = %s
+        """, [event_id], conn=conn)
 
-    if not base:
-        return None
+        if not base:
+            return None
 
-    event = base[0]
+        event = base[0]
 
-    exp = query("SELECT * FROM event_experience_detail WHERE event_id = %s", [event_id])
-    if exp:
-        event["experience_detail"] = exp[0]
+        exp = query("SELECT * FROM event_experience_detail WHERE event_id = %s", [event_id], conn=conn)
+        if exp:
+            event["experience_detail"] = exp[0]
 
-    spt = query("SELECT * FROM event_sports_detail WHERE event_id = %s", [event_id])
-    if spt:
-        event["sports_detail"] = spt[0]
+        spt = query("SELECT * FROM event_sports_detail WHERE event_id = %s", [event_id], conn=conn)
+        if spt:
+            event["sports_detail"] = spt[0]
 
-    return event
+        return event
 
 
 # ─────────────────────────────────────────
@@ -286,26 +359,24 @@ def get_all_routes():
 
 def get_map_data():
     """Return all geo coordinates for Leaflet.js map pins."""
-    hotels = query("""
-        SELECT hotel_id AS id, hotel_name AS name,
-               'hotel' AS type, region,
-               latitude AS lat, longitude AS lon,
-               star_rating, price_band
-        FROM fact_hotel
-        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-    """)
+    with _conn() as conn:
+        hotels = query("""
+            SELECT hotel_id AS id, hotel_name AS name,
+                   'hotel' AS type, region,
+                   latitude AS lat, longitude AS lon,
+                   star_rating, price_band
+            FROM fact_hotel
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        """, conn=conn)
 
-    places = query("""
-        SELECT place_id AS id, name, place_type AS type,
-               city AS region, lat, lon
-        FROM dim_place
-        WHERE lat IS NOT NULL AND lon IS NOT NULL
-    """)
+        places = query("""
+            SELECT place_id AS id, name, place_type AS type,
+                   city AS region, lat, lon
+            FROM dim_place
+            WHERE lat IS NOT NULL AND lon IS NOT NULL
+        """, conn=conn)
 
-    return {
-        "hotels": hotels,
-        "places": places
-    }
+        return {"hotels": hotels, "places": places}
 
 
 # ─────────────────────────────────────────
@@ -331,7 +402,7 @@ def get_events_by_categories(category_ids, limit=80):
         LIMIT %s
     """, category_ids + [limit])
 
-def get_hotel_for_budget(price_band):
+def recommend_hotels_for_budget(price_band):
     """Return up to 3 hotels matching the price band, ordered by star rating."""
     return query("""
         SELECT hotel_id, hotel_name, region, address,
@@ -342,7 +413,7 @@ def get_hotel_for_budget(price_band):
         LIMIT 3
     """, [price_band])
 
-def get_restaurants_for_budget(price_ranges, limit=20):
+def recommend_restaurants_for_budget(price_ranges, limit=20):
     """Return restaurants matching any of the given price_range values."""
     if not price_ranges:
         return []
