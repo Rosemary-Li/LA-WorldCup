@@ -1,58 +1,41 @@
 # Frontend-Backend API Interface Documentation
 
-This document explains how the React frontend communicates with the Flask backend, which database tables power each API, and how the returned JSON is transformed into UI state.
+This document explains the current interface between the React frontend and the Flask/PostgreSQL backend.
 
-In this project, **API Interface** means the contract between the browser and the server:
+In this project, **API interface** means the contract between the browser and the server:
 
-- **The frontend sends** HTTP requests from React through `frontend/src/api.js`.
-- **The backend receives** those requests in Flask routes defined in `backend/app.py`.
-- **The backend reads** PostgreSQL through SQL functions in `backend/queries.py`.
-- **The backend returns** JSON objects or JSON arrays.
-- **The frontend transforms** that JSON into the objects used by React components.
+- React sends HTTP requests through `frontend/src/api.js`.
+- Flask receives those requests in `backend/app.py`.
+- Flask calls SQL functions in `backend/queries.py`.
+- PostgreSQL returns rows.
+- Flask serializes those rows as JSON.
+- React maps the JSON into UI state used by components in `frontend/src/main.jsx`.
 
-The most important rule is: **the browser never connects to PostgreSQL directly**. All database access is behind the Flask API.
+The browser never connects to PostgreSQL directly. Credentials remain in backend environment variables.
 
-## 1. System Overview
+## 1. Current Frontend Pages
 
-The project uses a three-layer structure:
+The current React app renders these sections:
 
-1. **React frontend**
-   - Main entry: `frontend/src/main.jsx`
-   - API wrapper: `frontend/src/api.js`
-   - Dev server: `http://127.0.0.1:5173`
+| UI Section | React Component | API Usage |
+|---|---|---|
+| Hero | `PhotoHero` | No API |
+| Matches | `Matches` | Uses `/api/matches` loaded by `loadSiteData()` |
+| Match detail | `MatchOverlay` | Uses matches, teams, rankings, players, hotels, restaurants, events; loads tickets on demand |
+| Explore LA | `ExploreLA` | Uses hotels, restaurants, and event categories loaded by `loadSiteData()` |
+| Explore map panel | `SyncMap` | Uses selected frontend place/event data |
+| Journey | `Journey` | Calls `/api/itinerary` through `generateJourney()` |
+| About Us | `About` | Static team/profile content |
 
-2. **Flask backend**
-   - Main server: `backend/app.py`
-   - Query layer: `backend/queries.py`
-   - API base URL used by React: `http://127.0.0.1:5000`
-
-3. **PostgreSQL database**
-   - Loaded from cleaned CSV files in `database/clean_data/`
-   - Schema and ETL setup: `backend/setup_database.py`
-
-The frontend never queries PostgreSQL directly. It only calls Flask API endpoints. Flask then calls functions in `queries.py`, which execute SQL against PostgreSQL and return JSON.
-
-```text
-React UI
-  ↓ fetch()
-frontend/src/api.js
-  ↓ HTTP JSON
-backend/app.py
-  ↓ Python function call
-backend/queries.py
-  ↓ SQL
-PostgreSQL tables
-```
+Team, player, ticket, and FIFA ranking context is shown from the match detail overlay.
 
 ## 2. Frontend API Wrapper
 
-All frontend API requests are centralized in `frontend/src/api.js`.
+All frontend API calls are centralized in `frontend/src/api.js`.
 
 ```js
 export const API_BASE = "http://127.0.0.1:5000";
 ```
-
-The helper function:
 
 ```js
 async function apiFetch(endpoint) {
@@ -62,21 +45,21 @@ async function apiFetch(endpoint) {
 }
 ```
 
-This means every frontend request:
+Every request:
 
-- Uses `http://127.0.0.1:5000` as the backend host.
+- Uses Flask at `http://127.0.0.1:5000`.
 - Expects JSON.
-- Throws an error if Flask returns a non-2xx status.
+- Throws if Flask returns a non-2xx response.
 
-## 3. Initial Page Data Loading
+## 3. Initial Data Loading
 
-When the app first mounts, `App()` calls:
+When `App()` mounts, it calls:
 
 ```js
 loadSiteData()
 ```
 
-This function makes parallel requests to the backend:
+`loadSiteData()` requests the main datasets in parallel:
 
 ```js
 Promise.all([
@@ -87,15 +70,13 @@ Promise.all([
   apiFetch("/api/events"),
   apiFetch("/api/rankings"),
   apiFetch("/api/teams"),
-  apiFetch("/api/routes"),
-  apiFetch("/api/map-data").catch(() => null),
 ]);
 ```
 
-The result is stored in React state:
+It returns UI-ready state:
 
 ```js
-data = {
+{
   matches,
   players,
   hotels,
@@ -104,21 +85,26 @@ data = {
   shows,
   allEvents,
   rankings,
-  teams,
-  routes,
-  mapData
+  teams
 }
 ```
 
-If the backend is unavailable, the frontend sets `apiReady = false` and shows database connection notices instead of fake fallback content.
+Current rendered pages mainly use `matches`, `players`, `hotels`, `restaurants`, `fanEvents`, `shows`, `allEvents`, `rankings`, and `teams`.
 
-## 4. Core API Endpoints
+If loading fails, `App()` sets:
 
-### 4.1 Matches
+```js
+apiReady = false
+apiError = err
+```
 
-#### `GET /api/matches`
+The UI then shows database connection messaging instead of fake fallback data.
 
-Returns all Los Angeles matches.
+## 4. Matches API
+
+### `GET /api/matches`
+
+Returns all Los Angeles match rows.
 
 Backend route:
 
@@ -143,85 +129,107 @@ Database table:
 
 Frontend usage:
 
-- Loaded inside `loadSiteData()`.
-- Used by `Matches` to display the schedule.
-- Used by `MatchOverlay` to find the selected match detail by `match_number`.
+- `Matches` schedule table.
+- `MatchOverlay` selected match detail.
+- Match day selection context in Journey.
 
 Important fields:
 
-| Field | Meaning |
+| API Field | Meaning |
 |---|---|
-| `match_number` | Match ID such as `M4`, `M15`, `M26` |
+| `match_number` | Match ID such as `M4` |
 | `date` | Match date |
 | `day_of_week` | Day label |
 | `time_pt` | Pacific Time kickoff |
-| `team1`, `team2` | Match teams from the database |
+| `team1`, `team2` | Teams from database |
 | `group` | Group code |
-| `stage` | Group Stage, Round of 32, Quarter-Final, etc. |
-| `venue` | Stadium name |
+| `stage` | Tournament stage |
+| `venue` | Stadium |
 
-#### `GET /api/matches/<match_number>`
+### `GET /api/matches/<match_number>`
 
 Returns one match by match number.
 
-Backend route:
-
-```py
-@app.route("/api/matches/<match_number>")
-def match_detail(match_number):
-    return jsonify(queries.get_match_by_id(match_number))
-```
-
-SQL source:
-
-```sql
-SELECT match_number, date, day_of_week, time_pt,
-       team1, team2, "group", stage, venue, venue_address, notes
-FROM fact_match
-WHERE match_number = %s;
-```
-
 Current frontend status:
 
-- The frontend primarily uses the preloaded `/api/matches` data.
-- This endpoint is available for future direct detail loading.
+- Available from backend.
+- The current React UI usually uses preloaded `/api/matches` data instead of calling this route separately.
 
-### 4.2 Tickets
+## 5. Match Detail APIs
 
-#### `GET /api/tickets`
+The match detail overlay is a composition of several data sources.
 
-Returns all ticket options.
+### Teams: `GET /api/teams`
+
+Database table:
+
+- `dim_team`
+
+Frontend usage:
+
+- Loaded by `loadSiteData()`.
+- Used in `MatchOverlay` to show team context for the selected match.
+
+Common fields:
+
+| API Field | UI Meaning |
+|---|---|
+| `country` | Team name |
+| `federation` | Confederation |
+| `status` | Qualification/status label |
+| `group_stage` | Group |
+| `matches_in_la` | LA match involvement |
+
+### Rankings: `GET /api/rankings`
+
+Database table:
+
+- `fact_ranking`
+
+Frontend usage:
+
+- Loaded by `loadSiteData()`.
+- Used next to team/match context so users can compare teams while viewing a specific match.
+
+Common fields:
+
+| API Field | UI Meaning |
+|---|---|
+| `country` | Country/team |
+| `fifa_rank` | FIFA rank |
+| `points` | Ranking points |
+| `previous_points` | Previous points |
+| `rank_change` | Rank movement |
+
+### Players: `GET /api/players`
+
+Database table:
+
+- `dim_player`
+
+Frontend usage:
+
+- Loaded by `loadSiteData()`.
+- Used for match/team player context.
+
+Optional endpoint:
+
+```text
+GET /api/players/<team_country>
+```
+
+This returns players for one team and can be used for future direct team detail loading.
+
+### Tickets: `GET /api/tickets/<match_number>`
 
 Database table:
 
 - `fact_ticket`
 
-SQL source:
+Frontend usage:
 
-```sql
-SELECT ticket_id, match_number, matchup,
-       match_date, seating_section, section_level,
-       ticket_category, price_usd, ticket_status
-FROM fact_ticket
-ORDER BY match_date, price_usd;
-```
-
-Current frontend status:
-
-- Not loaded during initial page load.
-- Available for future all-ticket pages.
-
-#### `GET /api/tickets/<match_number>`
-
-Returns ticket options for one match.
-
-Backend route:
-
-```py
-@app.route("/api/tickets/<match_number>")
-def tickets_by_match(match_number):
-    return jsonify(queries.get_tickets_by_match(match_number))
-```
+- Called on demand by `loadTickets(matchNumber)`.
+- Triggered when the user opens the Tickets tab in `MatchOverlay`.
 
 SQL source:
 
@@ -233,199 +241,37 @@ WHERE match_number = %s
 ORDER BY price_usd;
 ```
 
-Frontend usage:
-
-- Called by `loadTickets(matchNumber)` in `frontend/src/api.js`.
-- Triggered inside `MatchOverlay` when the user clicks the `Tickets` tab.
-- The result is stored in local overlay state:
-
-```js
-const [tickets, setTickets] = useState(null);
-```
-
 UI mapping:
 
-| API field | UI location |
+| API Field | UI Location |
 |---|---|
 | `ticket_category` | Ticket card title |
-| `seating_section` | Ticket card subtitle |
-| `section_level` | Ticket card subtitle |
-| `price_usd` | Ticket price |
-| `ticket_status` | Status text and color |
+| `seating_section` | Seat area |
+| `section_level` | Seat level |
+| `price_usd` | Price |
+| `ticket_status` | Availability/status |
 
-The frontend removes Chinese parenthetical text from `ticket_category` before display.
+## 6. Explore LA APIs
 
-### 4.3 Teams
+Explore LA has five current categories:
 
-#### `GET /api/teams`
+| Explore Category | Data Source | Frontend State |
+|---|---|---|
+| Hotels | `/api/hotels` | `data.hotels` |
+| Restaurants | `/api/restaurants` | `data.restaurants` |
+| Fan Events | `/api/events` filtered by category IDs | `data.fanEvents` |
+| Shows | `/api/events` filtered by category IDs | `data.shows` |
+| Attractions | `/api/events` filtered from all events | `data.allEvents` |
 
-Returns teams related to Los Angeles matches.
+The first Explore LA screen is a photo wall. Clicking a card opens that category inside the same section.
 
-Database table:
-
-- `dim_team`
-
-SQL source:
-
-```sql
-SELECT team_id, country, federation, status,
-       group_stage, matches_in_la
-FROM dim_team
-ORDER BY group_stage, country;
-```
-
-Frontend usage:
-
-- Loaded inside `loadSiteData()`.
-- Used by `MatchOverlay` to show team intelligence for the selected match.
-- Independent `Tournament Guide` page has been removed; team data now appears inside match detail.
-
-UI mapping in `MatchOverlay`:
-
-| API field | UI location |
-|---|---|
-| `country` | Team name |
-| `federation` | Team federation |
-| `status` | Qualification / schedule status |
-| `group_stage` | Group label |
-| `matches_in_la` | LA match list |
-
-#### `GET /api/teams/<country>`
-
-Returns one team by exact country name.
-
-SQL source:
-
-```sql
-SELECT team_id, country, federation, status,
-       possible_teams, group_stage, matches_in_la, notes
-FROM dim_team
-WHERE country = %s;
-```
-
-Current frontend status:
-
-- Not currently called by React.
-- The app uses the preloaded `/api/teams` result for match detail.
-
-### 4.4 Players
-
-#### `GET /api/players`
-
-Returns players, with optional pagination and search.
-
-Query parameters:
-
-| Parameter | Default | Meaning |
-|---|---:|---|
-| `limit` | `500` | Maximum rows |
-| `offset` | `0` | Pagination offset |
-| `search` | none | Filters by player name or team |
-
-Database table:
-
-- `dim_player`
-
-SQL source without search:
-
-```sql
-SELECT player_id, player_name, team, position,
-       club, age, caps, goals, is_star
-FROM dim_player
-ORDER BY team, is_star DESC
-LIMIT %s OFFSET %s;
-```
-
-Frontend usage:
-
-- Loaded inside `loadSiteData()`.
-- Used by `MatchOverlay` to show a small preview of players for the selected teams.
-
-#### `GET /api/players/<team_country>`
-
-Returns all players for one team.
-
-SQL source:
-
-```sql
-SELECT player_id, player_name, position,
-       club, age, caps, goals, is_star, notes
-FROM dim_player
-WHERE team = %s
-ORDER BY is_star DESC, goals DESC;
-```
-
-Frontend usage:
-
-- Called by `loadPlayersByTeam(team)`.
-- Triggered in `MatchOverlay` when the user clicks `Full Squad`.
-
-#### `GET /api/players/stars`
-
-Returns only star players.
-
-Current frontend status:
-
-- Not currently called by React.
-- Available for a future star-player section.
-
-### 4.5 FIFA Rankings
-
-#### `GET /api/rankings`
-
-Returns FIFA ranking records.
-
-Database table:
-
-- `fact_ranking`
-
-SQL source:
-
-```sql
-SELECT ranking_id, rank, country,
-       total_points, previous_rank, rank_change,
-       confederation
-FROM fact_ranking
-ORDER BY rank;
-```
-
-Frontend usage:
-
-- Loaded inside `loadSiteData()`.
-- Used by `MatchOverlay` to show:
-  - FIFA rank
-  - total points
-  - rank change
-  - ranking snapshot beside match detail
-
-Important note:
-
-- Rankings are no longer shown in a separate `Tournament Guide` page.
-- They are merged into the match detail workflow, so clicking a match gives context for the two teams.
-
-### 4.6 Hotels
-
-#### `GET /api/hotels`
-
-Returns all hotels ordered by star rating.
+### Hotels: `GET /api/hotels`
 
 Database table:
 
 - `fact_hotel`
 
-SQL source:
-
-```sql
-SELECT hotel_id, hotel_name, region, address,
-       star_rating, price_band, latitude, longitude,
-       google_reviews_count
-FROM fact_hotel
-ORDER BY star_rating DESC;
-```
-
-Frontend transformation:
-
-In `loadSiteData()`, backend fields are mapped into UI-friendly hotel objects:
+Frontend mapping in `loadSiteData()`:
 
 ```js
 {
@@ -435,67 +281,33 @@ In `loadSiteData()`, backend fields are mapped into UI-friendly hotel objects:
   stars: Math.round(h.star_rating) || 3,
   price: h.price_band ? `${h.price_band}/night` : "N/A",
   reviews: h.google_reviews_count || 0,
-  emoji: "🏨",
   lat: h.latitude,
-  lon: h.longitude,
+  lon: h.longitude
 }
 ```
 
-Frontend usage:
+Used for:
 
-- `ExploreLA`: selectable hotel list and map pins.
-- `Discover`: hotel cards.
-- `MatchOverlay`: nearby hotel suggestions.
+- Explore LA Hotels list.
+- Map pins when hotel coordinates exist.
+- Nearby hotel context in `MatchOverlay`.
 
-#### `GET /api/hotels/region/<region>`
-
-Returns hotels filtered by region using `ILIKE`.
-
-Current frontend status:
-
-- Not currently called by React.
-
-#### `GET /api/hotels/price/<price_band>`
-
-Returns hotels filtered by exact price band.
-
-Current frontend status:
-
-- Not currently called directly by React.
-- Journey recommendations use backend helper `recommend_hotels_for_budget()` instead.
-
-### 4.7 Restaurants
-
-#### `GET /api/restaurants`
-
-Returns restaurants with optional pagination and filtering.
+### Restaurants: `GET /api/restaurants`
 
 Query parameters:
 
-| Parameter | Default | Meaning |
-|---|---:|---|
-| `limit` | `500` | Maximum rows |
-| `offset` | `0` | Pagination offset |
-| `search` | none | Filters by restaurant name |
-| `region` | none | Filters by region |
+| Parameter | Meaning |
+|---|---|
+| `limit` | Max rows |
+| `offset` | Pagination offset |
+| `search` | Optional restaurant name search |
+| `region` | Optional region filter |
 
 Database table:
 
 - `fact_restaurant`
 
-SQL source:
-
-```sql
-SELECT restaurant_id, restaurant_name, region,
-       address, price_range, flavor,
-       google_review_score, review_count, disability_access
-FROM fact_restaurant
-WHERE ...
-ORDER BY google_review_score DESC
-LIMIT %s OFFSET %s;
-```
-
-Frontend transformation:
+Frontend mapping:
 
 ```js
 {
@@ -504,78 +316,39 @@ Frontend transformation:
   address: r.address || "",
   price: r.price_range || "N/A",
   flavor: r.flavor || "N/A",
-  score: r.google_review_score || 0,
-  emoji: "🍽️",
+  score: r.google_review_score || 0
 }
 ```
 
-Frontend usage:
+Used for:
 
-- `ExploreLA`: selectable restaurant list and inferred map pins.
-- `Discover`: restaurant cards.
-- `MatchOverlay`: nearby restaurant suggestions.
-- `Journey`: backend uses restaurants for generated daily schedules.
+- Explore LA Restaurants list.
+- Restaurant shortlist picks.
+- Nearby restaurant context in `MatchOverlay`.
+- Journey restaurant recommendation pools.
 
-#### `GET /api/restaurants/flavor/<flavor>`
-
-Returns restaurants filtered by cuisine/flavor.
-
-Current frontend status:
-
-- Not currently called by React.
-
-### 4.8 Events
-
-#### `GET /api/events`
-
-Returns event records with optional pagination and filters.
+### Events: `GET /api/events`
 
 Query parameters:
 
-| Parameter | Default | Meaning |
-|---|---:|---|
-| `limit` | `500` | Maximum rows |
-| `offset` | `0` | Pagination offset |
-| `search` | none | Filters by event name |
-| `area` | none | Filters by area or city |
+| Parameter | Meaning |
+|---|---|
+| `limit` | Max rows |
+| `offset` | Pagination offset |
+| `search` | Optional event name search |
+| `area` | Optional area filter |
 
 Database tables:
 
 - `fact_event`
 - `dim_event_category`
 
-SQL source:
+Important SQL behavior:
 
-```sql
-SELECT e.event_id, e.event_name, e.category,
-       e.event_category_id,
-       e.event_type, e.venue_name, e.area, e.city,
-       e.start_date, e.end_date, e.event_time,
-       e.detail_type, c.category AS category_label
-FROM fact_event e
-LEFT JOIN dim_event_category c
-       ON e.event_category_id = c.event_category_id
-WHERE ...
-ORDER BY e.start_date
-LIMIT %s OFFSET %s;
-```
+- Event rows are joined to `dim_event_category`.
+- `source_url` is returned so the frontend can show an explicit `Official Site` link.
 
-Frontend transformation:
-
-`loadSiteData()` converts events into three frontend collections:
-
-1. `fanEvents`
-2. `shows`
-3. `allEvents`
-
-Category logic:
-
-```js
-const showCats = new Set([12, 13, 14, 15]);
-const fanEventCats = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 23]);
-```
-
-Frontend event object:
+Frontend mapping:
 
 ```js
 {
@@ -588,169 +361,82 @@ Frontend event object:
   venue: event.venue_name || "",
   category: event.category_label || event.category || "",
   categoryId: catId,
-  emoji: showCats.has(catId) ? "🎭" : "🎉",
+  officialUrl: event.source_url || ""
 }
 ```
 
-Frontend usage:
+Category split:
 
-- `ExploreLA`: Fan Events, Shows, and Attractions categories.
-- `Discover`: fan events and shows.
-- `MatchOverlay`: nearby event suggestions.
-- `Journey`: event pools for personalized travel plans.
-
-Explore LA category mapping:
-
-| Explore LA category | Data source |
-|---|---|
-| `Fan Events` | `fanEvents` |
-| `Shows` | `shows` |
-| `Attractions` | `allEvents` filtered by category IDs `16, 17, 18, 19, 20, 21, 22` |
-
-#### `GET /api/events/<event_id>`
-
-Returns one full event detail.
-
-Database tables:
-
-- `fact_event`
-- `dim_event_category`
-- `event_experience_detail`
-- `event_sports_detail`
-
-Backend logic:
-
-1. Fetch base event from `fact_event`.
-2. Join category label from `dim_event_category`.
-3. Fetch matching `event_experience_detail`.
-4. Fetch matching `event_sports_detail`.
-5. Attach detail rows as nested objects:
-   - `experience_detail`
-   - `sports_detail`
-
-Frontend usage:
-
-- Called by `loadEventDetail(id)`.
-- Triggered by clicking event cards.
-- Rendered in `EventOverlay`.
-
-#### `GET /api/events/category/<category>`
-
-Returns events where `fact_event.category ILIKE %category%`.
-
-Current frontend status:
-
-- Not currently called by React.
-
-### 4.9 Routes
-
-#### `GET /api/routes`
-
-Returns transport route options.
-
-Database tables:
-
-- `fact_route`
-- `dim_place`
-- `dim_mode`
-
-SQL source:
-
-```sql
-SELECT r.route_id,
-       o.name AS origin_name, o.city AS origin_city,
-       d.name AS dest_name, d.city AS dest_city,
-       m.mode_name, m.mode_group, m.includes,
-       r.duration_min, r.cost_low_usd, r.cost_high_usd
-FROM fact_route r
-JOIN dim_place o ON r.origin_place_id = o.place_id
-JOIN dim_place d ON r.dest_place_id = d.place_id
-JOIN dim_mode  m ON r.mode_id = m.mode_id
-ORDER BY r.duration_min;
+```js
+showCats = new Set([12, 13, 14, 15])
+fanEventCats = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 23])
 ```
 
-Frontend usage:
+Used for:
 
-- Loaded inside `loadSiteData()`.
-- Used by `Discover` if the transport/routes tab is active.
-- Journey currently uses route navigation conceptually, but generated journey output is produced by `/api/itinerary`.
+- Fan Events.
+- Shows.
+- Attractions.
+- Journey activity pools.
 
-### 4.10 Map Data
+### Official Website Behavior
 
-#### `GET /api/map-data`
+Explore LA cards do not navigate away when the image is clicked. External navigation only happens when the user clicks the explicit `Official Site` link.
 
-Returns coordinate data for map pins.
+`frontend/src/placeMedia.js` helps match items to official URLs and image behavior. Backend event rows can also provide `source_url`.
 
-Database tables:
+## 7. Explore Picks
 
-- `fact_hotel`
-- `dim_place`
+Explore LA selections are managed in the frontend:
 
-Backend response structure:
+- Users can select hotels, restaurants, fan events, shows, and attractions.
+- Selected items appear in the Pick panel.
+- Picks are saved to browser local storage.
+- The `Go` button moves users to the Journey section.
+- The `Journey` component receives the current picks from `App()` state.
+- When the user generates a Journey, the frontend sends up to 12 selected picks to `/api/itinerary` as a JSON-encoded `picks` query parameter.
+- Flask parses those picks and prioritizes them in the generated schedule.
 
-```json
-{
-  "hotels": [...],
-  "places": [...]
-}
+## 8. Journey API
+
+### `GET /api/itinerary`
+
+Generates a personalized travel plan.
+
+Frontend function:
+
+```js
+generateJourney(params)
 ```
 
-Hotel SQL:
+Backend route:
 
-```sql
-SELECT hotel_id AS id, hotel_name AS name,
-       'hotel' AS type, region,
-       latitude AS lat, longitude AS lon,
-       star_rating, price_band
-FROM fact_hotel
-WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
+```py
+@app.route("/api/itinerary")
+def itinerary():
+    ...
 ```
-
-Place SQL:
-
-```sql
-SELECT place_id AS id, name, place_type AS type,
-       city AS region, lat, lon
-FROM dim_place
-WHERE lat IS NOT NULL AND lon IS NOT NULL;
-```
-
-Frontend usage:
-
-- Loaded inside `loadSiteData()`, but with `.catch(() => null)` so the page can still report backend status cleanly if map data fails.
-- Current `ExploreLA` map uses hotel coordinates directly and infers approximate coordinates for restaurants/events based on area text when exact coordinates are not present.
-
-### 4.11 Journey
-
-#### `GET /api/itinerary`
-
-Generates a personalized travel schedule.
 
 Query parameters:
 
-| Parameter | Default | Values used by frontend |
-|---|---|---|
-| `type` | `football` | `football`, `family`, `backpacker`, `luxury` |
-| `budget` | `mid` | `budget`, `mid`, `luxury` |
-| `days` | `3` | `3`, `5`, `7` |
-| `match_date` | `jun12` | `jun12`, `jun15`, `jun18`, `jun21`, `jun25`, `jun28`, `jul2`, `jul10` |
-| `vibe` | `culture` | `culture`, `beach`, `nightlife`, `film` |
+| Parameter | Default | Meaning |
+|---|---:|---|
+| `type` | `football` | Traveler type: football, family, backpacker, luxury |
+| `budget` | `mid` | Budget level: budget, mid, luxury |
+| `days` | `3` | Number of generated days, clamped to 1-7 |
+| `match_date` | `jun12` | Match day selection |
+| `vibe` | `culture` | Extra activity vibe: culture, beach, nightlife, film |
+| `picks` | `[]` | JSON list of selected Explore LA picks |
 
-Frontend usage:
+Backend mapping:
 
-- Called by `generateJourney(params)`.
-- Triggered when the user clicks the Journey generate button.
-- Result is rendered by `JourneyResult`.
-
-Backend logic:
-
-1. Convert `type` and `vibe` into event category IDs.
-2. Convert `budget` into hotel price band and restaurant price ranges.
-3. Fetch event pools through `queries.get_events_by_categories()`.
-4. Fetch hotel recommendations through `recommend_hotels_for_budget()`.
-5. Fetch restaurant recommendations through `recommend_restaurants_for_budget()`.
-6. Build a deterministic schedule using a SHA-256 seed from user parameters.
-7. Insert the selected match into the schedule.
+| Input | SQL Helper |
+|---|---|
+| `type` | `get_events_by_categories(type_cats)` |
+| `vibe` | `get_events_by_categories(vibe_cats)` |
+| `budget` | `recommend_hotels_for_budget()` |
+| `budget` | `recommend_restaurants_for_budget()` |
+| `picks` | Parsed in Flask and inserted into the generated schedule before generic recommendations |
 
 Response shape:
 
@@ -766,160 +452,103 @@ Response shape:
           "title": "Activity name",
           "desc": "Venue · Area · Admission",
           "source": "event",
-          "id": 1
+          "id": 101
         }
       ]
     }
   ],
-  "hotel": {
-    "hotel_id": 1,
-    "hotel_name": "Hotel name",
-    "region": "Region",
-    "address": "Address",
-    "star_rating": 4,
-    "price_band": "200+",
-    "google_reviews_count": 1000
-  },
-  "match": {
-    "date": "June 12",
-    "time": "18:00",
-    "label": "USA vs Paraguay (M4)"
-  },
+  "hotel": {},
+  "match": {},
   "budget_label": "mid",
-  "traveler": "football"
+  "traveler": "football",
+  "picks_used": []
 }
 ```
 
-## 5. Frontend Feature-to-API Map
+Frontend usage:
 
-| Frontend feature | Component/function | API used |
-|---|---|---|
-| Match schedule | `Matches` | `/api/matches` via `loadSiteData()` |
-| Match detail popup | `MatchOverlay` | Preloaded `/api/matches`, `/api/teams`, `/api/rankings`, `/api/players` |
-| Match tickets tab | `MatchOverlay` | `/api/tickets/<match_number>` |
-| Full squad tab | `MatchOverlay` | `/api/players/<team_country>` |
-| Explore LA photo wall | `ExploreLA` | Uses preloaded hotel/restaurant/event data |
-| Explore LA map | `SyncMap` | Uses selected frontend data; SoFi Stadium hardcoded; hotels use API coordinates |
-| Discover cards | `Discover` | Preloaded hotels/restaurants/events/routes |
-| Event detail popup | `EventOverlay` | `/api/events/<event_id>` |
-| Journey generator | `Journey` | `/api/itinerary?...` |
-| About Us | `About` | Static frontend data |
+- `Journey` calls `generateJourney(params)`.
+- `JourneyResult` renders returned days, activities, hotel, and match context.
 
-## 6. Database Table-to-API Map
+## 9. Available Backend Endpoints
 
-| Database table | Main API endpoints |
+| Endpoint | Current Status |
+|---|---|
+| `GET /api/matches` | Used |
+| `GET /api/matches/<match_number>` | Available, mostly preloaded instead |
+| `GET /api/tickets` | Available for future all-ticket pages |
+| `GET /api/tickets/<match_number>` | Used by match detail |
+| `GET /api/teams` | Used |
+| `GET /api/teams/<country>` | Available |
+| `GET /api/players` | Used |
+| `GET /api/players/stars` | Available |
+| `GET /api/players/<team_country>` | Available |
+| `GET /api/rankings` | Used |
+| `GET /api/hotels` | Used |
+| `GET /api/hotels/region/<region>` | Available |
+| `GET /api/hotels/price/<price_band>` | Available |
+| `GET /api/restaurants` | Used |
+| `GET /api/restaurants/flavor/<flavor>` | Available |
+| `GET /api/events` | Used |
+| `GET /api/events/category/<category>` | Available |
+| `GET /api/events/<event_id>` | Available for future event detail views |
+| `GET /api/itinerary` | Used |
+
+## 10. Database Table-to-API Map
+
+| Database Table | Main API Endpoints |
 |---|---|
 | `fact_match` | `/api/matches`, `/api/matches/<match_number>` |
 | `fact_ticket` | `/api/tickets`, `/api/tickets/<match_number>` |
 | `dim_team` | `/api/teams`, `/api/teams/<country>` |
 | `dim_player` | `/api/players`, `/api/players/<team_country>`, `/api/players/stars` |
 | `fact_ranking` | `/api/rankings` |
-| `fact_hotel` | `/api/hotels`, `/api/hotels/region/<region>`, `/api/hotels/price/<price_band>`, `/api/map-data` |
+| `fact_hotel` | `/api/hotels`, `/api/hotels/region/<region>`, `/api/hotels/price/<price_band>` |
 | `fact_restaurant` | `/api/restaurants`, `/api/restaurants/flavor/<flavor>`, `/api/itinerary` helpers |
 | `fact_event` | `/api/events`, `/api/events/<event_id>`, `/api/events/category/<category>`, `/api/itinerary` helpers |
 | `dim_event_category` | `/api/events`, `/api/events/<event_id>`, `/api/itinerary` helpers |
 | `event_experience_detail` | `/api/events/<event_id>`, `/api/itinerary` helpers |
 | `event_sports_detail` | `/api/events/<event_id>` |
-| `fact_route` | `/api/routes` |
-| `dim_place` | `/api/routes`, `/api/map-data` |
-| `dim_mode` | `/api/routes` |
+| `fact_route` | Stored in database, not exposed by the current public API |
+| `dim_place` | Stored in database, not exposed by the current public API |
+| `dim_mode` | Stored in database, not exposed by the current public API |
 
-## 7. Error Handling and Backend Availability
+## 11. Privacy and Security Boundary
 
-Frontend error behavior:
-
-- `apiFetch()` throws if a response is not OK.
-- `loadSiteData()` sets:
-  - `apiReady = true` on success.
-  - `apiReady = false` and `apiError = err` on failure.
-- UI sections display database connection notices instead of silently showing fake data.
-
-Backend error behavior:
-
-- Most API routes rely on query functions and return JSON directly.
-- `/api/itinerary` catches exceptions and returns:
-
-```json
-{
-  "error": "Could not build journey"
-}
-```
-
-with HTTP status `500`.
-
-## 8. Privacy and Data Boundary
-
-The frontend does not receive database credentials. Database access is restricted to the Flask backend.
-
-Credentials are loaded only inside `backend/queries.py` through environment variables:
-
-```py
-host=os.getenv("DB_HOST")
-port=int(os.getenv("DB_PORT", 5432))
-dbname=os.getenv("DB_NAME")
-user=os.getenv("DB_USER")
-password=os.getenv("DB_PASSWORD")
-sslmode=os.getenv("DB_SSLMODE", "require")
-```
-
-The React app only knows the API base URL:
+The frontend only knows:
 
 ```js
-http://127.0.0.1:5000
+API_BASE = "http://127.0.0.1:5000"
 ```
 
-This keeps the database connection details out of browser code.
+It does not know:
 
-## 9. Recommended Local Run Order
+- Database host
+- Database username
+- Database password
+- SSL mode
+- Raw SQL queries
 
-Start the backend:
+Those stay in:
+
+- `backend/.env`
+- `backend/queries.py`
+- PostgreSQL
+
+## 12. Smoke Tests
+
+Start Flask first:
 
 ```bash
 cd backend
 python3 app.py
 ```
 
-Start the frontend:
-
-```bash
-cd frontend
-npm run dev
-```
-
-Open:
-
-```text
-http://127.0.0.1:5173
-```
-
-Quick API checks:
+Then test:
 
 ```bash
 curl -s http://127.0.0.1:5000/api/matches
+curl -s http://127.0.0.1:5000/api/hotels
 curl -s http://127.0.0.1:5000/api/events
 curl -s "http://127.0.0.1:5000/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture"
 ```
-
-## 10. Current Design Decisions
-
-1. `Tournament Guide` is no longer a standalone page.
-   - Team and ranking data now appears inside `MatchOverlay`.
-   - This makes the user flow more natural: choose a match first, then inspect team context.
-
-2. Explore LA has five entry categories.
-   - Hotels
-   - Restaurants
-   - Fan Events
-   - Shows
-   - Attractions
-
-3. Explore LA initially shows only the five photo cards.
-   - The map appears only after the user clicks one category.
-   - Selected items are shown on the map.
-
-4. Journey is generated by the backend.
-   - It uses SQL-selected event, hotel, and restaurant pools.
-   - It does not rely on static frontend fallback data.
-
-5. Backend data is the source of truth.
-   - If the backend is unavailable, the frontend reports that state rather than pretending data exists.

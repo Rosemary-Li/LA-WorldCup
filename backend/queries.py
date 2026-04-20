@@ -286,7 +286,7 @@ def get_all_events(limit=500, offset=0, search=None, area=None):
                e.event_category_id,
                e.event_type, e.venue_name, e.area, e.city,
                e.start_date, e.end_date, e.event_time,
-               e.detail_type, c.category AS category_label
+               e.detail_type, e.source_url, c.category AS category_label
         FROM fact_event e
         LEFT JOIN dim_event_category c
                ON e.event_category_id = c.event_category_id
@@ -331,52 +331,6 @@ def get_event_detail(event_id):
             event["sports_detail"] = spt[0]
 
         return event
-
-
-# ─────────────────────────────────────────
-# 9. Transport Routes
-# ─────────────────────────────────────────
-
-def get_all_routes():
-    """Return all airport-to-SoFi transport routes."""
-    return query("""
-        SELECT r.route_id,
-               o.name AS origin_name, o.city AS origin_city,
-               d.name AS dest_name, d.city AS dest_city,
-               m.mode_name, m.mode_group, m.includes,
-               r.duration_min, r.cost_low_usd, r.cost_high_usd
-        FROM fact_route r
-        JOIN dim_place o ON r.origin_place_id = o.place_id
-        JOIN dim_place d ON r.dest_place_id = d.place_id
-        JOIN dim_mode  m ON r.mode_id = m.mode_id
-        ORDER BY r.duration_min
-    """)
-
-
-# ─────────────────────────────────────────
-# 10. Map Data
-# ─────────────────────────────────────────
-
-def get_map_data():
-    """Return all geo coordinates for Leaflet.js map pins."""
-    with _conn() as conn:
-        hotels = query("""
-            SELECT hotel_id AS id, hotel_name AS name,
-                   'hotel' AS type, region,
-                   latitude AS lat, longitude AS lon,
-                   star_rating, price_band
-            FROM fact_hotel
-            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-        """, conn=conn)
-
-        places = query("""
-            SELECT place_id AS id, name, place_type AS type,
-                   city AS region, lat, lon
-            FROM dim_place
-            WHERE lat IS NOT NULL AND lon IS NOT NULL
-        """, conn=conn)
-
-        return {"hotels": hotels, "places": places}
 
 
 # ─────────────────────────────────────────
@@ -447,9 +401,9 @@ if __name__ == "__main__":
     for h in hotels[:3]:
         print(f"  {h['hotel_name']} | {h['region']} | {h['price_band']}")
 
-    print("\n── Transport Routes ──")
-    routes = get_all_routes()
-    for r in routes:
-        print(f"  {r['origin_name']} -> {r['dest_name']} | {r['mode_name']} | {r['duration_min']}min | ${r['cost_low_usd']}-{r['cost_high_usd']}")
+    print("\n── Restaurants ──")
+    restaurants = get_all_restaurants(limit=3)
+    for r in restaurants:
+        print(f"  {r['restaurant_name']} | {r['region']} | {r['price_range']}")
 
     print("\nAll queries tested successfully!")

@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../css/styles.css";
 import {
-  API_BASE,
   generateJourney,
-  loadEventDetail,
   loadPlayersByTeam,
   loadSiteData,
   loadTickets,
 } from "./api.js";
+import { mediaForPlace } from "./placeMedia.js";
 
 const matchRows = [
   { key: "M4", badge: "#1D428A", group: "Group D", teams: ["🇺🇸", "USA", "Paraguay", "🇵🇾"], date: "June 12", sub: "Friday · 6:00 pm PT" },
@@ -47,7 +46,6 @@ function Nav() {
           <li><a href="#matches">Matches</a></li>
           <li><a href="#la-showcase">Explore LA</a></li>
           <li><a href="#itinerary">Journey</a></li>
-          <li><a href="#la-showcase">Map</a></li>
           <li><a href="#about">About Us</a></li>
         </ul>
         <div className="nav-rule">SoFi Stadium · Inglewood</div>
@@ -132,10 +130,67 @@ function Matches({ data, onOpenMatch }) {
   );
 }
 
-function ExploreLA({ data, apiReady, apiError }) {
+
+const CATEGORY_FILTERS = {
+  hotels:      [{ key: "region", label: "Region" }, { key: "price", label: "Price" }, { key: "stars", label: "Stars" }],
+  restaurants: [{ key: "region", label: "Region" }, { key: "flavor", label: "Cuisine" }, { key: "price", label: "Price" }],
+  events:      [{ key: "type", label: "Type" }],
+  shows:       [{ key: "area", label: "Area" }, { key: "type", label: "Type" }],
+  attractions: [{ key: "type", label: "Type" }],
+};
+
+const CATEGORY_DESCS = {
+  hotels:      "Where to stay · World Cup edition",
+  restaurants: "Curated dining around the city",
+  events:      "Official FIFA activations & local fan culture",
+  shows:       "Live music, comedy & entertainment across LA",
+  attractions: "Beaches, landmarks & only-in-LA experiences",
+};
+
+const CATEGORY_PAGE_TITLES = {
+  hotels: "Hotels near WC26 venues",
+  restaurants: "Restaurants near WC26 venues",
+  events: "Fan events around Los Angeles",
+  shows: "Shows near your World Cup trip",
+  attractions: "Attractions around Los Angeles",
+};
+
+const CATEGORY_PAGE_SUBTITLES = {
+  hotels: "Find upscale accommodations close to the World Cup action in Los Angeles.",
+  restaurants: "Pick memorable dining stops for match days and city days.",
+  events: "Choose fan zones, watch parties, and official football activations.",
+  shows: "Add music, comedy, cinema, and nightlife to the trip.",
+  attractions: "Save landmarks, beaches, museums, studios, and only-in-LA experiences.",
+};
+
+const CATEGORY_EMOJIS = { hotels: "🏨", restaurants: "🍽️", events: "🎉", shows: "🎭", attractions: "🗺️" };
+const CATEGORY_COLORS = { hotels: "#1a1a2e", restaurants: "#1e120a", events: "#0d1f14", shows: "#1a0d2b", attractions: "#0d1a1a" };
+
+const TYPE_LABELS = {
+  "Fan Community / Live game party": "Watch Party",
+  "Fan Community": "Community",
+  "Community Program": "Community",
+  "Other Sports Events": "Sports",
+  "Official Activity": "Official",
+  "Club Event": "Club",
+  "Special Event": "Special",
+  "Fan Meetup": "Meetup",
+  "Bar/Party": "Bar / Party",
+  "MLS Match": "MLS",
+  "Live Music": "Music",
+  "Outdoor Cinema": "Cinema",
+  "Urban Icon": "Landmark",
+  "Coastal": "Beach & Coast",
+  "Commercial": "Shopping",
+  "Unknown": "Other",
+};
+
+const EXPLORE_PICKS_KEY = "laWorldCupExplorePicks";
+
+function ExploreLA({ data, apiReady, apiError, onGoJourney, onPicksChange }) {
   const [activeCategory, setActiveCategory] = useState(null);
-  const [hoverCategory, setHoverCategory] = useState("stadium");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [activeFilters, setActiveFilters] = useState({});
   const cards = [
     { category: "hotels", label: "Hotels", kicker: "Stay", action: "Choose stays", img: "LA1.jpg" },
     { category: "restaurants", label: "Restaurants", kicker: "Taste", action: "Choose dining", img: "LA2.jpg" },
@@ -184,27 +239,32 @@ function ExploreLA({ data, apiReady, apiError }) {
     };
     const hotels = (data.hotels || [])
       .filter((h) => h.lat && h.lon)
-      .map((h, i) => ({ id: `hotel-${i}-${h.name}`, type: "hotel", name: h.name, lat: Number(h.lat), lng: Number(h.lon), detail: `${h.region} · ${h.price}` }));
+      .map((h, i) => ({ id: `hotel-${i}-${h.name}`, category: "hotels", markerType: "hotel", name: h.name, lat: Number(h.lat), lng: Number(h.lon), detail: `${h.region} · ${h.price}`, region: h.region || "", price: h.price || "", stars: h.stars ? `${h.stars}★` : "", ...mediaForPlace(h.name, "hotels") }));
     const restaurants = (data.restaurants || [])
       .map((r, i) => {
         const [lat, lng] = coordsFor(`${r.region} ${r.address}`, i);
-        return { id: `restaurant-${i}-${r.name}`, type: "restaurant", name: r.name, lat, lng, detail: `${r.region} · ${r.flavor} · ${r.price}` };
+        return { id: `restaurant-${i}-${r.name}`, category: "restaurants", markerType: "restaurant", name: r.name, lat, lng, detail: `${r.region} · ${r.flavor} · ${r.price}`, region: r.region || "", flavor: r.flavor || "", price: r.price || "", ...mediaForPlace(r.name, "restaurants") };
       });
+    const cleanType = (cat) => TYPE_LABELS[cat] || cat || "";
+    const officialEventCats = new Set([1, 2, 3, 6]); // Fan Festival, Fan Zone, Official Activity, MLS Match
     const events = (data.fanEvents || [])
       .map((e, i) => {
         const [lat, lng] = coordsFor(`${e.area} ${e.venue} ${e.name}`, i);
-        return { id: `event-${e.id || i}`, type: "event", name: e.name, lat, lng, detail: `${e.area || "Los Angeles"} · ${e.desc}` };
+        const type = officialEventCats.has(e.categoryId) ? "Official" : "Fan Scene";
+        return { id: `event-${e.id || i}`, category: "events", markerType: "event", name: e.name, lat, lng, detail: `${e.area || "Los Angeles"} · ${type}`, area: e.area || "", type, ...mediaForPlace(e.name, "events", e.officialUrl) };
       });
     const shows = (data.shows || [])
       .map((s, i) => {
         const [lat, lng] = coordsFor(`${s.area} ${s.venue} ${s.name}`, i);
-        return { id: `show-${s.id || i}`, type: "event", name: s.name, lat, lng, detail: `${s.area || s.venue || "Los Angeles"} · ${s.desc}` };
+        const type = cleanType(s.category);
+        return { id: `show-${s.id || i}`, category: "shows", markerType: "event", name: s.name, lat, lng, detail: `${s.area || s.venue || "Los Angeles"} · ${type}`, area: s.area || s.venue || "", type, ...mediaForPlace(s.name, "shows", s.officialUrl) };
       });
     const attractions = (data.allEvents || [])
       .filter((item) => attractionCats.has(item.categoryId))
       .map((item, i) => {
         const [lat, lng] = coordsFor(`${item.area} ${item.venue} ${item.name}`, i);
-        return { id: `attraction-${item.id || i}`, type: "attraction", name: item.name, lat, lng, detail: `${item.area || item.venue || "Los Angeles"} · ${item.desc}` };
+        const type = cleanType(item.category);
+        return { id: `attraction-${item.id || i}`, category: "attractions", markerType: "attraction", name: item.name, lat, lng, detail: `${item.area || item.venue || "Los Angeles"} · ${type}`, area: item.area || item.venue || "", type, ...mediaForPlace(item.name, "attractions", item.officialUrl) };
       });
     return {
       hotels,
@@ -214,21 +274,50 @@ function ExploreLA({ data, apiReady, apiError }) {
       attractions,
     };
   }, [data.allEvents, data.hotels, data.restaurants, data.fanEvents, data.shows]);
-  const currentCategory = activeCategory || hoverCategory;
+  const allExploreItems = useMemo(() => [
+    ...exploreItems.hotels,
+    ...exploreItems.restaurants,
+    ...exploreItems.events,
+    ...exploreItems.shows,
+    ...exploreItems.attractions,
+  ], [exploreItems]);
   const visibleItems = exploreItems[activeCategory] || [];
-  const previewItems = activeCategory ? visibleItems.filter((item) => selectedIds.includes(item.id)) : exploreItems[currentCategory] || [];
+  const selectedItems = useMemo(() => allExploreItems.filter((item) => selectedIds.includes(item.id)), [allExploreItems, selectedIds]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EXPLORE_PICKS_KEY) || "[]");
+      if (Array.isArray(saved)) setSelectedIds(saved.map((item) => item.id).filter(Boolean));
+    } catch {
+      setSelectedIds([]);
+    }
+  }, []);
+  useEffect(() => {
+    if (!apiReady) return;
+    const picks = selectedItems.map(({ id, category, markerType, name, detail, lat, lng, officialUrl }) => ({
+      id, category, markerType, name, detail, lat, lng, officialUrl,
+    }));
+    localStorage.setItem(EXPLORE_PICKS_KEY, JSON.stringify(picks));
+    onPicksChange?.(picks);
+  }, [apiReady, selectedItems, onPicksChange]);
+  const selectedByCategory = useMemo(() => {
+    const counts = {};
+    for (const [cat, items] of Object.entries(exploreItems)) {
+      counts[cat] = items.filter((item) => selectedIds.includes(item.id)).length;
+    }
+    return counts;
+  }, [exploreItems, selectedIds]);
+  const filteredItems = useMemo(() => {
+    const defs = CATEGORY_FILTERS[activeCategory] || [];
+    return visibleItems.filter((item) => defs.every(({ key }) => !activeFilters[key] || item[key] === activeFilters[key]));
+  }, [visibleItems, activeCategory, activeFilters]);
   const toggleItem = (id) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((itemId) => itemId !== id) : [...ids, id]);
+  const setFilter = (key, val) => setActiveFilters((prev) => ({ ...prev, [key]: val }));
   const openCategory = (category) => {
     setActiveCategory(category);
-    setHoverCategory(category);
-    setSelectedIds((exploreItems[category] || []).slice(0, 2).map((item) => item.id));
+    setActiveFilters({});
   };
   return (
     <section id="la-showcase">
-      <div className="lg-header">
-        <h2 className="lg-title">Explore LA</h2>
-        {activeCategory && <p className="lg-sub">Choose one or more places and watch them appear on the live map.</p>}
-      </div>
       {!activeCategory ? (
         <div className="lg-grid">
           {cards.map((card, i) => card.photo ? (
@@ -236,11 +325,8 @@ function ExploreLA({ data, apiReady, apiError }) {
           ) : (
             <button
               key={card.category}
-              className={`lg-card ${card.cls || ""} ${hoverCategory === card.category ? "map-active" : ""}`}
+              className={`lg-card ${card.cls || ""}`}
               type="button"
-              onMouseEnter={() => setHoverCategory(card.category)}
-              onMouseLeave={() => setHoverCategory("stadium")}
-              onFocus={() => setHoverCategory(card.category)}
               onClick={() => openCategory(card.category)}
               aria-label={`Open ${card.label}`}
               style={{ "--lg-img": `url('images/${card.img}')` }}
@@ -250,46 +336,77 @@ function ExploreLA({ data, apiReady, apiError }) {
           ))}
         </div>
       ) : (
-        <div className="lg-split">
-          <div className="lg-left">
-            <div className="lg-picker">
-              <div className="lg-picker-top">
-                <button className="lg-back-btn" type="button" onClick={() => setActiveCategory(null)}>← All</button>
-                <div>
-                  <div className="lg-picker-kicker">Build Your Map</div>
-                  <div className="lg-picker-title">{categories.find(([key]) => key === activeCategory)?.[1]}</div>
-                </div>
-              </div>
-              <div className="lg-category-tabs">
-                {categories.map(([key, label]) => (
-                  <button key={key} className={key === activeCategory ? "active" : ""} type="button" aria-pressed={key === activeCategory} onClick={() => openCategory(key)}>{label}</button>
-                ))}
-              </div>
-              <div className="lg-check-list">
-                {apiError ? (
-                  <DataNotice title="Backend API is unavailable" detail="Start the Flask server and reload the page to load database-backed places." />
-                ) : !apiReady ? (
-                  <DataNotice title="Loading database content" detail="The page is waiting for the Flask API before rendering selectable places." />
-                ) : visibleItems.length === 0 ? (
-                  <DataNotice title="No database rows found" detail="This category has no rows from the current backend query." />
-                ) : visibleItems.map((item) => (
-                  <label key={item.id} className="lg-check-row">
-                    <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleItem(item.id)} />
-                    <span>
-                      <strong>{item.name}</strong>
-                      <em>{item.detail}</em>
-                    </span>
-                  </label>
-                ))}
-              </div>
+        <div className="ex-wrap">
+          <div className="ex-topbar">
+            <button className="ex-back-btn" type="button" onClick={() => setActiveCategory(null)}>← Explore</button>
+            <div className="ex-cat-tabs">
+              {categories.map(([key, label]) => (
+                <button key={key} className={key === activeCategory ? "active" : ""} type="button" onClick={() => openCategory(key)}>
+                  {label}{selectedByCategory[key] > 0 && <span className="ex-cat-badge">{selectedByCategory[key]}</span>}
+                </button>
+              ))}
+            </div>
+            {selectedIds.length > 0 && (
+              <button className="ex-clear-btn" type="button" onClick={() => setSelectedIds([])}>
+                {selectedIds.length} selected · Clear
+              </button>
+            )}
+          </div>
+          <div className="ex-head">
+            <div>
+              <div className="ex-head-title">{CATEGORY_PAGE_TITLES[activeCategory]}</div>
+              <div className="ex-head-sub">{CATEGORY_PAGE_SUBTITLES[activeCategory]}</div>
             </div>
           </div>
-          <div className="lg-map-panel">
-            <div className="lg-map-head">
-              <span>Live Map</span>
-              <strong>{`${selectedIds.length} Selected`}</strong>
+          <div className="ex-filters">
+            {(CATEGORY_FILTERS[activeCategory] || []).map(({ key, label, select }) => (
+              <FilterRow key={key} items={visibleItems} filterKey={key} label={label} activeValue={activeFilters[key] || null} onSelect={(val) => setFilter(key, val)} select={!!select} />
+            ))}
+          </div>
+          <div className="ex-body">
+            <div className="ex-cards-col">
+              {apiError ? (
+                <DataNotice title="Backend unavailable" detail="Start the Flask server and reload." />
+              ) : !apiReady ? (
+                <DataNotice title="Loading…" detail="Waiting for data." />
+              ) : filteredItems.length === 0 ? (
+                <DataNotice title="No results" detail="Try adjusting the filters." />
+              ) : (
+                <div className="ex-cards">
+                  {filteredItems.map((item, i) => (
+                    <ExCard key={item.id} item={item} category={activeCategory} selected={selectedIds.includes(item.id)} onToggle={toggleItem} index={i + 1} />
+                  ))}
+                </div>
+              )}
             </div>
-            <SyncMap mode={currentCategory} places={previewItems} />
+            <div className="ex-map-col">
+              <div className="ex-pick-panel">
+                <div className="ex-pick-head">
+                  <span>Pick</span>
+                  <strong>{selectedItems.length}</strong>
+                </div>
+                <div className="ex-pick-list">
+                  {selectedItems.length === 0 ? (
+                    <div className="ex-pick-empty">Select hotels, restaurants, events, shows, or attractions.</div>
+                  ) : selectedItems.slice(0, 6).map((item) => (
+                    <div className="ex-pick-item" key={item.id}>
+                      <span>{CATEGORY_EMOJIS[item.category] || "📍"}</span>
+                      <div>
+                        <strong>{item.name}</strong>
+                        <em>{item.detail}</em>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedItems.length > 6 && <div className="ex-pick-more">+{selectedItems.length - 6} more saved picks</div>}
+                </div>
+              </div>
+              <div className="ex-map-box">
+                <SyncMap mode={activeCategory} places={selectedItems} />
+              </div>
+              <button className="ex-go-btn" type="button" onClick={onGoJourney}>
+                Go
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -297,85 +414,161 @@ function ExploreLA({ data, apiReady, apiError }) {
   );
 }
 
+
+function ExCard({ item, category, selected, onToggle, index }) {
+  const [imageSrc, setImageSrc] = useState(item.imageUrl);
+  useEffect(() => {
+    setImageSrc(item.imageUrl);
+  }, [item.imageUrl]);
+  const openOfficial = (event) => {
+    event.stopPropagation();
+    if (item.officialUrl) window.open(item.officialUrl, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <button className={`ex-card${selected ? " ex-card--on" : ""}`} type="button" onClick={() => onToggle(item.id)}>
+      <span className="ex-card-index">{index}</span>
+      <div
+        className={`ex-card-thumb${item.officialUrl ? " ex-card-thumb--link" : ""}`}
+        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.32)), url('${item.fallbackImage || "images/LA5.jpg"}')`, backgroundColor: CATEGORY_COLORS[category] || "#111" }}
+        title={item.officialUrl ? "Open official website" : "Official website not available in the dataset"}
+      >
+        {imageSrc && imageSrc !== item.fallbackImage && (
+          <img className="ex-card-img" src={imageSrc} alt="" loading="lazy" onError={() => setImageSrc(null)} />
+        )}
+        <span className="ex-card-emoji">{CATEGORY_EMOJIS[category] || "📍"}</span>
+        {selected && <span className="ex-card-check">✓</span>}
+        {item.officialUrl && <span className="ex-card-site" onClick={openOfficial}>Official Site ↗</span>}
+      </div>
+      <div className="ex-card-body">
+        <div className="ex-card-name">{item.name}</div>
+        <div className="ex-card-detail">{item.detail}</div>
+        <div className="ex-card-meta">
+          {item.stars && <span>{item.stars}</span>}
+          {item.price && <span>{item.price}</span>}
+          {item.type && <span>{item.type}</span>}
+          {item.flavor && <span>{item.flavor}</span>}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function FilterRow({ items, filterKey, label, activeValue, onSelect, select = false }) {
+  const values = [...new Set(items.map((item) => item[filterKey]).filter(Boolean))].sort();
+  if (values.length <= 1) return null;
+  if (select) {
+    return (
+      <div className="lg-filter-row">
+        <span className="lg-filter-label">{label}</span>
+        <select className="lg-filter-select" value={activeValue || ""} onChange={(e) => onSelect(e.target.value || null)}>
+          <option value="">All</option>
+          {values.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+      </div>
+    );
+  }
+  return (
+    <div className="lg-filter-row">
+      <span className="lg-filter-label">{label}</span>
+      <div className="lg-filter-pills">
+        <button className={`lg-filter-pill${!activeValue ? " active" : ""}`} type="button" onClick={() => onSelect(null)}>All</button>
+        {values.map((v) => (
+          <button key={v} className={`lg-filter-pill${activeValue === v ? " active" : ""}`} type="button" onClick={() => onSelect(v)}>{v}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SyncMap({ mode, places = [] }) {
+  const rawMapId = useId();
+  const mapId = `map-${rawMapId.replace(/:/g, "")}`;
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const defaultCenter = [33.9534, -118.3391];
-
   useEffect(() => {
     if (!window.L || mapRef.current) return;
-    const map = window.L.map("showcase-map", { center: defaultCenter, zoom: 13, zoomControl: false, attributionControl: true });
+    const map = window.L.map(mapId, { center: defaultCenter, zoom: 13, zoomControl: false, attributionControl: true });
     mapRef.current = map;
     layerRef.current = window.L.layerGroup().addTo(map);
     window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OSM © CARTO", subdomains: "abcd", maxZoom: 19 }).addTo(map);
     window.L.control.zoom({ position: "bottomright" }).addTo(map);
     return () => { map.remove(); mapRef.current = null; layerRef.current = null; };
-  }, []);
-
+  }, [mapId]);
   useEffect(() => {
     if (!window.L || !mapRef.current || !layerRef.current) return;
-    const color = { stadium: "#f4d35e", hotel: "#9fd3ff", restaurant: "#f7a072", event: "#c2f970", attraction: "#ff8ac6", route: "#d7b8ff" };
+    const color = { stadium: "#f4d35e", hotel: "#9fd3ff", restaurant: "#f7a072", event: "#c2f970", attraction: "#ff8ac6" };
     const icon = (type) => window.L.divIcon({
       className: "",
       html: `<div style="width:${type === "stadium" ? 18 : 11}px;height:${type === "stadium" ? 18 : 11}px;border-radius:50%;background:${color[type] || "#ddd"};border:2px solid #fff;box-shadow:${type === "stadium" ? "0 0 18px rgba(244,211,94,.95)" : "0 0 10px rgba(255,255,255,.35)"};"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9],
+      iconSize: [18, 18], iconAnchor: [9, 9],
     });
-    const stadium = { type: "stadium", name: "SoFi Stadium", lat: defaultCenter[0], lng: defaultCenter[1], detail: "World Cup match venue · Inglewood" };
-    const visiblePlaces = [stadium, ...places];
+    const stadium = { markerType: "stadium", name: "SoFi Stadium", lat: defaultCenter[0], lng: defaultCenter[1], detail: "World Cup venue · Inglewood" };
     layerRef.current.clearLayers();
-    const markers = visiblePlaces.map((p) => {
-      const marker = window.L.marker([p.lat, p.lng], { icon: icon(p.type) })
-        .bindPopup(`<div class="lf-popup"><div class="lf-popup-type">${p.type}</div><div class="lf-popup-name">${p.name}</div><div class="lf-popup-detail">${p.detail}</div></div>`, { className: "lf-popup-wrap", closeButton: false });
+    const markers = [stadium, ...places].map((p) => {
+      const mt = p.markerType || "event";
+      const marker = window.L.marker([p.lat, p.lng], { icon: icon(mt) })
+        .bindPopup(`<div class="lf-popup"><div class="lf-popup-type">${mt}</div><div class="lf-popup-name">${p.name}</div><div class="lf-popup-detail">${p.detail}</div></div>`, { className: "lf-popup-wrap", closeButton: false });
       marker.addTo(layerRef.current);
-      if (p.type === "stadium") marker.openPopup();
+      if (mt === "stadium") marker.openPopup();
       return marker;
     });
-    if (mode === "stadium" || markers.length === 1) {
+    if (places.length === 0) {
       mapRef.current.flyTo(defaultCenter, 13, { duration: 0.8 });
     } else {
       const bounds = window.L.featureGroup(markers).getBounds();
       mapRef.current.fitBounds(bounds.pad(0.25), { maxZoom: 13, animate: true });
     }
   }, [mode, places]);
-
-  return <div id="showcase-map" />;
+  return <div id={mapId} className="showcase-map" />;
 }
 
 function DataNotice({ title, detail }) {
   return <div className="rec-card" style={{ gridColumn: "1 / -1", minHeight: 180, display: "flex", alignItems: "center" }}><div className="rec-card-body"><div className="rec-card-tag">Database Connection</div><div className="rec-card-name">{title}</div><div className="rec-card-sub">{detail}</div></div></div>;
 }
 
-function Discover({ data, apiReady, apiError, activeTab, setActiveTab, onOpenEvent }) {
-  const [filter, setFilter] = useState("all");
-  useEffect(() => setFilter("all"), [activeTab]);
-  const list = useMemo(() => {
-    if (activeTab === "hotels" && filter !== "all") return data.hotels.filter((h) => h.price.startsWith(filter));
-    if (activeTab === "events" && filter !== "all") return data.fanEvents.filter((e) => e.desc.includes(filter));
-    if (activeTab === "shows" && filter !== "all") return data.shows.filter((e) => e.desc.includes(filter));
-    return { hotels: data.hotels, restaurants: data.restaurants, events: data.fanEvents, shows: data.shows, routes: data.routes }[activeTab] || [];
-  }, [activeTab, data, filter]);
-  const tabs = [["hotels", "Hotels"], ["restaurants", "Restaurants"], ["events", "Fan Events"], ["shows", "Shows"], ["routes", "Getting There"]];
-  const filters = activeTab === "hotels" ? ["all", "100+", "200+", "400+"] : activeTab === "events" ? ["all", "Fan Festival", "Fan Zone", "Bar", "MLS", "Community"] : activeTab === "shows" ? ["all", "Music", "Comedy", "Cinema", "Entertainment", "Culture"] : [];
-  return (
-    <section id="discover">
-      <div className="section-divider" style={{ marginBottom: "1.5rem" }}><div className="d1" /><div className="d2" /></div>
-      <div className="section-masthead"><div className="section-title">Discover Los Angeles</div><div className="section-folio">Hotels · Dining · Events · Transport</div></div>
-      <div className="tab-bar">{tabs.map(([key, label]) => <button key={key} className={`tab-btn ${activeTab === key ? "active" : ""}`} onClick={() => setActiveTab(key)}>{label}</button>)}</div>
-      <div id="filterBar" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", padding: "0.8rem 0 0.2rem" }}>{filters.map((f) => <button key={f} onClick={() => setFilter(f)} data-active={filter === f ? "1" : undefined} style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", padding: "0.3rem 0.8rem", border: "1px solid var(--border-med)", background: filter === f ? "var(--ink)" : "transparent", color: filter === f ? "var(--paper)" : "var(--charcoal)", cursor: "pointer" }}>{f === "all" ? "All" : f}</button>)}</div>
-      <div className="cards-grid" id="cardsGrid">{apiError ? <DataNotice title="Backend API is unavailable" detail="Start the Flask server and reload the page to load database-backed content." /> : !apiReady ? <DataNotice title="Loading database content" detail="The page is waiting for the Flask API before rendering cards." /> : list.map((item, i) => <DiscoverCard key={`${activeTab}-${i}`} item={item} tab={activeTab} onOpenEvent={onOpenEvent} />)}</div>
-    </section>
-  );
-}
+const JOURNEY_SELECTS = [
+  {
+    key: "type",
+    icon: "01",
+    label: "Traveler Type",
+    options: [["football", "Football Fan"], ["family", "Family"], ["backpacker", "Backpacker"], ["luxury", "Luxury Traveler"]],
+  },
+  {
+    key: "budget",
+    icon: "02",
+    label: "Budget per Day",
+    options: [["budget", "$100-200"], ["mid", "$200-400"], ["luxury", "$400+"]],
+  },
+  {
+    key: "days",
+    icon: "03",
+    label: "Days in LA",
+    options: [["3", "3 Days"], ["5", "5 Days"], ["7", "7 Days"]],
+  },
+  {
+    key: "match_date",
+    icon: "04",
+    label: "Match Date",
+    wide: true,
+    options: [["jun12", "Jun 12 · USA vs Paraguay (M4)"], ["jun15", "Jun 15 · Iran vs New Zealand (M15)"], ["jun18", "Jun 18 · Switzerland vs UEFA Playoff A (M26)"], ["jun21", "Jun 21 · Belgium vs Iran (M39)"], ["jun25", "Jun 25 · UEFA Playoff C vs USA (M59)"], ["jun28", "Jun 28 · Round of 32 (M73)"], ["jul2", "Jul 2 · Round of 32 (M84)"], ["jul10", "Jul 10 · Quarter-Finals (M98)"]],
+  },
+  {
+    key: "vibe",
+    icon: "05",
+    label: "Vibe Preference",
+    options: [["culture", "Culture & History"], ["beach", "Beach & Nature"], ["nightlife", "Nightlife & Shows"], ["film", "Hollywood & Film"]],
+  },
+];
 
-function DiscoverCard({ item, tab, onOpenEvent }) {
-  if (tab === "hotels") return <div className="rec-card"><div className="rec-card-img">{item.emoji}</div><div className="rec-card-body"><div className="rec-card-tag">Hotel · {item.region}</div><div className="rec-card-name">{item.name}</div><div className="rec-card-sub">{item.address}</div><div className="rec-card-price">{item.price} · <span className="stars">{"★".repeat(item.stars)}</span></div></div></div>;
-  if (tab === "restaurants") return <div className="rec-card"><div className="rec-card-img">{item.emoji}</div><div className="rec-card-body"><div className="rec-card-tag">{item.flavor} · {item.region}</div><div className="rec-card-name">{item.name}</div><div className="rec-card-sub">{item.address}</div><div className="rec-card-price">{item.price} · <span className="stars">★</span> {item.score}</div></div></div>;
-  if (tab === "routes") return <div className="rec-card"><div className="rec-card-img">{{ transit: "🚇", rideshare: "🚖", drive: "🚗" }[item.mode_group] || "🗺"}</div><div className="rec-card-body"><div className="rec-card-tag">{item.mode_name}</div><div className="rec-card-name">{item.origin_name} → {item.dest_name}</div><div className="rec-card-sub">{item.includes || item.mode_group}</div><div className="rec-card-price">{item.duration_min} min · ${item.cost_low_usd}–${item.cost_high_usd}</div></div></div>;
-  return <button className="rec-card" style={{ cursor: "pointer", textAlign: "left" }} onClick={() => item.id && onOpenEvent(item.id)}><div className="rec-card-img">{item.emoji}</div><div className="rec-card-body"><div className="rec-card-tag">{tab === "shows" ? "Entertainment" : "Fan Event"} · {item.area || item.venue}</div><div className="rec-card-name">{item.name}</div><div className="rec-card-sub">{item.desc}</div><div className="rec-card-price">{item.date} · {item.price}</div></div></button>;
-}
+const ACTIVITY_MARKS = {
+  event: "EVENT",
+  restaurant: "DINE",
+  match: "MATCH",
+  explore_pick: "PICK",
+};
 
-function Journey({ onViewMap }) {
+function Journey({ explorePicks = [] }) {
   const [form, setForm] = useState({ type: "football", budget: "mid", days: "5", match_date: "jun12", vibe: "culture" });
   const [loading, setLoading] = useState(false);
   const [journey, setJourney] = useState(null);
@@ -383,111 +576,122 @@ function Journey({ onViewMap }) {
   const update = (key, value) => setForm((old) => ({ ...old, [key]: value }));
   async function submit() {
     setLoading(true); setError(""); setJourney(null);
-    try { setJourney(await generateJourney(form)); }
+    const journeyPicks = explorePicks.slice(0, 12).map(({ id, category, name, detail, officialUrl, lat, lng, markerType }) => ({ id, category, name, detail, officialUrl, lat, lng, markerType }));
+    try { setJourney(await generateJourney({ ...form, picks: journeyPicks })); }
     catch { setError("Unable to connect to the server. Please make sure the Flask API is running."); }
     finally { setLoading(false); }
   }
   return (
-    <section id="itinerary">
-      <div className="section-divider" style={{ marginBottom: "1.5rem" }}><div className="d1" /><div className="d2" /></div>
-      <div className="section-masthead"><div className="section-title">Journey</div><div className="section-folio">Your Cinematic LA Story</div></div>
-        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "var(--silver)", fontSize: "1rem", marginBottom: "3rem", maxWidth: 600, lineHeight: 1.7 }}>Tell us who you are and what you love. We'll craft a cinematic LA World Cup experience just for you.</p>
-        <div style={{ maxWidth: 900 }}>
-          <div className="builder-controls">
-            <Select label="Traveler Type" value={form.type} onChange={(v) => update("type", v)} options={[["football", "⚽ Football Fan"], ["family", "Family"], ["backpacker", "Backpacker"], ["luxury", "✦ Luxury Traveler"]]} />
-            <Select label="Budget per Day" value={form.budget} onChange={(v) => update("budget", v)} options={[["budget", "$100–200 (Budget)"], ["mid", "$200–400 (Mid-Range)"], ["luxury", "$400+ (Luxury)"]]} />
-            <Select label="Days in LA" value={form.days} onChange={(v) => update("days", v)} options={[["3", "3 Days"], ["5", "5 Days"], ["7", "7 Days"]]} />
-          </div>
-          <div className="builder-controls" style={{ gridTemplateColumns: "1fr 1fr" }}>
-            <Select label="Match Date to See" value={form.match_date} onChange={(v) => update("match_date", v)} options={[["jun12", "Jun 12 · USA vs Paraguay (M4)"], ["jun15", "Jun 15 · Iran vs New Zealand (M15)"], ["jun18", "Jun 18 · Switzerland vs UEFA Playoff A (M26)"], ["jun21", "Jun 21 · Belgium vs Iran (M39)"], ["jun25", "Jun 25 · UEFA Playoff C vs USA (M59)"], ["jun28", "Jun 28 · Round of 32 (M73)"], ["jul2", "Jul 2 · Round of 32 (M84)"], ["jul10", "Jul 10 · Quarter-Finals (M98)"]]} />
-            <Select label="Vibe Preference" value={form.vibe} onChange={(v) => update("vibe", v)} options={[["culture", "Culture & History"], ["beach", "Beach & Nature"], ["nightlife", "Nightlife & Shows"], ["film", "Hollywood & Film"]]} />
-          </div>
-          <button className="generate-btn" onClick={submit}>✦ GENERATE MY PERSONALIZED TRAVELING SCHEDULE ✦</button>
-          <div className={`itinerary-result ${loading || journey || error ? "visible" : ""}`}>
-            {loading && <div className="loading-bar" style={{ marginBottom: "2rem" }} />}
-            {error && <p style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.75rem", color: "var(--silver)", padding: "2rem" }}>{error}</p>}
-            {journey && <JourneyResult data={journey} onViewMap={onViewMap} />}
-          </div>
+    <section id="itinerary" className="journey-section">
+      <div className="journey-shell">
+        <div className="journey-hero">
+          <div className="journey-kicker">Personalized Plan</div>
+          <h1>Plan Your LA World Cup Journey</h1>
+          <p>Craft a personalized travel experience in seconds, then turn your Explore LA picks into a real day-by-day route.</p>
         </div>
+        <div className="journey-builder-card">
+          {explorePicks.length > 0 && (
+            <div className="journey-picks-note">
+              <span>{explorePicks.length} Explore LA picks connected</span>
+              <em>{explorePicks.slice(0, 3).map((pick) => pick.name).join(" · ")}{explorePicks.length > 3 ? ` · +${explorePicks.length - 3} more` : ""}</em>
+            </div>
+          )}
+          <div className="journey-form-grid">
+            {JOURNEY_SELECTS.map((field) => (
+              <Select
+                key={field.key}
+                icon={field.icon}
+                label={field.label}
+                value={form[field.key]}
+                onChange={(v) => update(field.key, v)}
+                options={field.options}
+                wide={field.wide}
+              />
+            ))}
+          </div>
+          <button className="generate-btn" onClick={submit} disabled={loading}>
+            {loading ? "Crafting your journey..." : "Generate My Journey"}
+          </button>
+        </div>
+        <div className={`itinerary-result ${loading || journey || error ? "visible" : ""}`}>
+          {loading && <div className="journey-loading"><div className="loading-bar" /><span>Crafting your journey...</span></div>}
+          {error && <p className="journey-error">{error}</p>}
+          {journey && <JourneyResult data={journey} />}
+        </div>
+      </div>
     </section>
   );
 }
 
-function Select({ label, value, onChange, options }) {
-  return <div className="control-group"><label>{label}</label><select value={value} onChange={(e) => onChange(e.target.value)}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>;
+function Select({ icon, label, value, onChange, options, wide }) {
+  return <div className={`control-group${wide ? " control-group--wide" : ""}`}><div className="control-icon">{icon}</div><label>{label}</label><select value={value} onChange={(e) => onChange(e.target.value)}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>;
 }
 
-function JourneyResult({ data, onViewMap }) {
+function JourneyResult({ data }) {
   const budgetLabel = data.budget_label === "budget" ? "$150–250/day" : data.budget_label === "mid" ? "$350–500/day" : "$700+/day";
+  const formatHotelPrice = (value) => {
+    if (!value) return "";
+    const text = String(value);
+    const priced = /^\d/.test(text) ? `$${text}` : text;
+    return priced.includes("night") ? priced : `${priced}/night`;
+  };
+  const hotelBits = data.hotel ? [
+    data.hotel.region,
+    data.hotel.star_rating ? `${data.hotel.star_rating}★` : "",
+    formatHotelPrice(data.hotel.price_band),
+  ].filter(Boolean).join(" · ") : "";
+  const mapPlaces = (data.picks_used || [])
+    .filter((pick) => Number.isFinite(Number(pick.lat)) && Number.isFinite(Number(pick.lng)))
+    .map((pick) => ({
+      name: pick.name,
+      detail: pick.detail || "Explore LA pick",
+      lat: Number(pick.lat),
+      lng: Number(pick.lng),
+      markerType: pick.markerType || (pick.category === "hotels" ? "hotel" : pick.category === "restaurants" ? "restaurant" : pick.category === "attractions" ? "attraction" : "event"),
+    }));
+  const badgeLabel = (value = "") => value.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
   return (
-    <>
-      <div style={{ marginBottom: "2rem", padding: "1.2rem", background: "var(--paper)", borderLeft: "3px solid var(--ink)" }}>
-        <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.4rem" }}>Your Journey</div>
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "0.9rem", color: "var(--charcoal)" }}>Curated for: <strong>{data.traveler}</strong> · Budget: <strong>{data.budget_label}</strong> · {data.days.length} days · Match: <strong>{data.match.date} · {data.match.label}</strong></p>
-        {data.hotel && <p style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.65rem", color: "var(--silver)", marginTop: "0.4rem" }}>🏨 Recommended stay: <strong>{data.hotel.hotel_name}</strong> · {data.hotel.region} · {data.hotel.star_rating}★ · ${data.hotel.price_band}/night</p>}
-      </div>
-      {data.days.map((day) => <div className="day-block" key={day.label}><div className="day-label">{day.label}</div>{day.activities.map((act, i) => <div className="timeline-item" key={`${act.time}-${i}`}><div className="timeline-time">{act.time}</div><div className="timeline-content"><div className="title">{act.title}</div><div className="desc">{act.desc}</div></div></div>)}</div>)}
-      <div style={{ marginTop: "2rem", padding: "1.2rem", border: "1.5px solid var(--border-med)", background: "var(--paper)" }}>
-        <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.3rem" }}>✦ Your LA World Cup Story is Ready</div>
-        <p style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.65rem", color: "var(--silver)", marginBottom: "1rem" }}>Estimated budget: {budgetLabel} · {data.days.length}-day journey · Match: {data.match.date} at SoFi Stadium</p>
-        <button onClick={() => onViewMap("inglewood")} style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", border: "1.5px solid var(--ink)", background: "transparent", color: "var(--ink)", padding: "0.55rem 1.4rem", cursor: "pointer" }}>📍 View on Map</button>
-      </div>
-    </>
-  );
-}
-
-function MapSection({ focusArea }) {
-  const mapRef = useRef(null);
-  const markersRef = useRef([]);
-  const places = [
-    { type: "stadium", area: "inglewood", lat: 33.9534, lng: -118.3391, name: "SoFi Stadium", detail: "Inglewood · 70,240 capacity · 8 World Cup matches" },
-    { type: "hotel", area: "weho", lat: 34.0907, lng: -118.3797, name: "The West Hollywood EDITION", detail: "West Hollywood · ★★★★★ · $400+/night" },
-    { type: "hotel", area: "dtla", lat: 34.0503, lng: -118.2553, name: "The Biltmore Los Angeles", detail: "Downtown LA · Historic" },
-    { type: "restaurant", area: "weho", lat: 34.0862, lng: -118.3772, name: "Norah", detail: "West Hollywood · American" },
-    { type: "restaurant", area: "dtla", lat: 34.0401, lng: -118.2311, name: "Bestia", detail: "Arts District · Italian" },
-    { type: "event", area: "dtla", lat: 34.0141, lng: -118.2879, name: "FIFA Fan Festival™ LA", detail: "Exposition Park · Live broadcasts" },
-    { type: "event", area: "hollywood", lat: 34.1122, lng: -118.339, name: "Hollywood Bowl Orchestra Night", detail: "Hollywood · Outdoor concert" },
-  ];
-  const areaViews = { weho: [34.0901, -118.376], dtla: [34.043, -118.2671], hollywood: [34.1017, -118.329], santamonica: [34.0143, -118.4912], inglewood: [33.9534, -118.3392] };
-  useEffect(() => {
-    if (!window.L || mapRef.current) return;
-    const map = window.L.map("leaflet-map", { center: [34.043, -118.32], zoom: 12, zoomControl: false, attributionControl: true });
-    mapRef.current = map;
-    window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OSM © CARTO", subdomains: "abcd", maxZoom: 19 }).addTo(map);
-    window.L.control.zoom({ position: "bottomright" }).addTo(map);
-    markersRef.current = places.map((place) => {
-      const marker = window.L.marker([place.lat, place.lng]).bindPopup(`<div class="lf-popup"><div class="lf-popup-type">${place.type}</div><div class="lf-popup-name">${place.name}</div><div class="lf-popup-detail">${place.detail}</div></div>`);
-      marker.addTo(map);
-      return { marker, ...place };
-    });
-    return () => { map.remove(); mapRef.current = null; markersRef.current = []; };
-  }, []);
-  useEffect(() => {
-    if (focusArea && mapRef.current && areaViews[focusArea]) mapRef.current.flyTo(areaViews[focusArea], 15, { duration: 1.2 });
-  }, [focusArea]);
-  return (
-    <section id="explore">
-      <div className="section-masthead"><div className="section-title">Map</div><div className="section-folio">Stadium · Hotels · Dining · Events</div></div>
-      <div className="explore-layout">
-        <div className="filter-panel">
-          <div className="filter-title">Live LA Map</div>
-          <div className="filter-group">
-            <div className="filter-group-label">Database Layer</div>
-            <p style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.62rem", color: "var(--silver)", lineHeight: 1.7 }}>
-              Stadium, hotels, restaurants, and fan events are visualized as a fast reference layer for the Los Angeles trip.
-            </p>
+    <div className="journey-result-layout">
+      <div className="journey-timeline">
+        <div className="journey-summary-card">
+          <div className="journey-summary-tags">
+            <span>{badgeLabel(data.traveler)}</span>
+            <span>{badgeLabel(data.budget_label)} Budget</span>
+            <span>{data.days.length} Days</span>
+            <span>{budgetLabel}</span>
           </div>
-          <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: "1px solid var(--border-ink)" }}>
-            <div className="filter-group-label" style={{ marginBottom: "0.6rem" }}>Legend</div>
-            <div className="lf-legend-item"><span className="lf-legend-dot" style={{ background: "#fff", boxShadow: "0 0 6px rgba(255,255,255,0.7)" }} />SoFi Stadium</div>
-            <div className="lf-legend-item"><span className="lf-legend-dot" style={{ background: "#b0b0b0" }} />Hotels</div>
-            <div className="lf-legend-item"><span className="lf-legend-dot" style={{ background: "#d0d0d0" }} />Restaurants</div>
-            <div className="lf-legend-item"><span className="lf-legend-dot" style={{ background: "#888" }} />Fan Events</div>
-          </div>
+          <h2>{data.match.label}</h2>
+          <p>Match: {data.match.date} at SoFi Stadium</p>
+          {data.hotel && <p>Stay: <strong>{data.hotel.hotel_name}</strong>{hotelBits ? ` · ${hotelBits}` : ""}</p>}
+          {data.picks_used?.length > 0 && <p>{data.picks_used.length} Explore LA picks included in this journey.</p>}
         </div>
-        <div id="leaflet-map" />
+        {data.days.map((day) => (
+          <div className="day-block" key={day.label}>
+            <div className="day-label">{day.label}</div>
+            <div className="day-stack">
+              {day.activities.map((act, i) => (
+                <div className="timeline-item" key={`${act.time}-${i}`}>
+                  <div className="timeline-time">{act.time}</div>
+                  <div className="timeline-content">
+                    <div className="timeline-mark">{ACTIVITY_MARKS[act.source] || "PLAN"}</div>
+                    <div className="title">{act.title}</div>
+                    <div className="desc">{act.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
-    </section>
+      <aside className="journey-map-panel">
+        <div className="journey-map-head">
+          <span>Live Route Map</span>
+          <strong>{mapPlaces.length ? `${mapPlaces.length} picks` : "SoFi Stadium"}</strong>
+        </div>
+        <div className="journey-map-box"><SyncMap mode="journey" places={mapPlaces} /></div>
+        <div className="journey-map-note">Selected Explore LA picks appear here with SoFi Stadium highlighted as the match venue.</div>
+      </aside>
+    </div>
   );
 }
 
@@ -635,91 +839,28 @@ function TicketCard({ t }) {
   );
 }
 
-function EventOverlay({ eventId, onClose }) {
-  const [event, setEvent] = useState(null);
-  useEffect(() => { if (eventId) loadEventDetail(eventId).then(setEvent).catch(() => setEvent({ error: true })); }, [eventId]);
-  if (!eventId) return null;
-  const exp = event?.experience_detail || {};
-  const spt = event?.sports_detail || {};
-  const ticket = exp.ticket_price || spt.approx_price || exp.admission_info || "See venue";
-  const hasSports = spt.sport_type || spt.competition_event_info || spt.approx_price;
-  const hasExpExtras = exp.suitable_for || exp.recommended_duration || exp.intensity_level;
-  return (
-    <div id="eventOverlay" className="overlay" style={{ display: "block" }}>
-      <button className="overlay-close" onClick={onClose}>×</button>
-      <div className="overlay-inner small"><div id="eventOverlayContent">
-        {!event
-          ? <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.7rem", color: "var(--silver)", padding: "2rem" }}>Loading...</div>
-          : event.error
-          ? <div style={{ padding: "2rem" }}>Could not load event details.</div>
-          : <>
-              <div style={{ borderBottom: "2px solid var(--ink)", marginBottom: "1.5rem", paddingBottom: "0.5rem" }}>
-                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.4rem" }}>{event.category_label || event.category || "Event"}</div>
-                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "1.6rem", fontWeight: 700, color: "var(--ink)", lineHeight: 1.2 }}>{event.event_name}</div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-                <Info label="Venue" value={event.venue_name || "—"} />
-                <Info label="Location" value={event.area || event.city || "—"} />
-                <Info label="Dates" value={event.end_date && event.end_date !== event.start_date ? `${event.start_date} – ${event.end_date}` : event.start_date || "—"} />
-                <Info label="Admission" value={ticket} />
-              </div>
-              {exp.key_experience && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic", fontSize: "1rem", lineHeight: 1.7, color: "var(--charcoal)", borderLeft: "2px solid var(--ink)", paddingLeft: "1rem", marginBottom: "1.5rem" }}>{exp.key_experience}</div>}
-              {hasExpExtras && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-                  {exp.suitable_for && <Info label="Suitable For" value={exp.suitable_for} />}
-                  {exp.recommended_duration && <Info label="Duration" value={exp.recommended_duration} />}
-                  {exp.intensity_level && <Info label="Intensity" value={exp.intensity_level} />}
-                </div>
-              )}
-              {hasSports && (
-                <div style={{ borderTop: "1px solid var(--border-med)", paddingTop: "1.2rem" }}>
-                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.8rem" }}>Sports Info</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    {spt.sport_type && <Info label="Sport" value={spt.sport_type} />}
-                    {spt.approx_price && <Info label="Ticket Price" value={spt.approx_price} />}
-                    {spt.competition_event_info && <Info label="Event Info" value={spt.competition_event_info} />}
-                  </div>
-                </div>
-              )}
-            </>
-        }
-      </div></div>
-    </div>
-  );
-}
-
-function Info({ label, value }) {
-  return <div><div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.55rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--silver)", marginBottom: "0.2rem" }}>{label}</div><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "0.95rem" }}>{value}</div></div>;
-}
 
 function App() {
-  const [data, setData] = useState({ matches: [], players: [], hotels: [], restaurants: [], fanEvents: [], shows: [], rankings: [], teams: [], routes: [], mapData: null });
+  const [data, setData] = useState({ matches: [], players: [], hotels: [], restaurants: [], fanEvents: [], shows: [], allEvents: [], rankings: [], teams: [] });
   const [apiReady, setApiReady] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [discoverTab, setDiscoverTab] = useState("hotels");
   const [matchNumber, setMatchNumber] = useState(null);
-  const [eventId, setEventId] = useState(null);
+  const [explorePicks, setExplorePicks] = useState([]);
 
   useEffect(() => {
     loadSiteData().then((loaded) => { setData(loaded); setApiReady(true); setApiError(null); }).catch((err) => { setApiError(err); setApiReady(false); });
   }, []);
-
-  function viewMap(area) {
-    setTimeout(() => scrollToId("la-showcase"), 40);
-  }
 
   return (
     <>
       <Nav />
       <div id="mount-photohero"><PhotoHero /></div>
       <div id="mount-matches"><Matches data={data} onOpenMatch={setMatchNumber} /></div>
-      <div id="mount-showcase"><ExploreLA data={data} apiReady={apiReady} apiError={apiError} /></div>
-      <div id="mount-discover"><Discover data={data} apiReady={apiReady} apiError={apiError} activeTab={discoverTab} setActiveTab={setDiscoverTab} onOpenEvent={setEventId} /></div>
-      <div id="mount-itinerary"><Journey onViewMap={viewMap} /></div>
+      <div id="mount-showcase"><ExploreLA data={data} apiReady={apiReady} apiError={apiError} onGoJourney={() => scrollToId("itinerary")} onPicksChange={setExplorePicks} /></div>
+      <div id="mount-itinerary"><Journey explorePicks={explorePicks} /></div>
       <div id="mount-about"><About /></div>
       <div id="mount-footer"><Footer /></div>
       <MatchOverlay matchNumber={matchNumber} data={data} onClose={() => setMatchNumber(null)} />
-      <EventOverlay eventId={eventId} onClose={() => setEventId(null)} />
     </>
   );
 }

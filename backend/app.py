@@ -1,4 +1,5 @@
 import logging
+import json
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import hashlib
@@ -135,24 +136,6 @@ def event_detail(event_id):
 
 
 # ─────────────────────────────────────────
-# Transport Routes
-# ─────────────────────────────────────────
-
-@app.route("/api/routes")
-def routes():
-    return jsonify(queries.get_all_routes())
-
-
-# ─────────────────────────────────────────
-# Map Data
-# ─────────────────────────────────────────
-
-@app.route("/api/map-data")
-def map_data():
-    return jsonify(queries.get_map_data())
-
-
-# ─────────────────────────────────────────
 # Journey
 # ─────────────────────────────────────────
 
@@ -220,6 +203,54 @@ def _rest_to_activity(rest, time_slot):
         "id":     rest["restaurant_id"],
     }
 
+def _parse_explore_picks(raw):
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        return []
+    if not isinstance(parsed, list):
+        return []
+
+    picks = []
+    for item in parsed[:20]:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        category = str(item.get("category") or "pick").strip().lower()
+        detail = str(item.get("detail") or "").strip()
+        picks.append({
+            "id": str(item.get("id") or name),
+            "category": category,
+            "markerType": str(item.get("markerType") or ""),
+            "name": name,
+            "detail": detail,
+            "officialUrl": str(item.get("officialUrl") or ""),
+            "lat": item.get("lat"),
+            "lng": item.get("lng"),
+        })
+    return picks
+
+def _pick_to_activity(pick, time_slot):
+    category = pick.get("category", "pick")
+    prefix = {
+        "restaurants": "Dinner at",
+        "events": "Fan event:",
+        "shows": "Show:",
+        "attractions": "Visit",
+    }.get(category, "Explore")
+    title = f"{prefix} {pick['name']}" if category != "events" else f"{prefix} {pick['name']}"
+    return {
+        "time": time_slot,
+        "title": title,
+        "desc": pick.get("detail") or "Saved from Explore LA",
+        "source": "explore_pick",
+        "id": pick.get("id"),
+    }
+
 @app.route("/api/itinerary")
 def itinerary():
     traveler = request.args.get("type", "football")
@@ -231,6 +262,7 @@ def itinerary():
     days = min(max(days, 1), 7)
     match_dt = request.args.get("match_date", "jun12")
     vibe     = request.args.get("vibe", "culture")
+    explore_picks = _parse_explore_picks(request.args.get("picks"))
 
     type_cats = _TYPE_CATS.get(traveler, _TYPE_CATS["football"])
     vibe_cats = _VIBE_CATS.get(vibe, [])
@@ -256,6 +288,13 @@ def itinerary():
     rng.shuffle(vibe_events)
     rng.shuffle(restaurants)
 
+    picked_hotels = [p for p in explore_picks if p["category"] == "hotels"]
+    picked_activities = [
+        p for p in explore_picks
+        if p["category"] in {"restaurants", "events", "shows", "attractions"}
+    ]
+    pick_idx = 0
+
     match_info = _MATCH_INFO.get(match_dt, _MATCH_INFO["jun12"])
     match_activity = {
         "time":   match_info["time"],
@@ -276,51 +315,64 @@ def itinerary():
 
         activities = []
 
+        while pick_idx < len(picked_activities) and len(activities) < 2:
+            activities.append(_pick_to_activity(picked_activities[pick_idx], _DAY_SLOTS[len(activities)]))
+            pick_idx += 1
+
         if is_match_day:
-            # 2 morning activities then the match
-            if events:
-                for slot in range(2):
-                    evt = events[evt_idx % len(events)]
-                    evt_idx += 1
-                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
+            # Fill morning activities, then the match.
+            while events and len(activities) < 2:
+                evt = events[evt_idx % len(events)]
+                evt_idx += 1
+                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
             activities.append(match_activity)
 
         elif d == 0:
-            # Day 1: 3 type events, 1 restaurant dinner, 1 vibe event at end
-            if events:
-                for slot in range(3):
-                    evt = events[evt_idx % len(events)]
-                    evt_idx += 1
-                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
-            if restaurants:
-                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[3]))
+            # Day 1: type events, dinner, and a vibe event.
+            while events and len(activities) < 3:
+                evt = events[evt_idx % len(events)]
+                evt_idx += 1
+                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
+            if restaurants and len(activities) < 4:
+                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[len(activities)]))
                 rest_idx += 1
-            if vibe_events:
+            if vibe_events and len(activities) < 5:
                 vibe_time = "22:00" if vibe == "nightlife" else _DAY_SLOTS[4]
                 activities.append(_event_to_activity(vibe_events[0], vibe_time))
 
         else:
-            # Regular days: 3 type events, 1 vibe activity, 1 restaurant dinner
-            if events:
-                for slot in range(3):
-                    evt = events[evt_idx % len(events)]
-                    evt_idx += 1
-                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
-            if vibe_events:
+            # Regular days: type events, one vibe activity, and dinner.
+            while events and len(activities) < 3:
+                evt = events[evt_idx % len(events)]
+                evt_idx += 1
+                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
+            if vibe_events and len(activities) < 4:
                 vi = (d - 1) % len(vibe_events)
-                activities.append(_event_to_activity(vibe_events[vi], _DAY_SLOTS[3]))
-            if restaurants:
-                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[4]))
+                activities.append(_event_to_activity(vibe_events[vi], _DAY_SLOTS[len(activities)]))
+            if restaurants and len(activities) < 5:
+                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[len(activities)]))
                 rest_idx += 1
 
         result_days.append({"day_num": d + 1, "label": label, "activities": activities})
 
+    picked_hotel = None
+    if picked_hotels:
+        first = picked_hotels[0]
+        detail_parts = [part.strip() for part in first.get("detail", "").split(" · ") if part.strip()]
+        picked_hotel = {
+            "hotel_name": first["name"],
+            "region": detail_parts[0] if detail_parts else "Explore LA pick",
+            "star_rating": "",
+            "price_band": detail_parts[1] if len(detail_parts) > 1 else "Selected",
+        }
+
     return jsonify({
         "days":        result_days,
-        "hotel":       hotels[0] if hotels else None,
+        "hotel":       picked_hotel or (hotels[0] if hotels else None),
         "match":       match_info,
         "budget_label": budget,
         "traveler":    traveler,
+        "picks_used":  explore_picks,
     })
 
 

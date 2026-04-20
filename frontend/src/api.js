@@ -19,8 +19,6 @@ export async function loadSiteData() {
     events,
     rankings,
     teams,
-    routes,
-    mapData,
   ] = await Promise.all([
     apiFetch("/api/matches"),
     apiFetch("/api/players"),
@@ -29,8 +27,6 @@ export async function loadSiteData() {
     apiFetch("/api/events"),
     apiFetch("/api/rankings"),
     apiFetch("/api/teams"),
-    apiFetch("/api/routes"),
-    apiFetch("/api/map-data").catch(() => null),
   ]);
 
   const showCats = new Set([12, 13, 14, 15]);
@@ -52,6 +48,7 @@ export async function loadSiteData() {
       venue: event.venue_name || "",
       category: event.category_label || event.category || "",
       categoryId: catId,
+      officialUrl: event.source_url || "",
       emoji: showCats.has(catId) ? "🎭" : "🎉",
     };
     allEvents.push(item);
@@ -87,13 +84,7 @@ export async function loadSiteData() {
     allEvents,
     rankings,
     teams,
-    routes,
-    mapData,
   };
-}
-
-export async function loadEventDetail(id) {
-  return apiFetch(`/api/events/${encodeURIComponent(id)}`);
 }
 
 export async function loadTickets(matchNumber) {
@@ -105,6 +96,13 @@ export async function loadPlayersByTeam(team) {
 }
 
 export async function generateJourney(params) {
-  const query = new URLSearchParams(params);
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value) || (value && typeof value === "object")) {
+      query.set(key, JSON.stringify(value));
+    } else if (value !== undefined && value !== null && value !== "") {
+      query.set(key, value);
+    }
+  });
   return apiFetch(`/api/itinerary?${query.toString()}`);
 }
