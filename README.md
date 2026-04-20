@@ -1,221 +1,406 @@
-# LA × FIFA World Cup 2026™ — An Old Hollywood Production
+# LA x FIFA World Cup 2026 - Database-Driven Travel Guide
 
-A cinematic travel guide for the 2026 FIFA World Cup Los Angeles matches. Full-stack web application: normalized PostgreSQL database → Flask REST API → pure-static frontend. Academic project for APAN5310.
+A full-stack academic project for APAN5310. The application turns curated FIFA World Cup 2026 Los Angeles data into a normalized PostgreSQL database, exposes it through a Flask REST API, and renders it in a pure HTML/CSS/JavaScript frontend with live API data and fallback static data.
 
-> **Also available in:** [中文 README](README.cn.md)
+> Also available in Chinese: [README.cn.md](README.cn.md)
 
----
+## Project Focus
 
-## Project Overview
+This project is primarily a database-to-frontend application. The main work is not only the visual site, but the complete data path:
 
-Targets visitors planning to attend matches at SoFi Stadium, Inglewood, CA (June–July 2026). Covers the full pipeline from raw data → cleaned CSVs → relational database → REST API → frontend website.
+```text
+raw Excel / CSV sources
+        -> cleaned CSV files
+        -> PostgreSQL dimensional schema
+        -> SQL query layer in backend/queries.py
+        -> Flask routes in backend/app.py
+        -> frontend/js/api.js data loaders
+        -> interactive frontend sections
+```
 
-**Tech stack**
+The frontend is designed as a client of the database. It starts with fallback arrays in `frontend/js/data.js`, then `frontend/js/api.js` fetches live data from Flask and overwrites those arrays before re-rendering match cards, hotel cards, restaurant cards, event cards, rankings, teams, transport routes, and map data.
 
-| Layer | Technology |
-|---|---|
-| Database | PostgreSQL hosted on DigitalOcean |
-| Backend | Python 3 · Flask · psycopg2 · flask-cors |
-| Frontend | Pure HTML / CSS / JavaScript — no frameworks, no build step |
+## Tech Stack
 
-**Status:** All three layers complete and connected. Frontend loads live data from the API on startup; falls back to hardcoded data if the API is unreachable.
-
----
+| Layer | Technology | Role |
+|---|---|---|
+| Database | Managed PostgreSQL | Stores normalized match, team, player, ticket, hotel, restaurant, event, route, and ranking data |
+| ETL | Python, pandas, psycopg2 | Creates tables and imports cleaned CSV files |
+| Backend | Flask, flask-cors, psycopg2 | Provides `/api/*` JSON endpoints backed by SQL queries |
+| Frontend | HTML, CSS, vanilla JavaScript | Renders the travel guide and consumes API data |
+| Map | Leaflet | Displays LA place and hotel coordinates |
 
 ## Repository Structure
 
-```
+```text
 LA_WorldCup/
 ├── backend/
-│   ├── app.py                  # Flask API server — all /api/* routes
-│   ├── queries.py              # SQL query functions (psycopg2)
-│   └── setup_database.py      # One-time DB init: CREATE TABLE + import CSVs
+│   ├── app.py              # Flask API routes and itinerary-generation logic
+│   ├── queries.py          # SQL query functions; one source of truth for DB reads
+│   └── setup_database.py   # One-time schema creation and CSV import script
 │
 ├── frontend/
-│   ├── index.html              # Entry point — empty mount-point divs
+│   ├── index.html          # Static entry point; loads section scripts and feature JS
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── api.js              # Fetches from Flask on load; overwrites data.js arrays
-│   │   ├── data.js             # Hardcoded fallback data (matches, hotels, restaurants…)
-│   │   ├── matches.js          # Match card overlay — details, H2H, players, nearby
-│   │   ├── itinerary.js        # Personalised day-by-day itinerary generator
-│   │   ├── explore.js          # Map pin filter logic
-│   │   └── app.js              # Tab cards, scroll animations, projector intro
-│   └── sections/               # Each file injects one page section via innerHTML
-│       └── nav · hero · matches · overlay · showcase · itinerary
-│           · explore · discover · about · footer
+│   │   ├── data.js         # Fallback arrays used if the Flask API is unavailable
+│   │   ├── api.js          # Fetches API data and updates frontend state
+│   │   ├── app.js          # Discover tab rendering, filters, and page behavior
+│   │   ├── matches.js      # Match overlay, tickets, squads, event details
+│   │   ├── itinerary.js    # Calls /api/itinerary and renders day-by-day plans
+│   │   ├── explore.js      # Leaflet map markers and filters
+│   │   └── fullpage.js     # Section navigation
+│   └── sections/           # JS files that inject page sections through innerHTML
 │
 ├── database/
-│   ├── raw_data/               # Original Excel + CSV source files
-│   ├── clean_data/             # Import-ready CSVs (clean_<table>.csv)
-│   └── docs/                   # ER diagram + data cleaning reports
+│   ├── raw_data/           # Original source files
+│   ├── clean_data/         # Import-ready clean_<table>.csv files
+│   └── docs/               # ER diagram and data-cleaning reports
 │
-├── archive/
-│   └── la_worldcup_oldhollywood.html   # Early single-file prototype
-│
+├── archive/                # Early single-file prototype
 ├── README.md
 └── README.cn.md
 ```
 
----
-
 ## Running Locally
 
-```bash
-# Terminal 1 — Flask API
-cd backend
-python3 app.py
-# → http://127.0.0.1:5000
+Install Python dependencies:
 
-# Terminal 2 — Frontend
-cd frontend
-python3 -m http.server 8080
-# → http://localhost:8080
-```
-
-**Install dependencies once:**
 ```bash
 pip install flask flask-cors psycopg2-binary pandas
 ```
 
----
+Start the Flask API:
 
-## Frontend Features
+```bash
+cd backend
+python3 app.py
+```
 
-### Match Schedule
-Eight LA matches displayed as cards. Clicking any card opens a full-screen overlay with:
-- Match details (round, date, venue)
-- Head-to-head record
-- Star players to watch (pulled from `dim_player` via API)
-- Nearby Hotels / Restaurants / Events tabs (pulled from API)
+The API runs at:
 
-### Hotels, Restaurants & Events (Discover)
-Tab-switched card grid. On page load, `api.js` fetches live data from the database and re-renders the grid, replacing the hardcoded fallback. Four tabs: **Hotels** (21) · **Restaurants** (32) · **Fan Events** · **Shows & Entertainment**.
+```text
+http://127.0.0.1:5000
+```
 
-### Personalised Itinerary Builder
-Users select five inputs to generate a day-by-day itinerary:
+Start the static frontend:
 
-| Input | Options |
-|---|---|
-| Traveler type | Football Fan · Family · Backpacker · Luxury Traveler |
-| Budget | Budget ($150–250/day) · Mid ($350–500/day) · Luxury ($700+/day) |
-| Trip length | 1–7 days |
-| Match date | One of the 8 LA match dates |
-| Vibe | Culture · Beach · Nightlife · Film |
+```bash
+cd frontend
+python3 -m http.server 8080
+```
 
-**How it works:**
-- Each **traveler type** maps to a completely different activity set — Football Fan gets Fan Zones and match bars; Family gets museums and Santa Monica Pier; Backpacker gets free outdoor spots; Luxury Traveler gets Rodeo Drive and Michelin restaurants.
-- Each **budget level** within a type has its own activity list.
-- **Day 1** always ends with the chosen vibe activity (e.g. Sunset Strip nightlife at 22:00 goes last, not first).
-- **Match Day** (Day 3 for 3+ day trips) always closes with ⚽ MATCH AT SOFI STADIUM, regardless of traveler type.
-- **Days 2+** rotate through the type's activity pool so days don't repeat identically.
+Open:
 
----
-
-## API Endpoints
-
-| Endpoint | Description |
-|---|---|
-| `GET /api/matches` | All 8 LA matches |
-| `GET /api/matches/<id>` | Single match with venue and notes |
-| `GET /api/tickets` | All 46 ticket options |
-| `GET /api/tickets/<id>` | Tickets for one match |
-| `GET /api/teams` | All LA teams |
-| `GET /api/players` | All players |
-| `GET /api/players/stars` | Star players only |
-| `GET /api/hotels` | All hotels (filter by `/region/<r>` or `/price/<p>`) |
-| `GET /api/restaurants` | All restaurants (filter by `/flavor/<f>`) |
-| `GET /api/events` | All 139 events (filter by `/category/<c>`) |
-| `GET /api/rankings` | FIFA rankings for LA teams |
-| `GET /api/routes` | Airport → SoFi transport routes |
-| `GET /api/map-data` | Hotel + place coordinates for map pins |
-
----
+```text
+http://localhost:8080
+```
 
 ## Database Design
 
-Star-schema / dimensional model. ER diagram: `database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html`
+The database uses a dimensional/star-schema style model. Dimension tables describe stable entities such as teams, players, places, transport modes, and event categories. Fact tables describe measurable or transactional records such as matches, tickets, hotels, restaurants, events, routes, and rankings.
 
-**Dimension tables**
+ER diagram:
 
-| Table | Rows | Description |
+```text
+database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html
+```
+
+### Dimension Tables
+
+| Table | Purpose | Used by |
 |---|---|---|
-| `dim_team` | 8 | Teams — federation, group, LA matches, FIFA status |
-| `dim_player` | 26 | Players — position, club, age, caps, goals, is_star |
-| `dim_place` | 10 | Venues, airports, transport hubs (lat/lon) |
-| `dim_mode` | 3 | Transport modes: transit · rideshare · drive |
-| `dim_event_category` | 23 | Event category labels |
+| `dim_team` | Teams playing in LA, federation, group, status | `/api/teams`, player joins by team name |
+| `dim_player` | Player profile, club, stats, `is_star` flag | `/api/players`, match overlay squads |
+| `dim_place` | Stadiums, airports, transport hubs with coordinates | `/api/routes`, `/api/map-data` |
+| `dim_mode` | Transport mode metadata | `/api/routes` |
+| `dim_event_category` | Event category labels | `/api/events`, itinerary category mapping |
 
-**Fact tables**
+### Fact Tables
 
-| Table | Rows | Description |
+| Table | Purpose | Main SQL Pattern |
 |---|---|---|
-| `fact_match` | 8 | Date, time, teams, group, stage, venue |
-| `fact_ticket` | 46 | Section, level, category, price (USD), availability |
-| `fact_hotel` | 21 | Region, star rating, price band, coordinates |
-| `fact_restaurant` | 32 | Cuisine, price range, Google review score |
-| `fact_event` | 139 | Fan festivals, sports, shows, fan zones |
-| `fact_route` | 4 | Airport → SoFi: mode, duration, cost range |
-| `fact_ranking` | 8 | FIFA rankings at time of data collection |
+| `fact_match` | LA match schedule | Ordered by `date, time_pt` |
+| `fact_ticket` | Ticket sections, categories, prices, availability | Filtered by `match_number`, ordered by `price_usd` |
+| `fact_hotel` | Hotel metadata, region, price band, coordinates | Filtered by region or price band |
+| `fact_restaurant` | Restaurant metadata, cuisine, price, rating | Filtered by `flavor ILIKE` or price range |
+| `fact_event` | Fan events, shows, sports, fan zones | Joined to event category; filtered by category |
+| `fact_route` | Airport-to-SoFi travel options | Joined to `dim_place` and `dim_mode` |
+| `fact_ranking` | FIFA ranking snapshot | Ordered by rank |
 
-**Detail tables**
+### Detail Tables
 
-| Table | Rows | Description |
+| Table | Purpose |
+|---|---|
+| `event_experience_detail` | Experience-oriented event metadata: duration, suitability, intensity, admission, transportation |
+| `event_sports_detail` | Sports-event-specific details such as sport type and ticket information |
+
+## SQL Logic Layer
+
+All database reads are centralized in [backend/queries.py](backend/queries.py). The file defines a small `query(sql, params=None)` helper that:
+
+1. Uses the database adapter to run approved read queries.
+2. Executes parameterized SQL.
+3. Uses `RealDictCursor` so every row becomes a Python dictionary.
+4. Returns `list[dict]` to Flask, ready for `jsonify`.
+
+### Core SQL Patterns
+
+**Simple ordered reads**
+
+Examples: `get_all_matches()`, `get_all_hotels()`, `get_all_rankings()`.
+
+```sql
+SELECT match_number, date, day_of_week, time_pt,
+       team1, team2, "group", stage, venue
+FROM fact_match
+ORDER BY date, time_pt;
+```
+
+**Parameterized filters**
+
+Examples: `get_tickets_by_match(match_number)`, `get_team_by_country(country)`, `get_players_by_team(team_country)`.
+
+```sql
+SELECT ticket_id, seating_section, section_level,
+       ticket_category, price_usd, ticket_status, matchup
+FROM fact_ticket
+WHERE match_number = %s
+ORDER BY price_usd;
+```
+
+Parameters are passed separately, for example `[match_number]`, instead of interpolating user input into SQL strings.
+
+**Flexible text search**
+
+Examples: hotel region, restaurant flavor, event category.
+
+```sql
+WHERE region ILIKE %s
+```
+
+This lets routes like `/api/hotels/region/Hollywood` match broader region strings without exact-case matching.
+
+**Fact-to-dimension joins**
+
+Events are joined with `dim_event_category` so the API can return both raw category fields and human-readable labels:
+
+```sql
+SELECT e.event_id, e.event_name, e.category,
+       e.event_category_id, e.event_type,
+       c.category AS category_label
+FROM fact_event e
+LEFT JOIN dim_event_category c
+       ON e.event_category_id = c.event_category_id
+ORDER BY e.start_date;
+```
+
+Routes use two aliases of `dim_place` plus `dim_mode`, which turns foreign keys into readable route cards:
+
+```sql
+FROM fact_route r
+JOIN dim_place o ON r.origin_place_id = o.place_id
+JOIN dim_place d ON r.dest_place_id = d.place_id
+JOIN dim_mode  m ON r.mode_id = m.mode_id
+```
+
+**Event detail composition**
+
+`get_event_detail(event_id)` first reads the base row from `fact_event`, then conditionally attaches:
+
+- `experience_detail` from `event_experience_detail`
+- `sports_detail` from `event_sports_detail`
+
+That gives the frontend one event-detail response while preserving normalized tables in SQL.
+
+**Itinerary SQL helpers**
+
+The itinerary endpoint maps user preferences to SQL filters:
+
+| User Input | Backend Mapping | SQL Effect |
 |---|---|---|
-| `event_experience_detail` | 111 | Duration, intensity, photo value, transport, planning tag |
-| `event_sports_detail` | 28 | Sport type, ticket price, competition info |
+| Traveler type | `_TYPE_CATS` category id list | `event_category_id IN (...)` |
+| Vibe | `_VIBE_CATS` category id list | separate event pool |
+| Budget | `_HOTEL_BAND`, `_REST_PRICE` | hotel `price_band`, restaurant `price_range` |
+| Days | clamped to 1-7 | controls output length |
+| Match date | `_MATCH_INFO` | inserts fixed SoFi match activity |
 
-All cleaned CSVs: `database/clean_data/clean_<table_name>.csv`
+The SQL helper `get_events_by_categories(category_ids)` joins `fact_event` to `dim_event_category` and `event_experience_detail`, then returns event rows that the Flask route turns into activities.
 
----
+## ETL and Table Creation
 
-## LA Match Schedule
+[backend/setup_database.py](backend/setup_database.py) performs the one-time database setup:
 
-All matches at **SoFi Stadium** · 1001 S. Stadium Drive, Inglewood, CA 90301
+1. Connects to PostgreSQL.
+2. Creates dimension tables first.
+3. Creates fact tables with foreign keys.
+4. Creates event detail tables last.
+5. Reads cleaned CSV files from `database/clean_data/`.
+6. Inserts rows with `ON CONFLICT DO NOTHING`.
 
-| Match | Date | Time (PT) | Teams | Stage |
-|---|---|---|---|---|
-| M4 | Jun 12, 2026 (Fri) | 18:00 | USA vs Paraguay | Group D |
-| M15 | Jun 15, 2026 (Mon) | 18:00 | Iran vs New Zealand | Group G |
-| M26 | Jun 18, 2026 (Thu) | 12:00 | Switzerland vs UEFA Playoff A | Group B |
-| M39 | Jun 21, 2026 (Sun) | 12:00 | Belgium vs Iran | Group G |
-| M59 | Jun 25, 2026 (Thu) | 19:00 | UEFA Playoff C vs USA | Group D |
-| M73 | Jun 28, 2026 (Sun) | 12:00 | TBD vs TBD | Round of 32 |
-| M84 | Jul 2, 2026 (Thu) | 12:00 | TBD vs TBD | Round of 32 |
-| M98 | Jul 10, 2026 (Fri) | 12:00 | TBD vs TBD | Quarter-Final |
+The load order matters because several tables reference earlier tables:
 
----
+```text
+dimensions -> facts -> details
+dim_team   -> dim_player
+dim_place  -> fact_route
+dim_mode   -> fact_route
+fact_match -> fact_ticket
+fact_event -> event_experience_detail / event_sports_detail
+```
 
-## Ticket Pricing Reference
+## Backend API Layer
 
-46 options across all 8 matches · source: `database/clean_data/clean_fact_ticket.csv`
+[backend/app.py](backend/app.py) defines a controlled Flask API layer over the SQL functions. The frontend never connects to the database directly and never receives database credentials, host details, or raw connection settings. Each route returns only the JSON fields needed by the UI.
 
-| Category | Price (USD) | Notes |
+Most routes simply call one query function and return a filtered response:
+
+```python
+@app.route("/api/matches")
+def matches():
+    return jsonify(queries.get_all_matches())
+```
+
+This keeps responsibilities separated:
+
+| File | Responsibility |
+|---|---|
+| `queries.py` | Owns the SQL read logic and schema-specific field selection |
+| `app.py` | Owns HTTP routes, request parameters, and public JSON response shape |
+| `api.js` | Maps public API JSON into frontend state |
+
+### API Endpoints
+
+| Endpoint | SQL Source | Frontend Use |
 |---|---|---|
-| VIP Hospitality | $3,000 | Pechanga Founders Club, Level 1 |
-| Category 1 | $450 | Lower Sideline (Sections 111–115) |
-| Category 2 | ~$200–350 | Mid-tier seating |
-| Category 3 / 4 | ~$80–150 | Upper levels |
+| `GET /api/matches` | `fact_match` | Updates `MATCH_DATA` schedule cards |
+| `GET /api/matches/<match_number>` | `fact_match` | Single match detail |
+| `GET /api/tickets` | `fact_ticket` | Ticket datasets |
+| `GET /api/tickets/<match_number>` | `fact_ticket WHERE match_number = %s` | Match overlay ticket tab |
+| `GET /api/teams` | `dim_team` | Discover Teams tab |
+| `GET /api/players` | `dim_player` | Star players on match cards |
+| `GET /api/players/<team_country>` | `dim_player WHERE team = %s` | Full Squad overlay tab |
+| `GET /api/players/stars` | `dim_player WHERE is_star = TRUE` | Star-player views |
+| `GET /api/hotels` | `fact_hotel` | Hotel cards and fallback replacement |
+| `GET /api/hotels/region/<region>` | `fact_hotel WHERE region ILIKE %s` | Region filtering |
+| `GET /api/hotels/price/<price_band>` | `fact_hotel WHERE price_band = %s` | Hotel price filter |
+| `GET /api/restaurants` | `fact_restaurant` | Restaurant cards |
+| `GET /api/restaurants/flavor/<flavor>` | `fact_restaurant WHERE flavor ILIKE %s` | Cuisine filtering |
+| `GET /api/events` | `fact_event LEFT JOIN dim_event_category` | Fan Events and Shows tabs |
+| `GET /api/events/category/<category>` | `fact_event WHERE category ILIKE %s` | Event category filter |
+| `GET /api/events/<event_id>` | `fact_event` plus detail tables | Event detail overlay |
+| `GET /api/rankings` | `fact_ranking` | FIFA Rankings tab |
+| `GET /api/routes` | `fact_route` joined to places and modes | Getting There tab |
+| `GET /api/map-data` | `fact_hotel`, `dim_place` | Map pins |
+| `GET /api/itinerary` | event, hotel, restaurant helper queries | Personalized itinerary builder |
 
----
+## Frontend and Backend Connection
 
-## Transport: Airports → SoFi Stadium
+The frontend is static, but it behaves like a live data client.
 
-| Origin | Mode | Duration | Cost |
-|---|---|---|---|
-| LAX | Public Transit | 46 min | $2–4 |
-| BUR (Burbank) | Public Transit | 112 min | $12–16 |
+### Load Order
 
----
+[frontend/index.html](frontend/index.html) loads files in this order:
+
+1. Section files in `frontend/sections/` create DOM containers.
+2. Leaflet loads for the map.
+3. `frontend/js/data.js` defines fallback arrays.
+4. `frontend/js/api.js` fetches live API data and overwrites arrays.
+5. Feature scripts render cards, overlays, itinerary, map, and full-page navigation.
+
+### State Replacement Flow
+
+`frontend/js/api.js` uses `API_BASE = "http://127.0.0.1:5000"` and calls all major endpoints on page load:
+
+```javascript
+await Promise.all([
+  loadMatches(),
+  loadHotels(),
+  loadRestaurants(),
+  loadEvents(),
+  loadMapData(),
+  loadRankings(),
+  loadTeams(),
+  loadRoutes(),
+]);
+```
+
+Each loader maps database field names into frontend-friendly objects:
+
+| Database/API Field | Frontend Field |
+|---|---|
+| `hotel_name` | `name` |
+| `price_band` | `price` |
+| `google_review_score` | `score` |
+| `event_category_id` | fan event vs show grouping |
+| `match_number` | match overlay ticket lookup key |
+
+If the API is unavailable, the `catch` block leaves the original fallback arrays in place, so the site still renders.
+
+## Main User Features
+
+| Feature | Data Source | Files |
+|---|---|---|
+| LA match schedule | `fact_match`, `dim_player` | `api.js`, `sections/matches.js`, `js/matches.js` |
+| Match detail overlay | `MATCH_DATA`, tickets, players, events | `js/matches.js` |
+| Discover tabs | hotels, restaurants, events, teams, rankings, routes | `api.js`, `app.js` |
+| Event detail overlay | `fact_event` plus detail tables | `queries.py`, `app.py`, `matches.js` |
+| Itinerary builder | event category SQL, hotels, restaurants, match metadata | `app.py`, `queries.py`, `itinerary.js` |
+| LA map | static map pins plus `/api/map-data` support | `explore.js` |
+
+## Itinerary Logic
+
+The itinerary builder is the most explicit example of backend business logic sitting on top of SQL:
+
+1. The frontend sends query parameters: `type`, `budget`, `days`, `match_date`, and `vibe`.
+2. Flask maps traveler type and vibe into event category id lists.
+3. SQL pulls matching events from `fact_event`, joined to category and experience-detail tables.
+4. SQL pulls hotels by `price_band`.
+5. SQL pulls restaurants by `price_range`.
+6. Flask shuffles results with a stable hash seed so the same inputs produce the same itinerary.
+7. Day 3 becomes match day for trips of 3+ days.
+8. The endpoint returns a JSON object that the frontend renders as a timeline.
+
+Example:
+
+```text
+/api/itinerary?type=football&budget=mid&days=5&match_date=jun12&vibe=culture
+```
+
+## Development Checks
+
+Python syntax:
+
+```bash
+python3 -m py_compile backend/app.py backend/queries.py
+```
+
+JavaScript syntax:
+
+```bash
+node --check frontend/js/api.js
+node --check frontend/js/app.js
+node --check frontend/js/matches.js
+node --check frontend/js/itinerary.js
+node --check frontend/js/explore.js
+node --check frontend/js/fullpage.js
+```
+
+## Notes
+
+- The frontend directory is `frontend/`, not `front_end/`.
+- The app is intentionally framework-light: no bundler, no frontend framework, and no build step.
+- Database hostnames, usernames, passwords, SSL settings, and other secrets should be kept outside README files and source code. Use environment variables or a secrets manager for any shared or deployed environment.
+- The API uses CORS so the static frontend server on port `8080` can call the Flask server on port `5000`.
 
 ## Data Sources
 
 | Dataset | Source |
 |---|---|
-| Match schedule | SoFi Stadium official site · losangelesfwc26.com |
-| Ticket pricing | LA-WC2026-Seat-information.xlsx |
-| Hotels & restaurants | Manual curation + Google Reviews |
-| Events | discoverlosangeles.com · losangelesfwc26.com · individual venue sites |
-| FIFA rankings | FIFA API (fallback: demo values marked in `note` column) |
-| Routes | Rome2rio |
-| Players | Public football databases |
+| Match schedule | SoFi Stadium official site, Los Angeles World Cup 2026 materials |
+| Tickets | Seat and ticket reference spreadsheets |
+| Hotels and restaurants | Manual curation and public review data |
+| Events | Discover Los Angeles, Los Angeles World Cup 2026 sources, venue pages |
+| FIFA rankings | FIFA ranking source or fallback demo values |
+| Routes | Public route research |
+| Players | Public football profile data |
