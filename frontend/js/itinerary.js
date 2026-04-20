@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-//  ITINERARY — identity selector, itinerary builder
+//  PERSONALIZED TRAVELING SCHEDULE — identity selector, schedule builder
 // ═══════════════════════════════════════════════════
 
 // API_BASE is declared in api.js (loaded before this file)
@@ -71,7 +71,7 @@ function renderItinerary(data) {
     || null;
 
   let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
-    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Personalized LA World Cup Experience</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Journey</div>
     <p style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--charcoal);">
       Curated for: <strong>${typeLabel}</strong> · Budget: <strong>${data.budget_label?.charAt(0).toUpperCase() + data.budget_label?.slice(1)}</strong> · ${data.days.length} days · Match: <strong>${data.match.date} · ${data.match.label}</strong>
     </p>`;
@@ -100,7 +100,7 @@ function renderItinerary(data) {
 
   html += `<div style="margin-top:2rem;padding:1.2rem;border:1.5px solid var(--border-med);background:var(--paper);">
     <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.3rem;">✦ Your LA World Cup Story is Ready</div>
-    <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);margin-bottom:1rem;">Estimated budget: ${budgetLabel} · ${data.days.length}-day itinerary · Match: ${data.match.date} at SoFi Stadium</p>
+    <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);margin-bottom:1rem;">Estimated budget: ${budgetLabel} · ${data.days.length}-day journey · Match: ${data.match.date} at SoFi Stadium</p>
     ${areaKey ? `
     <button onclick="viewOnMap('${areaKey}')" style="
       font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;

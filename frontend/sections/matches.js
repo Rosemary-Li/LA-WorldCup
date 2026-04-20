@@ -191,11 +191,19 @@ document.getElementById('mount-matches').innerHTML = `
 
     </div>
 
-    <div class="ms-footer">Click any match to view details, tickets &amp; nearby picks</div>
+    <button class="ms-nav-btn ms-home-btn" type="button" onclick="document.getElementById('photo-hero').scrollIntoView({behavior:'smooth'})">
+      <span class="ms-nav-arrow">←</span>
+      <span class="ms-nav-text">Home</span>
+    </button>
+    <button class="ms-nav-btn ms-explore-btn" type="button" onclick="document.getElementById('la-showcase').scrollIntoView({behavior:'smooth'})">
+      <span class="ms-nav-text">Explore LA</span>
+      <span class="ms-nav-arrow">→</span>
+    </button>
   </section>
 
   <style>
     #matches {
+      position: relative;
       height: 100%;
       background: #f5f3ee;
       display: flex;
@@ -361,17 +369,56 @@ document.getElementById('mount-matches').innerHTML = `
       font-family: 'DM Mono', monospace;
     }
 
-    .ms-footer {
-      text-align: center;
-      margin-top: 1.5rem;
+    .ms-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      min-width: 132px;
+      min-height: 48px;
+      padding: 0 1rem;
+      border: 2px solid #111;
+      background: #111;
+      color: #f5f3ee;
+      cursor: pointer;
       font-family: 'DM Mono', monospace;
-      font-size: 0.5rem;
-      letter-spacing: 0.12em;
-      color: rgba(0,0,0,0.25);
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      line-height: 1;
       text-transform: uppercase;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
+      text-align: center;
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.14);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+      z-index: 5;
+    }
+
+    .ms-home-btn { left: 3vw; }
+    .ms-explore-btn { right: 3vw; }
+
+    .ms-home-btn:hover {
+      transform: translateY(-50%) translateX(4px);
+      box-shadow: 9px 9px 0 rgba(0,0,0,0.16);
+      background: #f5f3ee;
+      color: #111;
+    }
+
+    .ms-explore-btn:hover {
+      transform: translateY(-50%) translateX(-4px);
+      box-shadow: 9px 9px 0 rgba(0,0,0,0.16);
+      background: #f5f3ee;
+      color: #111;
+    }
+
+    .ms-nav-text {
+      white-space: nowrap;
+    }
+
+    .ms-nav-arrow {
+      font-size: 0.9rem;
+      line-height: 1;
     }
 
     @media (max-width: 768px) {
@@ -384,6 +431,30 @@ document.getElementById('mount-matches').innerHTML = `
       .ms-badge { min-height: 60px; font-size: 0.62rem; }
       .ms-date-col, .ms-venue-col { display: none; }
       .ms-arrow { grid-column: 3; }
+      .ms-nav-btn {
+        top: auto;
+        bottom: 1rem;
+        min-width: 0;
+        min-height: 44px;
+        padding: 0.7rem 1.1rem;
+        box-shadow: 5px 5px 0 rgba(0,0,0,0.16);
+      }
+      .ms-home-btn {
+        left: calc(50% - 5.7rem);
+        transform: translateX(-50%);
+      }
+      .ms-explore-btn {
+        right: calc(50% - 5.7rem);
+        transform: translateX(50%);
+      }
+      .ms-home-btn:hover {
+        transform: translateX(-50%) translateY(-2px);
+        box-shadow: 7px 7px 0 rgba(0,0,0,0.18);
+      }
+      .ms-explore-btn:hover {
+        transform: translateX(50%) translateY(-2px);
+        box-shadow: 7px 7px 0 rgba(0,0,0,0.18);
+      }
     }
   </style>
 `;

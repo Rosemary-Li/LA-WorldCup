@@ -309,7 +309,7 @@ def get_map_data():
 
 
 # ─────────────────────────────────────────
-# 11. Itinerary helpers
+# 11. Journey helpers
 # ─────────────────────────────────────────
 
 def get_events_by_categories(category_ids, limit=80):

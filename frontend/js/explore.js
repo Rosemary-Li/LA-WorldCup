@@ -157,7 +157,7 @@ function filterArea(area, btn) {
   applyFilters();
 }
 
-// ── Called from itinerary "View on Map" ──────────────
+// ── Called from Journey "View on Map" ──────────────
 function highlightArea(area) {
   const btn = document.querySelector(`[data-area="${area}"]`);
   filterArea(area, btn);

@@ -1,56 +1,104 @@
 // ═══════════════════════════════════════════════════
-//  SECTION: LA PHOTO GALLERY — full-page bento grid
+//  SECTION: EXPLORE LA — photo gateways to Discover tabs
 // ═══════════════════════════════════════════════════
 
 document.getElementById('mount-showcase').innerHTML = `
   <section id="la-showcase">
 
     <div class="lg-header">
-      <div class="lg-eyebrow">FIFA World Cup 2026™ · Host City</div>
-      <h2 class="lg-title">Los Angeles</h2>
-      <p class="lg-sub">The city of sun, style, and the beautiful game</p>
+      <div class="lg-eyebrow">Choose Your Los Angeles Scene</div>
+      <h2 class="lg-title">Explore LA</h2>
+      <p class="lg-sub">Hover a photo, pick a chapter, then jump straight into the live database view.</p>
     </div>
 
     <div class="lg-grid">
+      <button class="lg-card lg-large" type="button" onclick="openDiscoverTab('hotels')" aria-label="Open Hotels" style="--lg-img:url('images/LA1.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Stay</span>
+            <span class="lg-name">Hotels</span>
+            <span class="lg-action">View picks ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <!-- LA1: large, spans 2 cols × 2 rows — anchor image -->
-      <div class="lg-item lg-hero-item" style="background-image:url('images/LA1.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card" type="button" onclick="openDiscoverTab('restaurants')" aria-label="Open Restaurants" style="--lg-img:url('images/LA2.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Taste</span>
+            <span class="lg-name">Restaurants</span>
+            <span class="lg-action">View dining ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA2.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card" type="button" onclick="openDiscoverTab('events')" aria-label="Open Fan Events" style="--lg-img:url('images/LA3.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Gather</span>
+            <span class="lg-name">Fan Events</span>
+            <span class="lg-action">View events ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA3.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card" type="button" onclick="openDiscoverTab('shows')" aria-label="Open Shows" style="--lg-img:url('images/LA4.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">After Dark</span>
+            <span class="lg-name">Shows</span>
+            <span class="lg-action">View shows ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA4.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card" type="button" onclick="openDiscoverTab('teams')" aria-label="Open Teams" style="--lg-img:url('images/LA5.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Tournament</span>
+            <span class="lg-name">Teams</span>
+            <span class="lg-action">View teams ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA5.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card" type="button" onclick="openDiscoverTab('rankings')" aria-label="Open FIFA Rankings" style="--lg-img:url('images/LA6.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Form Guide</span>
+            <span class="lg-name">FIFA Rankings</span>
+            <span class="lg-action">View table ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA6.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
+      <button class="lg-card lg-wide" type="button" onclick="openDiscoverTab('routes')" aria-label="Open Getting There" style="--lg-img:url('images/LA8.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Arrive</span>
+            <span class="lg-name">Getting There</span>
+            <span class="lg-action">View routes ↓</span>
+          </span>
+        </span>
+      </button>
 
-      <div class="lg-item" style="background-image:url('images/LA7.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
-
-      <!-- LA8: wide, spans 2 cols at bottom -->
-      <div class="lg-item lg-wide-item" style="background-image:url('images/LA8.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
-
-      <div class="lg-item" style="background-image:url('images/LA9.jpg')">
-        <div class="lg-overlay"><span class="lg-label">Los Angeles</span></div>
-      </div>
-
+      <button class="lg-card" type="button" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" aria-label="Open About Us" style="--lg-img:url('images/LA9.jpg')">
+        <span class="lg-card-inner">
+          <span class="lg-face lg-front"></span>
+          <span class="lg-face lg-back">
+            <span class="lg-kicker">Credits</span>
+            <span class="lg-name">About Us</span>
+            <span class="lg-action">Meet the team ↓</span>
+          </span>
+        </span>
+      </button>
     </div>
 
   </section>
@@ -93,91 +141,156 @@ document.getElementById('mount-showcase').innerHTML = `
       font-family: 'Cormorant Garamond', serif;
       font-style: italic;
       font-size: 0.95rem;
-      color: rgba(0,0,0,0.4);
+      color: rgba(0,0,0,0.45);
       margin: 0;
     }
 
-    /* 4-column grid that fills remaining height */
     .lg-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 5px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 8px;
       flex: 1;
-      min-height: 0; /* critical for flex child to shrink */
+      min-height: 0;
     }
 
-    /* LA1: top-left, 2 cols × 2 rows */
-    .lg-item:nth-child(1) { grid-column: 1 / 3; grid-row: 1 / 3; }
-    /* LA2: col 3, row 1 */
-    .lg-item:nth-child(2) { grid-column: 3; grid-row: 1; }
-    /* LA3: col 4, row 1 */
-    .lg-item:nth-child(3) { grid-column: 4; grid-row: 1; }
-    /* LA4: col 3, row 2 */
-    .lg-item:nth-child(4) { grid-column: 3; grid-row: 2; }
-    /* LA5: col 4, row 2 */
-    .lg-item:nth-child(5) { grid-column: 4; grid-row: 2; }
-    /* LA6: col 1, row 3 */
-    .lg-item:nth-child(6) { grid-column: 1; grid-row: 3; }
-    /* LA7: col 2, row 3 */
-    .lg-item:nth-child(7) { grid-column: 2; grid-row: 3; }
-    /* LA8: cols 3-4, row 3 (wide) */
-    .lg-item:nth-child(8) { grid-column: 3 / 5; grid-row: 3; }
-    /* LA9: hide (8 photos fill the grid perfectly) */
-    .lg-item:nth-child(9) { display: none; }
-
-    .lg-item {
+    .lg-card {
+      appearance: none;
+      border: 0;
+      padding: 0;
+      background: transparent;
       position: relative;
-      background-size: cover;
-      background-position: center;
-      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
       cursor: pointer;
+      perspective: 1000px;
     }
 
-    .lg-overlay {
+    .lg-large { grid-column: span 2; grid-row: span 2; }
+    .lg-wide { grid-column: span 2; }
+
+    .lg-card-inner {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0);
+      display: block;
+      transform-style: preserve-3d;
+      transition: transform 0.72s cubic-bezier(.2,.7,.2,1);
+      transition-delay: 0s;
+    }
+
+    .lg-card:hover .lg-card-inner,
+    .lg-card:focus-visible .lg-card-inner {
+      transform: rotateY(180deg);
+      transition-delay: 0.2s;
+    }
+
+    .lg-face {
+      position: absolute;
+      inset: 0;
       display: flex;
-      align-items: flex-end;
-      padding: 0.8rem 1rem;
-      transition: background 0.3s ease;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      backface-visibility: hidden;
     }
 
-    .lg-item:hover .lg-overlay {
-      background: rgba(0,0,0,0.32);
+    .lg-front {
+      background-image: var(--lg-img);
+      background-size: cover;
+      background-position: center;
     }
 
-    .lg-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.55rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
+    .lg-front::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.36), rgba(0,0,0,0.04));
+    }
+
+    .lg-back {
+      transform: rotateY(180deg);
+      background: #111;
       color: #fff;
-      opacity: 0;
-      transform: translateY(5px);
-      transition: opacity 0.28s ease, transform 0.28s ease;
+      padding: 1.15rem;
+      box-sizing: border-box;
+      border: 1px solid #111;
+      text-align: center;
     }
 
-    .lg-item:hover .lg-label {
-      opacity: 1;
-      transform: translateY(0);
+    .lg-back::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(--lg-img);
+      background-size: cover;
+      background-position: center;
+      opacity: 0.34;
+      transform: scaleX(-1) scale(1.06);
+    }
+
+    .lg-back::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.46);
+    }
+
+    .lg-kicker,
+    .lg-name,
+    .lg-action {
+      position: relative;
+      z-index: 1;
+    }
+
+    .lg-kicker {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 0.65rem;
+    }
+
+    .lg-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.65rem, 3vw, 3.1rem);
+      font-weight: 900;
+      line-height: 0.96;
+      text-align: center;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.42);
+    }
+
+    .lg-action {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.64rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.78);
+      margin-top: 0.95rem;
     }
 
     @media (max-width: 768px) {
-      .lg-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(4, 1fr);
+      #la-showcase {
+        padding: var(--nav-h, 82px) 1rem 1rem;
       }
-      .lg-item:nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
-      .lg-item:nth-child(2) { grid-column: 1; grid-row: 2; }
-      .lg-item:nth-child(3) { grid-column: 2; grid-row: 2; }
-      .lg-item:nth-child(4) { grid-column: 1; grid-row: 3; }
-      .lg-item:nth-child(5) { grid-column: 2; grid-row: 3; }
-      .lg-item:nth-child(6) { grid-column: 1; grid-row: 4; }
-      .lg-item:nth-child(7) { grid-column: 2; grid-row: 4; }
-      .lg-item:nth-child(8) { display: none; }
-      .lg-item:nth-child(9) { display: none; }
+      .lg-header {
+        margin-bottom: 0.8rem;
+      }
+      .lg-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(5, minmax(88px, 1fr));
+      }
+      .lg-large {
+        grid-column: span 2;
+        grid-row: span 1;
+      }
+      .lg-wide {
+        grid-column: span 2;
+      }
+      .lg-back {
+        padding: 0.9rem;
+      }
     }
   </style>
 `;

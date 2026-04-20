@@ -139,7 +139,7 @@ def map_data():
 
 
 # ─────────────────────────────────────────
-# Itinerary
+# Journey
 # ─────────────────────────────────────────
 
 # Maps traveler type → dim_event_category IDs
@@ -227,14 +227,14 @@ def itinerary():
         hotels       = queries.get_hotel_for_budget(_HOTEL_BAND.get(budget, "200+"))
         restaurants  = queries.get_restaurants_for_budget(_REST_PRICE.get(budget, ["$30-50"]))
     except Exception:
-        app.logger.exception("Could not build itinerary")
-        return jsonify({"error": "Could not build itinerary"}), 500
+        app.logger.exception("Could not build journey")
+        return jsonify({"error": "Could not build journey"}), 500
 
     # Deduplicate: vibe events that also appear in type events stay only in vibe pool
     type_ids = {e["event_id"] for e in events}
     vibe_events = [e for e in vibe_events if e["event_id"] not in type_ids]
 
-    # Stable across Python processes so same params produce the same itinerary.
+    # Stable across Python processes so same params produce the same schedule.
     seed_src = f"{traveler}|{budget}|{match_dt}|{vibe}".encode("utf-8")
     seed = int(hashlib.sha256(seed_src).hexdigest()[:8], 16)
     rng = random.Random(seed)

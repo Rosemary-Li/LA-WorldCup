@@ -35,7 +35,7 @@
 ```text
 LA_WorldCup/
 ├── backend/
-│   ├── app.py              # Flask API 路由和 itinerary 业务逻辑
+│   ├── app.py              # Flask API 路由和 Journey 业务逻辑
 │   ├── queries.py          # SQL 查询函数；数据库读取的核心文件
 │   └── setup_database.py   # 一次性建表和 CSV 导入脚本
 │
@@ -47,7 +47,7 @@ LA_WorldCup/
 │   │   ├── api.js          # 请求 API，并更新前端状态
 │   │   ├── app.js          # Discover 标签页、筛选器、页面行为
 │   │   ├── matches.js      # 比赛详情 overlay、票务、阵容、活动详情
-│   │   ├── itinerary.js    # 调用 /api/itinerary 并渲染逐日行程
+│   │   ├── itinerary.js    # 调用 /api/itinerary 并渲染 Journey
 │   │   ├── explore.js      # Leaflet 地图大头针和筛选
 │   │   └── fullpage.js     # 页面分区导航
 │   └── sections/           # 每个 JS 文件通过 innerHTML 注入一个页面区块
@@ -114,7 +114,7 @@ database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html
 | `dim_player` | 球员信息、俱乐部、统计数据、是否明星球员 | `/api/players`，比赛 overlay 阵容 |
 | `dim_place` | 体育场、机场、交通枢纽及坐标 | `/api/routes`，`/api/map-data` |
 | `dim_mode` | 交通方式元数据 | `/api/routes` |
-| `dim_event_category` | 活动分类标签 | `/api/events`，行程生成器类别映射 |
+| `dim_event_category` | 活动分类标签 | `/api/events`，Journey 类别映射 |
 
 ### 事实表
 
@@ -213,9 +213,9 @@ JOIN dim_mode  m ON r.mode_id = m.mode_id
 
 这样数据库仍保持规范化，但前端只需要请求一个活动详情接口。
 
-**行程生成器 SQL helper**
+**Journey SQL helper**
 
-个性化行程接口会把用户输入映射成 SQL 条件：
+Journey 接口会把用户输入映射成 SQL 条件：
 
 | 用户输入 | 后端映射 | SQL 效果 |
 |---|---|---|
@@ -292,7 +292,7 @@ def matches():
 | `GET /api/rankings` | `fact_ranking` | FIFA Rankings 标签 |
 | `GET /api/routes` | `fact_route` 关联地点和交通方式 | Getting There 标签 |
 | `GET /api/map-data` | `fact_hotel`, `dim_place` | 地图大头针 |
-| `GET /api/itinerary` | 活动、酒店、餐厅 helper 查询 | 个性化行程生成器 |
+| `GET /api/itinerary` | 活动、酒店、餐厅 helper 查询 | Journey 生成器 |
 
 ## 前后端如何连接
 
@@ -306,7 +306,7 @@ def matches():
 2. 加载 Leaflet 地图库。
 3. `frontend/js/data.js` 定义前端数据容器。
 4. `frontend/js/api.js` 请求后端 API，并填充这些数据容器。
-5. 其他功能脚本负责渲染卡片、overlay、行程、地图和页面导航。
+5. 其他功能脚本负责渲染卡片、overlay、Journey、地图和页面导航。
 
 ### 前端状态替换流程
 
@@ -351,20 +351,20 @@ await Promise.all([
 | 比赛详情 overlay | `MATCH_DATA`, tickets, players, events | `js/matches.js` |
 | Discover 标签页 | 酒店、餐厅、活动、球队、排名、路线 | `api.js`, `app.js` |
 | 活动详情 overlay | `fact_event` 加详情表 | `queries.py`, `app.py`, `matches.js` |
-| 个性化行程 | 活动类别 SQL、酒店、餐厅、比赛元数据 | `app.py`, `queries.py`, `itinerary.js` |
+| Journey | 活动类别 SQL、酒店、餐厅、比赛元数据 | `app.py`, `queries.py`, `itinerary.js` |
 | 洛杉矶地图 | 静态地图点和 `/api/map-data` 支持 | `explore.js` |
 
-## 个性化行程生成逻辑
+## Journey 生成逻辑
 
-行程生成器是“SQL + 后端业务逻辑 + 前端渲染”结合最明显的部分：
+Journey 生成器是“SQL + 后端业务逻辑 + 前端渲染”结合最明显的部分：
 
 1. 前端发送 `type`、`budget`、`days`、`match_date`、`vibe` 五个参数。
 2. Flask 把旅行者类型和旅行风格映射成活动类别 id。
 3. SQL 从 `fact_event` 中查询对应活动，并关联类别表和体验详情表。
 4. SQL 按 `price_band` 查询酒店。
 5. SQL 按 `price_range` 查询餐厅。
-6. Flask 使用稳定 hash seed 打乱结果，让同一组输入得到稳定行程。
-7. 3 天及以上行程中，第 3 天固定为比赛日。
+6. Flask 使用稳定 hash seed 打乱结果，让同一组输入得到稳定的 Journey。
+7. 3 天及以上的 Journey 中，第 3 天固定为比赛日。
 8. API 返回 JSON，前端渲染成逐日 timeline。
 
 示例：

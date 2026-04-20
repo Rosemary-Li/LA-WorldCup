@@ -16,7 +16,7 @@
 
   const LABELS = [
     'Hero', 'Matches', 'Los Angeles',
-    'Itinerary', 'Map', 'Discover', 'About', ''
+    'Journey', 'Map', 'Discover', 'About', ''
   ];
 
   const sections = SECTION_IDS

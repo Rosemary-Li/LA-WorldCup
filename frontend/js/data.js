@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════
 //  DATA — Match info, Hotels, Restaurants, Events,
-//          Fan Events, Shows, Itinerary Templates
+//          Fan Events, Shows, Journey Templates
 // ═══════════════════════════════════════════════════
 
 // Global arrays populated by api.js

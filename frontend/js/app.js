@@ -213,6 +213,14 @@ function switchTab(tab, btn) {
   renderCards(tab);
 }
 
+function openDiscoverTab(tab) {
+  const discover = document.getElementById("discover");
+  const btn = Array.from(document.querySelectorAll(".tab-btn"))
+    .find((el) => (el.getAttribute("onclick") || "").includes(`switchTab('${tab}'`));
+  if (discover) discover.scrollIntoView({ behavior: "smooth" });
+  if (btn) switchTab(tab, btn);
+}
+
 function renderCards(tab) {
   const grid    = document.getElementById("cardsGrid");
   const filterBar = document.getElementById("filterBar");

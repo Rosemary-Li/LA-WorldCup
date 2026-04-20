@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-//  SECTION: ITINERARY
+//  SECTION: PERSONALIZED TRAVELING SCHEDULE
 // ═══════════════════════════════════════════════════
 
 document.getElementById('mount-itinerary').innerHTML = `
@@ -9,10 +9,10 @@ document.getElementById('mount-itinerary').innerHTML = `
       <div class="d2"></div>
     </div>
 
-    <!-- ITINERARY -->
+    <!-- PERSONALIZED TRAVELING SCHEDULE -->
     <section id="itinerary">
       <div class="section-masthead">
-        <div class="section-title">Personalized Itinerary</div>
+        <div class="section-title">Journey</div>
         <div class="section-folio">Your Cinematic LA Story</div>
       </div>
       <p
@@ -87,7 +87,7 @@ document.getElementById('mount-itinerary').innerHTML = `
           </div>
         </div>
         <button class="generate-btn" onclick="generateItinerary()">
-          ✦ GENERATE MY CINEMATIC LA EXPERIENCE ✦
+          ✦ GENERATE MY PERSONALIZED TRAVELING SCHEDULE ✦
         </button>
         <div class="itinerary-result" id="itineraryResult">
           <div

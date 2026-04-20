@@ -35,7 +35,7 @@ The frontend is designed as a client of the database. `frontend/js/api.js` fetch
 ```text
 LA_WorldCup/
 ├── backend/
-│   ├── app.py              # Flask API routes and itinerary-generation logic
+│   ├── app.py              # Flask API routes and Journey logic
 │   ├── queries.py          # SQL query functions; one source of truth for DB reads
 │   └── setup_database.py   # One-time schema creation and CSV import script
 │
@@ -47,7 +47,7 @@ LA_WorldCup/
 │   │   ├── api.js          # Fetches API data and updates frontend state
 │   │   ├── app.js          # Discover tab rendering, filters, and page behavior
 │   │   ├── matches.js      # Match overlay, tickets, squads, event details
-│   │   ├── itinerary.js    # Calls /api/itinerary and renders day-by-day plans
+│   │   ├── itinerary.js    # Calls /api/itinerary and renders Journeys
 │   │   ├── explore.js      # Leaflet map markers and filters
 │   │   └── fullpage.js     # Section navigation
 │   └── sections/           # JS files that inject page sections through innerHTML
@@ -114,7 +114,7 @@ database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html
 | `dim_player` | Player profile, club, stats, `is_star` flag | `/api/players`, match overlay squads |
 | `dim_place` | Stadiums, airports, transport hubs with coordinates | `/api/routes`, `/api/map-data` |
 | `dim_mode` | Transport mode metadata | `/api/routes` |
-| `dim_event_category` | Event category labels | `/api/events`, itinerary category mapping |
+| `dim_event_category` | Event category labels | `/api/events`, Journey category mapping |
 
 ### Fact Tables
 
@@ -213,9 +213,9 @@ JOIN dim_mode  m ON r.mode_id = m.mode_id
 
 That gives the frontend one event-detail response while preserving normalized tables in SQL.
 
-**Itinerary SQL helpers**
+**Journey SQL helpers**
 
-The itinerary endpoint maps user preferences to SQL filters:
+The Journey endpoint maps user preferences to SQL filters:
 
 | User Input | Backend Mapping | SQL Effect |
 |---|---|---|
@@ -292,7 +292,7 @@ This keeps responsibilities separated:
 | `GET /api/rankings` | `fact_ranking` | FIFA Rankings tab |
 | `GET /api/routes` | `fact_route` joined to places and modes | Getting There tab |
 | `GET /api/map-data` | `fact_hotel`, `dim_place` | Map pins |
-| `GET /api/itinerary` | event, hotel, restaurant helper queries | Personalized itinerary builder |
+| `GET /api/itinerary` | event, hotel, restaurant helper queries | Journey builder |
 
 ## Frontend and Backend Connection
 
@@ -306,7 +306,7 @@ The frontend is static, but it behaves like a live data client.
 2. Leaflet loads for the map.
 3. `frontend/js/data.js` defines frontend data containers.
 4. `frontend/js/api.js` fetches backend API data and populates those containers.
-5. Feature scripts render cards, overlays, itinerary, map, and full-page navigation.
+5. Feature scripts render cards, overlays, Journey, map, and full-page navigation.
 
 ### State Replacement Flow
 
@@ -345,19 +345,19 @@ If the API is unavailable, database-backed cards are not rendered; the page asks
 | Match detail overlay | `MATCH_DATA`, tickets, players, events | `js/matches.js` |
 | Discover tabs | hotels, restaurants, events, teams, rankings, routes | `api.js`, `app.js` |
 | Event detail overlay | `fact_event` plus detail tables | `queries.py`, `app.py`, `matches.js` |
-| Itinerary builder | event category SQL, hotels, restaurants, match metadata | `app.py`, `queries.py`, `itinerary.js` |
+| Journey builder | event category SQL, hotels, restaurants, match metadata | `app.py`, `queries.py`, `itinerary.js` |
 | LA map | static map pins plus `/api/map-data` support | `explore.js` |
 
-## Itinerary Logic
+## Journey Logic
 
-The itinerary builder is the most explicit example of backend business logic sitting on top of SQL:
+The Journey builder is the most explicit example of backend business logic sitting on top of SQL:
 
 1. The frontend sends query parameters: `type`, `budget`, `days`, `match_date`, and `vibe`.
 2. Flask maps traveler type and vibe into event category id lists.
 3. SQL pulls matching events from `fact_event`, joined to category and experience-detail tables.
 4. SQL pulls hotels by `price_band`.
 5. SQL pulls restaurants by `price_range`.
-6. Flask shuffles results with a stable hash seed so the same inputs produce the same itinerary.
+6. Flask shuffles results with a stable hash seed so the same inputs produce the same Journey.
 7. Day 3 becomes match day for trips of 3+ days.
 8. The endpoint returns a JSON object that the frontend renders as a timeline.
 

@@ -11,7 +11,7 @@ document.getElementById('mount-footer').innerHTML = `
         White"
       </p>
       <div class="footer-links">
-        <a href="#photo-hero">Home</a><a href="#matches">Matches</a> <a href="#itinerary">Itinerary</a
+        <a href="#photo-hero">Home</a><a href="#matches">Matches</a> <a href="#itinerary">Journey</a
         ><a href="#explore">Explore</a>
         <a href="#discover">Hotels & Dining</a>
         <a href="https://www.discoverlosangeles.com/fifaworldcupla" target="_blank">Official LA Tourism</a>
