@@ -192,6 +192,20 @@ function renderShowCards(data) {
   ).join("");
 }
 
+function renderDataNotice(title, detail) {
+  const grid = document.getElementById("cardsGrid");
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="rec-card" style="grid-column:1/-1;min-height:180px;display:flex;align-items:center;">
+      <div class="rec-card-body">
+        <div class="rec-card-tag">Database Connection</div>
+        <div class="rec-card-name">${title}</div>
+        <div class="rec-card-sub">${detail}</div>
+      </div>
+    </div>
+  `;
+}
+
 // ═══════════════ CARDS / TABS ═══════════════
 function switchTab(tab, btn) {
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -203,6 +217,23 @@ function renderCards(tab) {
   const grid    = document.getElementById("cardsGrid");
   const filterBar = document.getElementById("filterBar");
   if (filterBar) filterBar.innerHTML = "";
+  if (!grid) return;
+
+  if (tab === "api-error" || window.API_ERROR) {
+    renderDataNotice(
+      "Backend API is unavailable",
+      "Start the Flask server and reload the page to load database-backed content."
+    );
+    return;
+  }
+
+  if (!window.API_READY) {
+    renderDataNotice(
+      "Loading database content",
+      "The page is waiting for the Flask API before rendering cards."
+    );
+    return;
+  }
 
   if (tab === "hotels") {
     renderFilterBar(HOTEL_FILTERS, "filterHotels");

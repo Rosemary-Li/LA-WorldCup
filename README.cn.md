@@ -18,7 +18,7 @@
         -> 前端交互页面
 ```
 
-前端是数据库的客户端。页面先读取 `frontend/js/data.js` 中的备用静态数组；随后 `frontend/js/api.js` 请求 Flask API，把真实数据库数据写回这些数组，并重新渲染比赛、酒店、餐厅、活动、球队、排名、交通路线和地图相关内容。如果后端暂时不可用，页面仍会使用备用数据正常展示。
+前端是数据库的客户端。`frontend/js/api.js` 请求 Flask API，并把后端返回的数据映射到前端状态中，用于渲染比赛、酒店、餐厅、活动、球队、排名、交通路线和地图相关内容。
 
 ## 技术栈
 
@@ -43,7 +43,7 @@ LA_WorldCup/
 │   ├── index.html          # 静态入口，加载 sections 和功能 JS
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── data.js         # API 不可用时使用的备用数据数组
+│   │   ├── data.js         # API 映射前加载的前端数据容器
 │   │   ├── api.js          # 请求 API，并更新前端状态
 │   │   ├── app.js          # Discover 标签页、筛选器、页面行为
 │   │   ├── matches.js      # 比赛详情 overlay、票务、阵容、活动详情
@@ -304,8 +304,8 @@ def matches():
 
 1. `frontend/sections/` 中的文件先创建页面 DOM 区块。
 2. 加载 Leaflet 地图库。
-3. `frontend/js/data.js` 定义备用数据数组。
-4. `frontend/js/api.js` 请求后端 API，并覆盖备用数组。
+3. `frontend/js/data.js` 定义前端数据容器。
+4. `frontend/js/api.js` 请求后端 API，并填充这些数据容器。
 5. 其他功能脚本负责渲染卡片、overlay、行程、地图和页面导航。
 
 ### 前端状态替换流程
@@ -341,7 +341,7 @@ await Promise.all([
 | `event_category_id` | 用来区分 fan event 和 show |
 | `match_number` | 用于比赛 overlay 查询票务 |
 
-如果 API 请求失败，`catch` 会保留 `data.js` 中的备用数组，页面不会空白。
+如果 API 请求失败，数据库驱动的卡片不会渲染；页面会提示需要启动 Flask 后端并刷新。
 
 ## 主要功能与数据来源
 
@@ -407,6 +407,6 @@ node --check frontend/js/fullpage.js
 | 票务 | 座位和票价参考表 |
 | 酒店与餐厅 | 人工整理和公开评价数据 |
 | 活动 | Discover Los Angeles、Los Angeles World Cup 2026 资料、场馆页面 |
-| FIFA 排名 | FIFA 排名数据或 fallback 演示数据 |
+| FIFA 排名 | FIFA 排名数据或课程演示数据 |
 | 交通路线 | 公开路线调研 |
 | 球员 | 公开足球资料 |

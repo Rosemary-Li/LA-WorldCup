@@ -1,10 +1,12 @@
 // ═══════════════════════════════════════════════════
 //  API.JS — Fetch real data from Flask API
-//  Overrides hardcoded variables in data.js
+//  Loads database-backed data for the frontend
 //  Load this AFTER data.js in index.html
 // ═══════════════════════════════════════════════════
 
 const API_BASE = "http://127.0.0.1:5000";
+window.API_READY = false;
+window.API_ERROR = null;
 
 // ─────────────────────────────────────────
 // Helper: fetch JSON from API
@@ -217,6 +219,8 @@ async function initAPI() {
       loadTeams(),
       loadRoutes(),
     ]);
+    window.API_READY = true;
+    window.API_ERROR = null;
     console.log("🎉 All data loaded from API successfully!");
 
     // Re-render the currently visible tab with live data
@@ -239,7 +243,10 @@ async function initAPI() {
       });
     }
   } catch (err) {
-    console.warn("⚠️ API load failed, using hardcoded data as fallback.", err);
+    window.API_READY = false;
+    window.API_ERROR = err;
+    console.warn("⚠️ API load failed. Database-backed content is unavailable.", err);
+    if (typeof renderCards === "function") renderCards("api-error");
   }
 }
 

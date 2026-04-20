@@ -1,6 +1,6 @@
 # LA x FIFA World Cup 2026 - Database-Driven Travel Guide
 
-A full-stack academic project for APAN5310. The application turns curated FIFA World Cup 2026 Los Angeles data into a normalized PostgreSQL database, exposes it through a Flask REST API, and renders it in a pure HTML/CSS/JavaScript frontend with live API data and fallback static data.
+A full-stack academic project for APAN5310. The application turns curated FIFA World Cup 2026 Los Angeles data into a normalized PostgreSQL database, exposes it through a Flask REST API, and renders it in a pure HTML/CSS/JavaScript frontend using backend API data.
 
 > Also available in Chinese: [README.cn.md](README.cn.md)
 
@@ -18,7 +18,7 @@ raw Excel / CSV sources
         -> interactive frontend sections
 ```
 
-The frontend is designed as a client of the database. It starts with fallback arrays in `frontend/js/data.js`, then `frontend/js/api.js` fetches live data from Flask and overwrites those arrays before re-rendering match cards, hotel cards, restaurant cards, event cards, rankings, teams, transport routes, and map data.
+The frontend is designed as a client of the database. `frontend/js/api.js` fetches data from Flask and maps the API responses into the frontend state used by match cards, hotel cards, restaurant cards, event cards, rankings, teams, transport routes, and map data.
 
 ## Tech Stack
 
@@ -43,7 +43,7 @@ LA_WorldCup/
 │   ├── index.html          # Static entry point; loads section scripts and feature JS
 │   ├── css/styles.css
 │   ├── js/
-│   │   ├── data.js         # Fallback arrays used if the Flask API is unavailable
+│   │   ├── data.js         # Frontend data containers loaded before API mapping
 │   │   ├── api.js          # Fetches API data and updates frontend state
 │   │   ├── app.js          # Discover tab rendering, filters, and page behavior
 │   │   ├── matches.js      # Match overlay, tickets, squads, event details
@@ -281,7 +281,7 @@ This keeps responsibilities separated:
 | `GET /api/players` | `dim_player` | Star players on match cards |
 | `GET /api/players/<team_country>` | `dim_player WHERE team = %s` | Full Squad overlay tab |
 | `GET /api/players/stars` | `dim_player WHERE is_star = TRUE` | Star-player views |
-| `GET /api/hotels` | `fact_hotel` | Hotel cards and fallback replacement |
+| `GET /api/hotels` | `fact_hotel` | Hotel cards |
 | `GET /api/hotels/region/<region>` | `fact_hotel WHERE region ILIKE %s` | Region filtering |
 | `GET /api/hotels/price/<price_band>` | `fact_hotel WHERE price_band = %s` | Hotel price filter |
 | `GET /api/restaurants` | `fact_restaurant` | Restaurant cards |
@@ -304,8 +304,8 @@ The frontend is static, but it behaves like a live data client.
 
 1. Section files in `frontend/sections/` create DOM containers.
 2. Leaflet loads for the map.
-3. `frontend/js/data.js` defines fallback arrays.
-4. `frontend/js/api.js` fetches live API data and overwrites arrays.
+3. `frontend/js/data.js` defines frontend data containers.
+4. `frontend/js/api.js` fetches backend API data and populates those containers.
 5. Feature scripts render cards, overlays, itinerary, map, and full-page navigation.
 
 ### State Replacement Flow
@@ -335,7 +335,7 @@ Each loader maps database field names into frontend-friendly objects:
 | `event_category_id` | fan event vs show grouping |
 | `match_number` | match overlay ticket lookup key |
 
-If the API is unavailable, the `catch` block leaves the original fallback arrays in place, so the site still renders.
+If the API is unavailable, database-backed cards are not rendered; the page asks the user to start the Flask server and reload.
 
 ## Main User Features
 
@@ -401,6 +401,6 @@ node --check frontend/js/fullpage.js
 | Tickets | Seat and ticket reference spreadsheets |
 | Hotels and restaurants | Manual curation and public review data |
 | Events | Discover Los Angeles, Los Angeles World Cup 2026 sources, venue pages |
-| FIFA rankings | FIFA ranking source or fallback demo values |
+| FIFA rankings | FIFA ranking source or course demo values |
 | Routes | Public route research |
 | Players | Public football profile data |
