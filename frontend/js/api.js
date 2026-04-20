@@ -46,10 +46,11 @@ async function loadMatches() {
     const key = keyMap[m.match_number];
     if (!key || !MATCH_DATA[key]) return;
 
-    // Update date and stage
-    MATCH_DATA[key].date = `${m.date} · ${m.day_of_week} · ${m.time_pt}`;
-    MATCH_DATA[key].round = `${m.stage} · ${m.group || ""} · ${m.match_number}`;
-    MATCH_DATA[key].venue = m.venue;
+    // Update date, stage, and store match_number for ticket lookup
+    MATCH_DATA[key].date         = `${m.date} · ${m.day_of_week} · ${m.time_pt}`;
+    MATCH_DATA[key].round        = `${m.stage} · ${m.group || ""} · ${m.match_number}`;
+    MATCH_DATA[key].venue        = m.venue;
+    MATCH_DATA[key].match_number = m.match_number;
 
     // Update players from database
     const team1Players = (playersByTeam[m.team1] || []).slice(0, 2);
@@ -123,26 +124,71 @@ async function loadRestaurants() {
 
 
 // ─────────────────────────────────────────
-// Load Events (Fan Events)
+// Load Events — split into Fan Events vs Shows by category
 // ─────────────────────────────────────────
 async function loadEvents() {
   const events = await apiFetch("/api/events");
 
-  // Override FAN_EVENTS array with real data
   FAN_EVENTS.length = 0;
-  events.slice(0, 20).forEach(e => {
+  SHOWS.length = 0;
+
+  // category IDs 12-15, 18-20, 23 → Shows/Entertainment
+  const SHOW_CATS = new Set([12, 13, 14, 15, 18, 19, 20, 23]);
+
+  events.forEach(e => {
     if (!e.event_name) return;
-    FAN_EVENTS.push({
+    const catId = parseInt(e.event_category_id) || 0;
+    const obj = {
+      id:    e.event_id,
       name:  e.event_name,
       area:  e.area || e.city || "",
       date:  e.start_date || "",
       price: "See details",
       desc:  e.event_type || e.category || "",
-      emoji: "🎉",
-    });
+      venue: e.venue_name || "",
+    };
+    if (SHOW_CATS.has(catId)) {
+      SHOWS.push({ ...obj, emoji: "🎭" });
+    } else {
+      FAN_EVENTS.push({ ...obj, emoji: "🎉" });
+    }
   });
 
-  console.log("✅ Events loaded from API:", FAN_EVENTS.length);
+  console.log(`✅ Events loaded: ${FAN_EVENTS.length} fan events, ${SHOWS.length} shows`);
+}
+
+
+// ─────────────────────────────────────────
+// Load Rankings
+// ─────────────────────────────────────────
+async function loadRankings() {
+  const data = await apiFetch("/api/rankings");
+  RANKINGS.length = 0;
+  data.forEach(r => RANKINGS.push(r));
+  console.log("✅ Rankings loaded:", RANKINGS.length);
+}
+
+
+// ─────────────────────────────────────────
+// Load Teams
+// ─────────────────────────────────────────
+async function loadTeams() {
+  const data = await apiFetch("/api/teams");
+  TEAMS.length = 0;
+  data.forEach(t => TEAMS.push(t));
+  console.log("✅ Teams loaded:", TEAMS.length);
+}
+
+
+// ─────────────────────────────────────────
+// Load Routes
+// ─────────────────────────────────────────
+async function loadRoutes() {
+  const data = await apiFetch("/api/routes");
+  ROUTES.length = 0;
+  data.forEach(r => ROUTES.push(r));
+  if (typeof renderRoutes === "function") renderRoutes();
+  console.log("✅ Routes loaded:", ROUTES.length);
 }
 
 
@@ -167,6 +213,9 @@ async function initAPI() {
       loadRestaurants(),
       loadEvents(),
       loadMapData(),
+      loadRankings(),
+      loadTeams(),
+      loadRoutes(),
     ]);
     console.log("🎉 All data loaded from API successfully!");
 

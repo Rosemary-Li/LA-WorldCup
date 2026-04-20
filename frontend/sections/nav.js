@@ -6,7 +6,7 @@ document.getElementById('mount-nav').innerHTML = `
     <nav>
       <div class="nav-masthead">
         <div class="nav-title">
-          The Official FIFA World Cup 2026™ Los Angeles Visitor's Guide
+          A cinematic journey through football, glamour &amp; the City of Angels — where the silver screen meets the beautiful game.
         </div>
         <div class="nav-logo">LA × WC26</div>
       </div>

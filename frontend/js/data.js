@@ -3,6 +3,11 @@
 //          Fan Events, Shows, Itinerary Templates
 // ═══════════════════════════════════════════════════
 
+// Global arrays populated by api.js
+const RANKINGS = [];
+const ROUTES   = [];
+const TEAMS    = [];
+
 // ═══════════════ MATCH DATA ═══════════════
       const MATCH_DATA = {
         "usa-paraguay": {

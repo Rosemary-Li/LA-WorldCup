@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import hashlib
 import random
 import queries
 
@@ -209,24 +210,33 @@ def _rest_to_activity(rest, time_slot):
 def itinerary():
     traveler = request.args.get("type", "football")
     budget   = request.args.get("budget", "mid")
-    days     = min(max(int(request.args.get("days", 3)), 1), 7)
+    try:
+        days = int(request.args.get("days", 3))
+    except (TypeError, ValueError):
+        days = 3
+    days = min(max(days, 1), 7)
     match_dt = request.args.get("match_date", "jun12")
     vibe     = request.args.get("vibe", "culture")
 
     type_cats = _TYPE_CATS.get(traveler, _TYPE_CATS["football"])
     vibe_cats = _VIBE_CATS.get(vibe, [])
 
-    events       = queries.get_events_by_categories(type_cats)
-    vibe_events  = queries.get_events_by_categories(vibe_cats) if vibe_cats else []
-    hotels       = queries.get_hotel_for_budget(_HOTEL_BAND.get(budget, "200+"))
-    restaurants  = queries.get_restaurants_for_budget(_REST_PRICE.get(budget, ["$30-50"]))
+    try:
+        events       = queries.get_events_by_categories(type_cats)
+        vibe_events  = queries.get_events_by_categories(vibe_cats) if vibe_cats else []
+        hotels       = queries.get_hotel_for_budget(_HOTEL_BAND.get(budget, "200+"))
+        restaurants  = queries.get_restaurants_for_budget(_REST_PRICE.get(budget, ["$30-50"]))
+    except Exception:
+        app.logger.exception("Could not build itinerary")
+        return jsonify({"error": "Could not build itinerary"}), 500
 
     # Deduplicate: vibe events that also appear in type events stay only in vibe pool
     type_ids = {e["event_id"] for e in events}
     vibe_events = [e for e in vibe_events if e["event_id"] not in type_ids]
 
-    # Reproducible shuffle keyed to inputs so same params → same itinerary
-    seed = hash((traveler, budget, match_dt, vibe)) % (2 ** 32)
+    # Stable across Python processes so same params produce the same itinerary.
+    seed_src = f"{traveler}|{budget}|{match_dt}|{vibe}".encode("utf-8")
+    seed = int(hashlib.sha256(seed_src).hexdigest()[:8], 16)
     rng = random.Random(seed)
     rng.shuffle(events)
     rng.shuffle(vibe_events)
@@ -254,18 +264,20 @@ def itinerary():
 
         if is_match_day:
             # 2 morning activities then the match
-            for slot in range(2):
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
+            if events:
+                for slot in range(2):
+                    evt = events[evt_idx % len(events)]
+                    evt_idx += 1
+                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
             activities.append(match_activity)
 
         elif d == 0:
             # Day 1: 3 type events, 1 restaurant dinner, 1 vibe event at end
-            for slot in range(3):
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
+            if events:
+                for slot in range(3):
+                    evt = events[evt_idx % len(events)]
+                    evt_idx += 1
+                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
             if restaurants:
                 activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[3]))
                 rest_idx += 1
@@ -275,10 +287,11 @@ def itinerary():
 
         else:
             # Regular days: 3 type events, 1 vibe activity, 1 restaurant dinner
-            for slot in range(3):
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
+            if events:
+                for slot in range(3):
+                    evt = events[evt_idx % len(events)]
+                    evt_idx += 1
+                    activities.append(_event_to_activity(evt, _DAY_SLOTS[slot]))
             if vibe_events:
                 vi = (d - 1) % len(vibe_events)
                 activities.append(_event_to_activity(vibe_events[vi], _DAY_SLOTS[3]))

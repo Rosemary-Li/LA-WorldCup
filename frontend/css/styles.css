@@ -26,13 +26,19 @@
         --border-hard: rgba(13, 13, 13, 0.6);
       }
 
+      :root {
+        --nav-h: 82px; /* fixed nav height — adjust if nav changes */
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
+
       html {
-        scroll-behavior: smooth;
+        height: 100%;
+        overflow: hidden;
       }
 
       body {
@@ -41,6 +47,58 @@
         font-family: "Cormorant Garamond", serif;
         font-weight: 300;
         overflow-x: hidden;
+        /* Full-page scroll container */
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
+
+      /* ── Snap sections ─────────────────────────── */
+      #mount-photohero,
+      #mount-matches,
+      #mount-showcase,
+      #mount-itinerary,
+      #mount-explore,
+      #mount-discover,
+      #mount-about,
+      #mount-footer {
+        height: 100vh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* ── Page dots (right side) ─────────────────── */
+      #fp-dots {
+        position: fixed;
+        right: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 150;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        mix-blend-mode: difference; /* auto-inverts on dark/light bg */
+        pointer-events: none;
+      }
+
+      .fp-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.45);
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s;
+        pointer-events: auto;
+        padding: 0;
+      }
+
+      .fp-dot.active {
+        background: #fff;
+        transform: scale(1.5);
       }
 
       /* ══════════════════════════════════
@@ -382,7 +440,7 @@
 ══════════════════════════════════ */
       #hero {
         position: relative;
-        min-height: 100vh;
+        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -719,6 +777,25 @@
 ══════════════════════════════════ */
       section {
         padding: 5rem 3rem;
+      }
+
+      /* Full-page: all snap-mounted sections fill their container */
+      #mount-itinerary > section,
+      #mount-explore > section,
+      #mount-discover > section,
+      #mount-about > section {
+        height: 100%;
+        overflow-y: auto;
+        padding-top: calc(var(--nav-h, 82px) + 2rem);
+        box-sizing: border-box;
+      }
+
+      #mount-footer > footer {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
       }
 
       .section-masthead {
@@ -1354,112 +1431,96 @@
         opacity: 0.5;
       }
 
-      .map-container {
-        background: #1a1a1a;
-        position: relative;
-        overflow: hidden;
-        min-height: 500px;
-      }
-      .map-bg {
-        position: absolute;
-        inset: 0;
+      /* ── Leaflet map container ─────────────────── */
+      #leaflet-map {
+        flex: 1;
+        height: calc(100vh - 280px);
+        min-height: 380px;
         background: #111;
+        z-index: 1;
       }
-      .map-grid {
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(
-            rgba(255, 255, 255, 0.04) 1px,
-            transparent 1px
-          ),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-        background-size: 40px 40px;
+
+      /* Override Leaflet attribution to be minimal */
+      .leaflet-control-attribution {
+        font-size: 0.45rem !important;
+        background: rgba(0,0,0,0.5) !important;
+        color: #555 !important;
+        padding: 2px 6px !important;
       }
-      .map-roads {
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(
-            rgba(255, 255, 255, 0.07) 2px,
-            transparent 2px
-          ),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.07) 2px, transparent 2px);
-        background-size: 120px 120px;
-        background-position: 20px 20px;
+      .leaflet-control-attribution a { color: #666 !important; }
+
+      .leaflet-control-zoom a {
+        background: #1a1a1a !important;
+        color: #aaa !important;
+        border-color: #333 !important;
+        font-size: 1rem !important;
       }
-      .map-pin {
-        position: absolute;
-        cursor: pointer;
-        transform: translate(-50%, -100%);
-        transition: all 0.2s;
+      .leaflet-control-zoom a:hover {
+        background: #333 !important;
+        color: #fff !important;
       }
-      .map-pin:hover {
-        transform: translate(-50%, -100%) scale(1.2);
-        z-index: 10;
+
+      /* ── Custom popup ──────────────────────────── */
+      .lf-popup-wrap .leaflet-popup-content-wrapper {
+        background: #0d0d0d;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        padding: 0;
       }
-      .pin-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #fff;
-        margin: 0 auto;
+      .lf-popup-wrap .leaflet-popup-content {
+        margin: 0;
       }
-      .pin-dot.hotel {
-        background: #aaa;
+      .lf-popup-wrap .leaflet-popup-tip-container { display: none; }
+
+      .lf-popup {
+        padding: 0.75rem 1rem;
       }
-      .pin-dot.restaurant {
-        background: #ccc;
+      .lf-popup-type {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.35);
+        margin-bottom: 0.25rem;
       }
-      .pin-dot.event {
-        background: #888;
+      .lf-popup-name {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.2rem;
+        line-height: 1.2;
       }
-      .pin-dot.stadium {
-        background: #fff;
-        width: 14px;
-        height: 14px;
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-      }
-      .pin-label {
-        font-family: "DM Mono", monospace;
+      .lf-popup-detail {
+        font-family: 'DM Mono', monospace;
         font-size: 0.55rem;
-        white-space: nowrap;
-        margin-top: 4px;
-        text-align: center;
-        background: rgba(0, 0, 0, 0.9);
-        padding: 2px 5px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #ccc;
-        letter-spacing: 0.05em;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.6;
       }
-      .map-legend {
-        position: absolute;
-        bottom: 1rem;
-        right: 1rem;
-        background: rgba(0, 0, 0, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.8rem;
-      }
-      .legend-item {
+
+      /* ── Left panel legend ─────────────────────── */
+      .lf-legend-item {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-family: "DM Mono", monospace;
+        font-family: 'DM Mono', monospace;
         font-size: 0.6rem;
-        color: #888;
-        margin-bottom: 0.3rem;
+        color: var(--silver);
+        margin-bottom: 0.4rem;
       }
-      .legend-dot {
+      .lf-legend-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         flex-shrink: 0;
+        display: inline-block;
       }
 
-      #mapInfoPanel {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: var(--paper);
-        border: 1px solid var(--border-ink);
-        display: none;
+      /* filter-panel needs to be flex column for legend to go bottom */
+      .filter-panel {
+        display: flex;
+        flex-direction: column;
       }
 
       /* ══════════════════════════════════

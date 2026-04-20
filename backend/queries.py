@@ -213,6 +213,7 @@ def get_all_events():
     """Return all events with category label."""
     return query("""
         SELECT e.event_id, e.event_name, e.category,
+               e.event_category_id,
                e.event_type, e.venue_name, e.area, e.city,
                e.start_date, e.end_date, e.event_time,
                e.detail_type, c.category AS category_label
@@ -313,6 +314,8 @@ def get_map_data():
 
 def get_events_by_categories(category_ids, limit=80):
     """Return events in the given category_id list, joined with experience detail."""
+    if not category_ids:
+        return []
     placeholders = ','.join(['%s'] * len(category_ids))
     return query(f"""
         SELECT e.event_id, e.event_name, e.category,
@@ -341,6 +344,8 @@ def get_hotel_for_budget(price_band):
 
 def get_restaurants_for_budget(price_ranges, limit=20):
     """Return restaurants matching any of the given price_range values."""
+    if not price_ranges:
+        return []
     placeholders = ','.join(['%s'] * len(price_ranges))
     return query(f"""
         SELECT restaurant_id, restaurant_name, region,

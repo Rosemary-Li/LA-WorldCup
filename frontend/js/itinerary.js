@@ -2,7 +2,7 @@
 //  ITINERARY — identity selector, itinerary builder
 // ═══════════════════════════════════════════════════
 
-const API_BASE = "http://127.0.0.1:5000";
+// API_BASE is declared in api.js (loaded before this file)
 
 // ═══════════════ IDENTITY ═══════════════
 function setIdentity(type, el) {
@@ -46,6 +46,15 @@ function generateItinerary() {
     });
 }
 
+// Maps hotel region string → area filter key
+const REGION_TO_AREA = {
+  'West Hollywood': 'weho', 'WeHo': 'weho', 'Beverly Hills': 'weho', 'Bel Air': 'weho',
+  'Downtown LA': 'dtla', 'Downtown': 'dtla', 'Arts District': 'dtla', 'Koreatown': 'dtla', 'Exposition Park': 'dtla',
+  'Hollywood': 'hollywood', 'Los Feliz': 'hollywood', 'Silver Lake': 'hollywood', 'Fairfax': 'hollywood',
+  'Santa Monica': 'santamonica', 'Venice': 'santamonica', 'Marina del Rey': 'santamonica', 'Malibu': 'santamonica',
+  'Inglewood': 'inglewood', 'El Segundo': 'inglewood', 'Culver City': 'inglewood',
+};
+
 // ═══════════════ RENDER ═══════════════
 function renderItinerary(data) {
   const budgetLabel =
@@ -54,6 +63,12 @@ function renderItinerary(data) {
   const typeLabel = data.traveler
     ? data.traveler.charAt(0).toUpperCase() + data.traveler.slice(1)
     : "";
+
+  // Determine area key from hotel region
+  const region = data.hotel?.region || "";
+  const areaKey = REGION_TO_AREA[region]
+    || Object.entries(REGION_TO_AREA).find(([k]) => region.toLowerCase().includes(k.toLowerCase()))?.[1]
+    || null;
 
   let html = `<div style="margin-bottom:2rem;padding:1.2rem;background:var(--paper);border-left:3px solid var(--ink);">
     <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.4rem;">Your Personalized LA World Cup Experience</div>
@@ -85,7 +100,16 @@ function renderItinerary(data) {
 
   html += `<div style="margin-top:2rem;padding:1.2rem;border:1.5px solid var(--border-med);background:var(--paper);">
     <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--silver);margin-bottom:0.3rem;">✦ Your LA World Cup Story is Ready</div>
-    <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);">Estimated budget: ${budgetLabel} · ${data.days.length}-day itinerary · Match: ${data.match.date} at SoFi Stadium</p>
+    <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--silver);margin-bottom:1rem;">Estimated budget: ${budgetLabel} · ${data.days.length}-day itinerary · Match: ${data.match.date} at SoFi Stadium</p>
+    ${areaKey ? `
+    <button onclick="viewOnMap('${areaKey}')" style="
+      font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;
+      border:1.5px solid var(--ink);background:transparent;color:var(--ink);
+      padding:0.55rem 1.4rem;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem;"
+      onmouseover="this.style.background='var(--ink)';this.style.color='var(--white)'"
+      onmouseout="this.style.background='transparent';this.style.color='var(--ink)'">
+      📍 View on Map
+    </button>` : ""}
   </div>`;
 
   return html;
