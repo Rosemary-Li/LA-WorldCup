@@ -1,48 +1,44 @@
-# LA x FIFA World Cup 2026 - Database-Driven Los Angeles Guide
+# LA × FIFA World Cup 2026
 
-Full-stack APAN5310 project for the FIFA World Cup 2026 Los Angeles host city experience. The current application uses a normalized PostgreSQL database, a Flask REST API, and a React/Vite frontend to help visitors explore LA match schedules, team context, hotels, restaurants, fan events, shows, attractions, and personalized travel journeys.
+Full-stack APAN5310 project for the FIFA World Cup 2026 Los Angeles experience. A React/Vite frontend talks to a Flask REST API backed by a normalized PostgreSQL database, helping visitors explore LA match schedules, team context, hotels, restaurants, fan events, shows, attractions, and personalized travel journeys.
 
 > Chinese version: [README.cn.md](README.cn.md)
 
-## Project Summary
-
-The project is built around a clear database-to-frontend pipeline:
+## Pipeline
 
 ```text
 raw Excel / CSV files
-        -> cleaned CSV files
-        -> PostgreSQL dimensional schema
-        -> SQL query functions in backend/queries.py
-        -> Flask JSON API in backend/app.py
-        -> React data loading in frontend/src/api.js
-        -> React UI components in frontend/src/main.jsx
+    → cleaned CSV files
+    → PostgreSQL dimensional schema
+    → SQL query functions   backend/queries.py
+    → Flask JSON API        backend/app.py
+    → React API client      frontend/src/api.js
+    → React UI              frontend/src/main.jsx
 ```
 
-The frontend never connects to PostgreSQL directly. React only calls Flask API endpoints. Database host names, usernames, passwords, and SSL settings stay in backend environment variables.
+The browser never connects to PostgreSQL. React only calls Flask endpoints. Credentials stay in `backend/.env`.
 
-## Current User Flow
+## User Flow
 
-The React app is organized as one scrollable experience:
+The app is one scrollable experience with scroll-snap between sections:
 
-1. **Hero** introduces the LA x WC26 experience.
-2. **Matches** shows the Los Angeles match schedule at SoFi Stadium.
-3. **Match Detail Overlay** opens when a match is selected. It combines match information, team context, player lists, FIFA ranking context, tickets, nearby hotels, restaurants, and fan events.
-4. **Explore LA** starts as a five-card photo wall: Hotels, Restaurants, Fan Events, Shows, and Attractions.
-5. **Explore Category View** opens inside the same Explore LA section. Users can select places or events, see selected picks on the right, and use the map panel for location context.
-6. **Journey** generates a personalized travel plan from backend SQL recommendation pools.
-7. **About Us** presents team member profiles and GitHub links.
-
-Team and ranking information belongs inside match details because it is most useful when a visitor opens a specific match.
+1. **Hero** — LA × WC26 landing. Three step-buttons: *Pick your match → Explore the city → Generate your trip* jump directly to each section.
+2. **Matches** — Eight Los Angeles matches at SoFi Stadium. Click any match to open the detail overlay.
+3. **Match Overlay** — Stage, date/time, team flags + FIFA rankings, match storyline, head-to-head history, then tabs: Tickets / Hotels / Restaurants / Fan Events / Squad. A bottom CTA links to Explore LA.
+4. **Explore LA** — Split layout: card grid on the left, live Leaflet map on the right. Five categories: Hotels, Restaurants, Fan Events, Shows, Attractions. Cards show website screenshots via thum.io and link to official sites. Selections persist across categories and appear as pins on the map. "Build My Journey →" scrolls to Journey.
+5. **Journey** — Form inputs (traveler type, budget, days, match date, vibe). Generates a day-by-day schedule from SQL recommendation pools, prioritizing Explore LA picks. Result shows a timeline on the left and a live route map on the right. Hover a timeline item to highlight it on the map.
+6. **About Us** — Team profiles with DiceBear avatars and GitHub links.
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Database | PostgreSQL | Stores match, team, player, ranking, hotel, restaurant, event, route, and map data |
-| ETL | Python, pandas, psycopg2 | Creates tables and imports cleaned CSV data |
-| Backend | Flask, flask-cors, psycopg2, python-dotenv | Provides database-backed JSON API endpoints |
-| Frontend | React, Vite, CSS | Renders the interactive LA guide |
-| Map UI | Frontend-rendered map panel | Shows SoFi Stadium and selected Explore LA items |
+| Layer | Technology |
+|---|---|
+| Database | PostgreSQL (DigitalOcean managed) |
+| ETL | Python, pandas, psycopg2 |
+| Backend | Flask, flask-cors, psycopg2, python-dotenv |
+| Frontend | React 19, Vite, CSS (Cormorant Garamond + DM Mono) |
+| Maps | Leaflet via CDN |
+| Card images | thum.io website screenshot service |
 
 ## Repository Structure
 
@@ -51,30 +47,25 @@ LA_WorldCup/
 ├── backend/
 │   ├── app.py              # Flask routes and Journey generation logic
 │   ├── queries.py          # PostgreSQL query layer and connection pool
-│   ├── setup_database.py   # Schema creation and CSV import script
-│   ├── requirements.txt    # Python backend dependencies
-│   └── .env.example        # Example database environment variables
+│   ├── setup_database.py   # Schema creation and CSV import
+│   ├── requirements.txt
+│   └── .env.example
 │
 ├── frontend/
-│   ├── index.html          # Vite entry HTML
-│   ├── package.json        # React/Vite scripts and dependencies
-│   ├── vite.config.js
 │   ├── src/
-│   │   ├── api.js          # Frontend API client
-│   │   ├── main.jsx        # React app, components, and state
-│   │   └── placeMedia.js   # Explore LA official links and image helpers
-│   ├── css/styles.css      # Visual system and page styles
-│   └── images/             # Hero and Explore LA image assets
+│   │   ├── api.js          # Frontend API client and data mapping
+│   │   ├── main.jsx        # All React components and app state
+│   │   └── placeMedia.js   # Official URLs and thum.io image helpers
+│   ├── css/styles.css
+│   └── images/
 │
 ├── database/
-│   ├── raw_data/           # Original source files
-│   ├── clean_data/         # Import-ready CSV files
-│   └── docs/               # ER diagram and data documentation
+│   ├── raw_data/
+│   ├── clean_data/
+│   └── docs/               # ER diagram
 │
 ├── API_INTERFACE.md
-├── API_INTERFACE.cn.md
-├── README.md
-└── README.cn.md
+└── README.md
 ```
 
 ## Local Setup
@@ -87,29 +78,9 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-```
-
-Fill in `backend/.env` with private database values:
-
-```text
-DB_HOST=your-db-host
-DB_PORT=25060
-DB_NAME=your-db-name
-DB_USER=your-db-user
-DB_PASSWORD=your-db-password
-DB_SSLMODE=require
-```
-
-Start Flask:
-
-```bash
+# fill in DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSLMODE
 python3 app.py
-```
-
-Backend URL:
-
-```text
-http://127.0.0.1:5001
+# → http://127.0.0.1:5001
 ```
 
 ### Frontend
@@ -118,243 +89,89 @@ http://127.0.0.1:5001
 cd frontend
 npm install
 npm run dev
+# → http://localhost:5173
 ```
-
-Frontend URL:
-
-```text
-http://127.0.0.1:5173
-```
-
-Production build:
-
-```bash
-npm run build
-```
-
-## Main Features
-
-- **Database-backed match schedule** for the eight Los Angeles World Cup matches at SoFi Stadium.
-- **Match overlay** with contextual teams, rankings, player lists, tickets, nearby hotels, restaurants, and events.
-- **Explore LA photo wall** with five database categories: Hotels, Restaurants, Fan Events, Shows, and Attractions.
-- **Selectable Explore LA picks** stored in browser state/local storage and passed into Journey generation.
-- **Official website links** shown as explicit `Official Site` fields instead of making the entire image card leave the app.
-- **Journey planner** generated by Flask using SQL-backed event, restaurant, hotel, match, and preference logic.
-- **About Us page** with readable team profiles and project/member GitHub links.
 
 ## Database Design
 
-The database follows a dimensional modeling pattern. Dimension tables store stable entities, while fact tables store match schedules, tickets, hotels, restaurants, events, routes, and rankings.
-
-ER diagram:
-
-```text
-database/docs/APAN5310_ER_Diagram_Simplified_v4.drawio.html
-```
+Dimensional model — dimension tables hold stable entities, fact tables hold transactional data.
 
 ### Dimension Tables
 
-| Table | Purpose |
+| Table | Contents |
 |---|---|
-| `dim_team` | Countries, federations, group stage information, qualification status |
-| `dim_player` | Player names, teams, positions, clubs, ages, caps, goals, star flags |
-| `dim_place` | Stadiums, airports, and transport-related places with coordinates |
-| `dim_mode` | Transportation mode metadata |
-| `dim_event_category` | Event category labels used by event and Journey queries |
+| `dim_team` | Countries, federations, group stage, qualification status |
+| `dim_player` | Names, teams, positions, clubs, ages, caps, goals, star flags |
+| `dim_place` | Stadiums, airports, transport places with coordinates |
+| `dim_mode` | Transport mode metadata |
+| `dim_event_category` | Category labels used by event and Journey queries |
 
 ### Fact Tables
 
-| Table | Purpose |
+| Table | Contents |
 |---|---|
-| `fact_match` | LA match schedule: match number, date, time, teams, group, stage, venue |
-| `fact_ticket` | Ticket category, section, price, status, and match relationship |
-| `fact_hotel` | Hotel region, address, star rating, price band, reviews, coordinates |
-| `fact_restaurant` | Restaurant region, address, cuisine, price range, score, accessibility |
-| `fact_event` | Fan events, shows, community events, sports events, and LA experiences |
-| `fact_route` | Airport-to-SoFi and local transport route options |
+| `fact_match` | Match number, date, time, teams, group, stage, venue |
+| `fact_ticket` | Category, section, price, status, match FK |
+| `fact_hotel` | Region, address, star rating, price band, reviews, lat/lon |
+| `fact_restaurant` | Region, address, cuisine, price range, review score |
+| `fact_event` | Fan events, shows, community events, sports events, LA experiences |
+| `fact_route` | Airport-to-venue and local transport routes |
 | `fact_ranking` | FIFA ranking snapshot with rank changes and points |
 
 ### Detail Tables
 
-| Table | Purpose |
+| Table | Contents |
 |---|---|
-| `event_experience_detail` | Duration, suitability, admission, transportation, and experience notes |
-| `event_sports_detail` | Sport-specific details and ticket information |
-
-## SQL Logic
-
-All database reads are centralized in [backend/queries.py](backend/queries.py). Flask routes in [backend/app.py](backend/app.py) call these query functions and return JSON.
-
-### Connection Handling
-
-`queries.py` loads private connection values from `backend/.env` and creates a lazy PostgreSQL connection pool:
-
-```python
-psycopg2.pool.ThreadedConnectionPool(...)
-```
-
-The helper function `query(sql, params=None, conn=None)`:
-
-1. Borrows a connection from the pool.
-2. Runs parameterized SQL.
-3. Uses `RealDictCursor` so rows become dictionaries.
-4. Returns `list[dict]` for Flask `jsonify`.
-5. Rolls back and returns the connection to the pool on database errors.
-
-### Core Query Patterns
-
-Match schedule:
-
-```sql
-SELECT match_number, date, day_of_week, time_pt,
-       team1, team2, "group", stage, venue
-FROM fact_match
-ORDER BY date, time_pt;
-```
-
-Tickets by match:
-
-```sql
-SELECT ticket_id, seating_section, section_level,
-       ticket_category, price_usd, ticket_status, matchup
-FROM fact_ticket
-WHERE match_number = %s
-ORDER BY price_usd;
-```
-
-Event rows with category labels and official URLs:
-
-```sql
-SELECT e.event_id, e.event_name, e.event_type, e.category,
-       e.area, e.venue_name, e.start_date, e.source_url,
-       c.category AS category_label
-FROM fact_event e
-LEFT JOIN dim_event_category c
-       ON e.event_category_id = c.event_category_id
-ORDER BY e.start_date, e.event_name;
-```
-
-Journey recommendation pools:
-
-```sql
-SELECT *
-FROM fact_event
-WHERE event_category_id = ANY(%s)
-ORDER BY start_date, event_name
-LIMIT %s;
-```
-
-## Backend API
-
-The API is documented in detail in [API_INTERFACE.md](API_INTERFACE.md).
-
-Core endpoints used by the current React app:
-
-| Endpoint | Used For |
-|---|---|
-| `GET /api/matches` | Match schedule and selected match overlay |
-| `GET /api/tickets/<match_number>` | Tickets tab inside match overlay |
-| `GET /api/players` | Player data loaded for team context |
-| `GET /api/players/<team_country>` | Players for a selected team |
-| `GET /api/teams` | Team context inside match overlay |
-| `GET /api/rankings` | FIFA ranking context inside match overlay |
-| `GET /api/hotels` | Explore LA hotels and match nearby hotels |
-| `GET /api/restaurants` | Explore LA restaurants and match nearby restaurants |
-| `GET /api/events` | Fan Events, Shows, Attractions, and Journey pools |
-| `GET /api/itinerary` | Personalized Journey generation |
-
-Current public API endpoints focus on Matches, Explore LA, Journey, and About Us support data.
-
-## Frontend Data Flow
-
-[frontend/src/api.js](frontend/src/api.js) contains the API wrapper. `loadSiteData()` requests the main datasets and maps backend rows into UI-friendly objects:
-
-- `matches`
-- `players`
-- `hotels`
-- `restaurants`
-- `fanEvents`
-- `shows`
-- `allEvents`
-- `rankings`
-- `teams`
-
-[frontend/src/main.jsx](frontend/src/main.jsx) then renders:
-
-- `PhotoHero`
-- `Matches`
-- `MatchOverlay`
-- `ExploreLA`
-- `Journey`
-- `About`
-- `Footer`
-
-The current app intentionally does not use fake fallback data when the backend is down. If Flask or PostgreSQL is unavailable, the UI shows database connection notices.
-
-## Explore LA Logic
-
-Explore LA has five categories:
-
-| UI Category | Data Source |
-|---|---|
-| Hotels | `/api/hotels` |
-| Restaurants | `/api/restaurants` |
-| Fan Events | `/api/events`, filtered by fan-event category IDs |
-| Shows | `/api/events`, filtered by show category IDs |
-| Attractions | `/api/events`, filtered from all event/experience rows |
-
-Each item can show:
-
-- Name
-- Region or area
-- Category-specific metadata
-- Local/fallback image
-- Explicit `Official Site` link when a URL is available
-- Selectable checkbox/card state
-
-Selected items are stored in frontend state and browser local storage as Explore LA picks. The `Go` button moves the user to the Journey section, and the selected picks are sent to `/api/itinerary` when a Journey is generated.
+| `event_experience_detail` | Duration, suitability, admission, transportation notes |
+| `event_sports_detail` | Sport type and competition info |
 
 ## Journey Logic
 
-`GET /api/itinerary` maps user choices into SQL-backed recommendation pools.
+`GET /api/itinerary` maps user inputs to SQL-backed recommendation pools and builds a daily schedule.
 
-| User Input | Backend Mapping |
+Each regular day follows this structure:
+
+| Time | Slot |
 |---|---|
-| `type` | Event category groups such as football, family, backpacker, luxury |
-| `budget` | Hotel price band and restaurant price ranges |
-| `days` | Number of generated days, clamped between 1 and 7 |
-| `match_date` | Match label/date inserted into the trip plan |
-| `vibe` | Extra event category pool such as culture, beach, nightlife, film |
-| `picks` | JSON list of Explore LA selections to prioritize in the generated plan |
+| 09:30 | Morning activity (type event) |
+| 12:30 | Lunch (restaurant) |
+| 15:00 | Afternoon activity (different category) |
+| 18:00 | Evening activity (vibe event) |
+| 20:30 | Dinner (restaurant) |
 
-The backend then:
+Match day: morning activity → lunch → match. No extra activities after kickoff.
 
-1. Pulls event pools with `get_events_by_categories()`.
-2. Pulls hotels with `recommend_hotels_for_budget()`.
-3. Pulls restaurants with `recommend_restaurants_for_budget()`.
-4. Parses Explore LA picks and inserts selected restaurants, events, shows, and attractions into the schedule first.
-5. Uses a selected hotel pick as the recommended stay when available.
-6. Builds a deterministic schedule using a hash seed from user parameters.
-7. Returns JSON containing daily activities, hotel recommendation, match info, budget label, traveler type, and `picks_used`.
+Rules enforced per day:
+- No two activities from the same category.
+- Events are consumed from a deque to avoid repeating across days.
+- Restaurants cycle through a pool so lunch ≠ dinner.
+- If a hotel is selected in Explore LA, restaurants and events from the same area are prioritized.
+- Explore LA picks are inserted into the schedule before generic recommendations.
 
-## Privacy and Security Notes
+## API Summary
 
-- The browser never receives database credentials.
-- The frontend only sees JSON returned by Flask.
-- Backend `.env` files should not be committed.
-- SQL queries use parameterized placeholders for user-controlled filters.
-- Official website links are displayed as links, but external navigation is explicit and user-triggered.
+See [API_INTERFACE.md](API_INTERFACE.md) for full endpoint documentation.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/matches` | Match schedule |
+| `GET /api/tickets/<match_number>` | Ticket options for a match |
+| `GET /api/teams` | Team context |
+| `GET /api/players` | Player data |
+| `GET /api/players/<team>` | Players for one team (Squad tab) |
+| `GET /api/rankings` | FIFA rankings |
+| `GET /api/hotels` | Hotel list with coordinates |
+| `GET /api/restaurants` | Restaurant list |
+| `GET /api/events` | Events, shows, attractions |
+| `GET /api/itinerary` | Personalized journey generation |
+
+## Security Notes
+
+- Browser never sees database credentials.
+- All SQL uses parameterized queries — no string interpolation with user input.
+- `backend/.env` must not be committed (listed in `.gitignore`).
 
 ## Smoke Tests
-
-Build the frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-Quick API checks:
 
 ```bash
 curl http://127.0.0.1:5001/api/matches
