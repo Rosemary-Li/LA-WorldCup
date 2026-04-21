@@ -360,7 +360,8 @@ def recommend_hotels_for_budget(price_band):
     """Return up to 3 hotels matching the price band, ordered by star rating."""
     return query("""
         SELECT hotel_id, hotel_name, region, address,
-               star_rating, price_band, google_reviews_count
+               star_rating, price_band, google_reviews_count,
+               latitude, longitude
         FROM fact_hotel
         WHERE price_band = %s
         ORDER BY star_rating DESC, google_reviews_count DESC

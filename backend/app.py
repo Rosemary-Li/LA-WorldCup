@@ -168,6 +168,36 @@ _MATCH_INFO = {
     "jul2":  {"date": "July 2",  "time": "12:00", "label": "Round of 32 (M84)"},
     "jul10": {"date": "July 10", "time": "12:00", "label": "Quarter-Finals (M98)"},
 }
+_AREA_COORDS = {
+    "west hollywood":  (34.0900, -118.3617),
+    "weho":            (34.0900, -118.3617),
+    "downtown":        (34.0522, -118.2437),
+    "downtown la":     (34.0522, -118.2437),
+    "dtla":            (34.0522, -118.2437),
+    "santa monica":    (34.0195, -118.4912),
+    "venice":          (33.9850, -118.4695),
+    "hollywood":       (34.1016, -118.3267),
+    "beverly hills":   (34.0736, -118.4004),
+    "koreatown":       (34.0592, -118.3006),
+    "little tokyo":    (34.0486, -118.2386),
+    "westwood":        (34.0636, -118.4468),
+    "culver city":     (34.0211, -118.3965),
+    "inglewood":       (33.9617, -118.3531),
+    "echo park":       (34.0783, -118.2601),
+    "silver lake":     (34.0868, -118.2707),
+    "los angeles":     (34.0522, -118.2437),
+    "la":              (34.0522, -118.2437),
+}
+
+def _area_latlon(area_str):
+    if not area_str:
+        return None, None
+    key = str(area_str).strip().lower()
+    for k, coords in _AREA_COORDS.items():
+        if k in key:
+            return coords
+    return None, None
+
 _DAY_SLOTS  = ["09:30", "12:30", "15:00", "18:00", "20:30"]
 _DAY_LABELS = [
     "Day 1 · Arrival & First Impressions",
@@ -184,13 +214,18 @@ def _event_to_activity(evt, time_slot):
     ticket = evt.get("ticket_price") or evt.get("admission_info")
     if ticket:
         parts.append(str(ticket))
-    return {
+    lat, lng = _area_latlon(evt.get("area") or evt.get("city"))
+    act = {
         "time":   time_slot,
         "title":  evt["event_name"],
         "desc":   " · ".join(parts),
         "source": "event",
         "id":     evt["event_id"],
     }
+    if lat is not None:
+        act["lat"] = lat
+        act["lng"] = lng
+    return act
 
 def _meal_label(time_slot):
     try:
@@ -206,13 +241,18 @@ def _meal_label(time_slot):
 def _rest_to_activity(rest, time_slot):
     score = f"⭐ {rest['google_review_score']}" if rest.get("google_review_score") else ""
     parts = [p for p in [rest.get("region"), rest.get("flavor"), rest.get("price_range"), score] if p]
-    return {
+    lat, lng = _area_latlon(rest.get("region"))
+    act = {
         "time":   time_slot,
         "title":  f"{_meal_label(time_slot)} at {rest['restaurant_name']}",
         "desc":   " · ".join(parts),
         "source": "restaurant",
         "id":     rest["restaurant_id"],
     }
+    if lat is not None:
+        act["lat"] = lat
+        act["lng"] = lng
+    return act
 
 def _parse_explore_picks(raw):
     if not raw:
@@ -253,14 +293,23 @@ def _pick_to_activity(pick, time_slot):
         "shows": "Show:",
         "attractions": "Visit",
     }.get(category, "Explore")
-    title = f"{prefix} {pick['name']}" if category != "events" else f"{prefix} {pick['name']}"
-    return {
+    title = f"{prefix} {pick['name']}"
+    act = {
         "time": time_slot,
         "title": title,
         "desc": pick.get("detail") or "Saved from Explore LA",
         "source": "explore_pick",
         "id": pick.get("id"),
     }
+    try:
+        lat = float(pick.get("lat") or 0)
+        lng = float(pick.get("lng") or 0)
+        if lat and lng:
+            act["lat"] = lat
+            act["lng"] = lng
+    except (TypeError, ValueError):
+        pass
+    return act
 
 @app.route("/api/itinerary")
 def itinerary():
@@ -300,11 +349,27 @@ def itinerary():
     rng.shuffle(restaurants)
 
     picked_hotels = [p for p in explore_picks if p["category"] == "hotels"]
+
+    # Determine base area from selected hotel pick or top recommended hotel,
+    # then float same-area restaurants and events to the front.
+    base_area = ""
+    if picked_hotels:
+        detail = picked_hotels[0].get("detail", "")
+        base_area = detail.split("·")[0].strip().lower()
+    elif hotels:
+        base_area = (hotels[0].get("region") or "").lower()
+
+    if base_area:
+        def _area_match(region_str):
+            return base_area in (region_str or "").lower() or (region_str or "").lower() in base_area
+
+        restaurants = sorted(restaurants, key=lambda r: 0 if _area_match(r.get("region")) else 1)
+        events      = sorted(events,      key=lambda e: 0 if _area_match(e.get("area") or e.get("city")) else 1)
+        vibe_events = sorted(vibe_events, key=lambda e: 0 if _area_match(e.get("area") or e.get("city")) else 1)
     picked_activities = [
         p for p in explore_picks
         if p["category"] in {"restaurants", "events", "shows", "attractions"}
     ]
-    pick_idx = 0
 
     match_info = _MATCH_INFO.get(match_dt, _MATCH_INFO["jun12"])
     match_activity = {
@@ -314,8 +379,35 @@ def itinerary():
         "source": "match",
     }
 
-    evt_idx  = 0
-    rest_idx = 0
+    # Use deques so we pop without repeating across days
+    from collections import deque
+    evt_pool  = deque(events)
+    vibe_pool = deque(vibe_events)
+    rest_pool = deque(restaurants * 3)  # repeat so we never run dry
+
+    def _pick_event(pool, used_cats):
+        """Pop first event whose category hasn't been used today."""
+        for _ in range(len(pool)):
+            evt = pool[0]
+            cat = (evt.get("category_label") or evt.get("category") or "misc").strip().lower()
+            pool.rotate(-1)
+            if cat not in used_cats:
+                used_cats.add(cat)
+                return evt
+        # fallback: just take next
+        if pool:
+            pool.rotate(-1)
+            return pool[-1]
+        return None
+
+    def _next_rest():
+        if rest_pool:
+            r = rest_pool.popleft()
+            rest_pool.append(r)  # cycle
+            return r
+        return None
+
+    pick_idx = 0
     result_days = []
 
     for d in range(days):
@@ -325,44 +417,49 @@ def itinerary():
             label = f"Day 3 · Match Day — {match_info['label']}"
 
         activities = []
+        used_cats = set()
 
+        # Prepend any user-picked activities (up to 2 per day)
         while pick_idx < len(picked_activities) and len(activities) < 2:
             activities.append(_pick_to_activity(picked_activities[pick_idx], _DAY_SLOTS[len(activities)]))
             pick_idx += 1
 
         if is_match_day:
-            # Fill morning activities, then the match.
-            while events and len(activities) < 2:
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
+            # 09:30 morning activity → 12:30 lunch → match
+            evt = _pick_event(evt_pool, used_cats)
+            if evt:
+                activities.append(_event_to_activity(evt, "09:30"))
+            rest = _next_rest()
+            if rest:
+                activities.append(_rest_to_activity(rest, "12:30"))
             activities.append(match_activity)
 
-        elif d == 0:
-            # Day 1: type events, dinner, and a vibe event.
-            while events and len(activities) < 3:
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
-            if restaurants and len(activities) < 4:
-                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[len(activities)]))
-                rest_idx += 1
-            if vibe_events and len(activities) < 5:
-                vibe_time = "22:00" if vibe == "nightlife" else _DAY_SLOTS[4]
-                activities.append(_event_to_activity(vibe_events[0], vibe_time))
-
         else:
-            # Regular days: type events, one vibe activity, and dinner.
-            while events and len(activities) < 3:
-                evt = events[evt_idx % len(events)]
-                evt_idx += 1
-                activities.append(_event_to_activity(evt, _DAY_SLOTS[len(activities)]))
-            if vibe_events and len(activities) < 4:
-                vi = (d - 1) % len(vibe_events)
-                activities.append(_event_to_activity(vibe_events[vi], _DAY_SLOTS[len(activities)]))
-            if restaurants and len(activities) < 5:
-                activities.append(_rest_to_activity(restaurants[rest_idx % len(restaurants)], _DAY_SLOTS[len(activities)]))
-                rest_idx += 1
+            # 09:30  morning activity (type event)
+            evt = _pick_event(evt_pool, used_cats)
+            if evt:
+                activities.append(_event_to_activity(evt, "09:30"))
+
+            # 12:30  lunch
+            rest = _next_rest()
+            if rest:
+                activities.append(_rest_to_activity(rest, "12:30"))
+
+            # 15:00  afternoon activity (different category)
+            evt2 = _pick_event(evt_pool, used_cats)
+            if evt2:
+                activities.append(_event_to_activity(evt2, "15:00"))
+
+            # 18:00  vibe / evening activity (different category)
+            vibe_time = "21:00" if vibe == "nightlife" else "18:00"
+            vibe_evt = _pick_event(vibe_pool, used_cats)
+            if vibe_evt:
+                activities.append(_event_to_activity(vibe_evt, vibe_time))
+
+            # 20:30  dinner
+            rest2 = _next_rest()
+            if rest2:
+                activities.append(_rest_to_activity(rest2, "20:30"))
 
         result_days.append({"day_num": d + 1, "label": label, "activities": activities})
 
