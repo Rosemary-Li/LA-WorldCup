@@ -4,24 +4,23 @@ Contract between the React frontend and the Flask/PostgreSQL backend.
 
 - React sends HTTP requests via `frontend/src/api.js`.
 - Flask receives them in `backend/app.py` and calls `backend/queries.py`.
+- Journey generation logic lives in `backend/services/itinerary.py`.
 - PostgreSQL returns rows; Flask serializes them as JSON.
 - The browser never touches PostgreSQL directly.
+
+> 中文版：[API_INTERFACE.cn.md](API_INTERFACE.cn.md)
 
 ---
 
 ## Frontend API Client
 
-All requests go through `frontend/src/api.js`:
+All requests go through `frontend/src/api.js`. The base URL is read from an environment variable:
 
 ```js
-export const API_BASE = "http://127.0.0.1:5001";
-
-async function apiFetch(endpoint) {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`API error: ${endpoint}`);
-  return res.json();
-}
+export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001";
 ```
+
+Set `VITE_API_BASE` in `frontend/.env` to point at any backend host. The Vite dev server also proxies `/api` requests to the same target, so relative paths work in development.
 
 On app mount, `loadSiteData()` fetches all primary datasets in parallel:
 
@@ -39,17 +38,18 @@ Promise.all([
 
 Returns UI-ready state: `{ matches, players, hotels, restaurants, fanEvents, shows, allEvents, rankings, teams }`.
 
-If loading fails, `apiReady = false` and the UI shows a connection error instead of fake data.
+If loading fails, `apiReady = false` and the UI shows a connection error instead of blank data.
 
 ---
 
 ## Component → API Map
 
-| Component | Data source |
+| Component / Hook | Data source |
 |---|---|
+| `useSiteData` | `loadSiteData()` — parallel fetch on mount |
 | `PhotoHero` | None |
 | `Matches` | `data.matches` (preloaded) |
-| `MatchOverlay` | `data.matches/teams/rankings/players`; `loadTickets()` on demand; `loadPlayersByTeam()` on demand |
+| `MatchOverlay` | `data.matches/teams/rankings`; `loadTickets()` on demand; `loadPlayersByTeam()` on demand |
 | `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` |
 | `SyncMap` | Selected items passed as props (no API call) |
 | `Journey` | `generateJourney()` → `GET /api/itinerary` |
@@ -70,14 +70,12 @@ FROM fact_match
 ORDER BY date, time_pt
 ```
 
-Key fields:
-
 | Field | Description |
 |---|---|
 | `match_number` | Match ID, e.g. `M4` |
 | `date` | Match date |
 | `time_pt` | Kickoff time (Pacific) |
-| `team1`, `team2` | Teams from database |
+| `team1`, `team2` | Team names from database |
 | `stage` | Tournament stage |
 | `venue` | Stadium name |
 
@@ -85,7 +83,7 @@ Key fields:
 
 ### `GET /api/matches/<match_number>`
 
-Single match with venue address and notes. Available but the frontend primarily uses preloaded data.
+Single match detail including venue address and notes. Available but the frontend uses preloaded data for most display purposes.
 
 ---
 
@@ -103,10 +101,10 @@ ORDER BY price_usd
 
 | Field | UI usage |
 |---|---|
-| `ticket_category` | Card title |
+| `ticket_category` | Card title (Chinese parentheticals stripped) |
 | `seating_section` | Seat area |
-| `price_usd` | Price |
-| `ticket_status` | Available / Sold Out |
+| `price_usd` | Displayed as `$XXX` |
+| `ticket_status` | Color-coded: green = Available, red = Sold Out |
 
 ---
 
@@ -139,28 +137,36 @@ FIFA ranking snapshot for all LA teams.
 
 ### `GET /api/players`
 
-All players. Optional query params: `limit`, `offset`, `search`.
+All players. Optional query params: `limit` (default 500), `offset` (default 0), `search`.
 
 ### `GET /api/players/stars`
 
-Star players only.
+Star players only (`is_star = true`).
 
 ### `GET /api/players/<team_country>`
 
-Players for one team. Called on demand when Squad tab opens in `MatchOverlay`.
+Players for one team. Called on demand when the Squad tab opens in `MatchOverlay`.
+
+| Field | UI usage |
+|---|---|
+| `player_name` | Name (star players suffixed with `★`) |
+| `position` | Position |
+| `club` | Club name |
+| `caps` | International appearances |
+| `goals` | International goals |
 
 ---
 
 ### `GET /api/hotels`
 
-All hotels ordered by star rating.
+All hotels ordered by star rating descending.
 
 Frontend mapping in `loadSiteData()`:
 
 ```js
 {
   name:    h.hotel_name,
-  region:  cleanParenthetical(h.region),
+  region:  cleanParenthetical(h.region),   // strips "(注释)" style annotations
   address: h.address,
   stars:   Math.round(h.star_rating) || 3,
   price:   h.price_band ? `${h.price_band}/night` : "N/A",
@@ -170,9 +176,9 @@ Frontend mapping in `loadSiteData()`:
 }
 ```
 
-Used for Explore LA Hotels, map pins, and `MatchOverlay` nearby hotels.
+Used for: Explore LA Hotels tab, map pins, `MatchOverlay` nearby hotels, and Journey hotel recommendation.
 
-Additional endpoints (available, not used by current UI):
+Additional endpoints (available, not called by current UI):
 - `GET /api/hotels/region/<region>`
 - `GET /api/hotels/price/<price_band>`
 
@@ -180,7 +186,7 @@ Additional endpoints (available, not used by current UI):
 
 ### `GET /api/restaurants`
 
-Query params: `limit`, `offset`, `search`, `region`.
+Query params: `limit` (default 500), `offset`, `search`, `region`.
 
 Frontend mapping:
 
@@ -194,7 +200,7 @@ Frontend mapping:
 }
 ```
 
-Used for Explore LA Restaurants, `MatchOverlay` nearby restaurants, and Journey meal slots.
+Used for: Explore LA Restaurants tab, `MatchOverlay` nearby restaurants, Journey meal slots.
 
 Additional endpoint: `GET /api/restaurants/flavor/<flavor>`
 
@@ -202,30 +208,27 @@ Additional endpoint: `GET /api/restaurants/flavor/<flavor>`
 
 ### `GET /api/events`
 
-Query params: `limit`, `offset`, `search`, `area`.
+Query params: `limit` (default 500), `offset`, `search`, `area`.
 
 Joins `fact_event` with `dim_event_category`. Returns `source_url` for official site links.
 
-Frontend category split:
+Frontend category split at load time:
 
 ```js
-showCats     = new Set([12, 13, 14, 15])
-fanEventCats = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 23])
+showCats     = new Set([12, 13, 14, 15])      // → data.shows
+fanEventCats = new Set([1-11, 23])             // → data.fanEvents
+// all events → data.allEvents (Attractions drawn from category IDs 16-22)
 ```
-
-- `showCats` → `data.shows`
-- `fanEventCats` → `data.fanEvents`
-- all events → `data.allEvents` (Attractions drawn from here)
 
 Additional endpoints:
 - `GET /api/events/category/<category>`
-- `GET /api/events/<event_id>` — full detail including experience/sports sub-detail
+- `GET /api/events/<event_id>` — full detail including `event_experience_detail` and `event_sports_detail` joins
 
 ---
 
 ### `GET /api/itinerary`
 
-Generates a personalized day-by-day trip plan.
+Generates a personalized day-by-day trip plan. Logic lives in `backend/services/itinerary.py`; the Flask route only parses query params.
 
 **Query parameters:**
 
@@ -236,7 +239,7 @@ Generates a personalized day-by-day trip plan.
 | `days` | `3` | 1–7 |
 | `match_date` | `jun12` | `jun12`, `jun15`, `jun18`, `jun21`, `jun25`, `jun28`, `jul2`, `jul10` |
 | `vibe` | `culture` | `culture`, `beach`, `nightlife`, `film` |
-| `picks` | `[]` | JSON array of Explore LA selected items |
+| `picks` | `[]` | URL-encoded JSON array of Explore LA selected items |
 
 **`picks` item shape:**
 
@@ -253,24 +256,30 @@ Generates a personalized day-by-day trip plan.
 }
 ```
 
-**Backend logic:**
+**Backend logic (in `services/itinerary.py`):**
 
 1. Maps `type` → event category IDs → `get_events_by_categories()`
 2. Maps `vibe` → vibe event category IDs → `get_events_by_categories()`
 3. Maps `budget` → `recommend_hotels_for_budget()` and `recommend_restaurants_for_budget()`
-4. If a hotel pick is present, extracts its region and sorts same-area restaurants and events to the front
-5. Inserts Explore LA picks into the schedule first (up to 2 per day)
-6. Builds each day using a deque-based pool with category deduplication:
+4. Deduplicates: vibe events that already appear in type events are moved to the vibe pool only
+5. Shuffles with a deterministic seed so same params yield the same schedule
+6. Extracts base area from the selected hotel pick (or top recommended hotel); floats same-area restaurants and events to the front
+7. Inserts Explore LA activity picks first (up to 2 per day)
+8. Builds each day from deque-based pools with per-day category deduplication:
 
 | Time | Slot |
 |---|---|
 | 09:30 | Morning activity (type event, unique category) |
 | 12:30 | Lunch (restaurant) |
-| 15:00 | Afternoon activity (different category from morning) |
+| 15:00 | Afternoon activity (different category) |
 | 18:00 | Evening/vibe activity (different category again) |
 | 20:30 | Dinner (restaurant) |
 
 Match day: morning activity → lunch → match. No evening slots.
+
+**Match date and area coordinate configuration:**
+
+Match labels live in `backend/config/matches.json`. LA area coordinates live in `backend/config/areas.json`. Both are loaded at service startup — no code change needed to update them.
 
 **Response shape:**
 
@@ -284,7 +293,7 @@ Match day: morning activity → lunch → match. No evening slots.
         {
           "time": "09:30",
           "title": "Tom's Watch Bar",
-          "desc": "West Hollywood · Fan bar",
+          "desc": "West Hollywood · Watch Party",
           "source": "event",
           "id": "EVT_042",
           "lat": 34.09,
@@ -303,12 +312,12 @@ Match day: morning activity → lunch → match. No evening slots.
     }
   ],
   "hotel": {
-    "hotel_name": "The Ritz-Carlton, DTLA",
-    "region": "Downtown",
-    "star_rating": 5,
-    "price_band": "400+",
-    "latitude": 34.0452,
-    "longitude": -118.2643
+    "hotel_name": "Hotel Erwin",
+    "region": "Venice",
+    "star_rating": 4,
+    "price_band": "200+",
+    "latitude": 33.985,
+    "longitude": -118.4695
   },
   "match": {
     "date": "June 12",
@@ -321,18 +330,27 @@ Match day: morning activity → lunch → match. No evening slots.
 }
 ```
 
-`lat`/`lng` are included on activities when coordinates are available (from `fact_hotel`, or area-based approximation for events/restaurants). The frontend uses these to highlight timeline items on the map on hover.
+`lat`/`lng` are included on activities when available (exact coordinates from `fact_hotel`, or area-centroid approximations for events/restaurants from `config/areas.json`). The frontend uses these to highlight timeline items on the map on hover.
+
+Activity `source` values:
+
+| `source` | Label shown | Origin |
+|---|---|---|
+| `event` | `EVENT` | `fact_event` row |
+| `restaurant` | `DINE` | `fact_restaurant` row |
+| `match` | `MATCH` | Fixed match activity |
+| `explore_pick` | `PICK` | User-selected Explore LA item |
 
 ---
 
 ## Explore LA Picks Flow
 
-1. User selects cards in Explore LA → stored in React state.
-2. On page refresh, `localStorage` is cleared — selections always start fresh.
-3. "Build My Journey →" scrolls to Journey section; picks are passed via `App()` state.
-4. On Journey generation, up to 12 picks are serialized as JSON and sent as `picks` query param.
-5. Flask parses picks, separates hotel picks from activity picks, and inserts activity picks first in the schedule.
-6. The response includes `picks_used` so the frontend can confirm which picks were incorporated.
+1. User selects cards in Explore LA → stored in React state (`ExploreLA.jsx`) and `localStorage`.
+2. On page refresh, `localStorage` is cleared — selections always start fresh per visit.
+3. "Build My Journey →" scrolls to Journey; picks are passed via `App` state down to `Journey`.
+4. On submission, up to 12 picks are serialized as JSON and sent as the `picks` query parameter.
+5. `services/itinerary.py` separates hotel picks (for area-matching) from activity picks (for schedule insertion).
+6. The response includes `picks_used` so the frontend can display a count of incorporated picks.
 
 ---
 
@@ -374,8 +392,8 @@ Match day: morning activity → lunch → match. No evening slots.
 | `fact_hotel` | `/api/hotels`, `/api/hotels/region/<r>`, `/api/hotels/price/<p>`, `/api/itinerary` |
 | `fact_restaurant` | `/api/restaurants`, `/api/restaurants/flavor/<f>`, `/api/itinerary` |
 | `fact_event` | `/api/events`, `/api/events/<id>`, `/api/events/category/<c>`, `/api/itinerary` |
-| `dim_event_category` | joined in `/api/events`, `/api/itinerary` |
-| `event_experience_detail` | joined in `/api/events/<id>`, `/api/itinerary` |
+| `dim_event_category` | Joined in `/api/events`, `/api/itinerary` |
+| `event_experience_detail` | Joined in `/api/events/<id>` |
 | `event_sports_detail` | `/api/events/<id>` |
 | `fact_route` | In database — not exposed by current API |
 | `dim_place` | In database — not exposed by current API |
@@ -385,10 +403,10 @@ Match day: morning activity → lunch → match. No evening slots.
 
 ## Security Boundary
 
-The frontend only knows `API_BASE = "http://127.0.0.1:5001"`. It never sees:
+The frontend reads `VITE_API_BASE` from its environment — it never sees:
 
 - Database host, username, password, or SSL mode
 - Raw SQL
 - Connection pool internals
 
-All user-controlled query parameters are passed through parameterized SQL in `queries.py`.
+All user-controlled query parameters flow through parameterized SQL in `queries.py`. No string interpolation with user input anywhere in the codebase.

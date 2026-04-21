@@ -1,4 +1,4 @@
-export const API_BASE = "http://127.0.0.1:5001";
+export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001";
 
 async function apiFetch(endpoint) {
   const res = await fetch(`${API_BASE}${endpoint}`);
