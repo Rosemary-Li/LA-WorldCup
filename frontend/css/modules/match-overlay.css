@@ -350,4 +350,53 @@
         .mo2-hero-rankings { gap: 3rem; }
         .mo2-content { padding: 1rem 1rem 3rem; }
       }
+      @media (max-width: 768px) {
+        #matchOverlay { overflow-x: hidden; }
+
+        .overlay-close { top: 0.7rem; right: 0.7rem; width: 34px; height: 34px; }
+        .mo2-hero { padding: 3rem 1rem 1.2rem; min-height: 28vh; }
+        .mo2-hero-flag { font-size: 1.6rem; }
+        .mo2-hero-matchup { gap: 0.6rem; flex-wrap: wrap; }
+        .mo2-hero-rankings { gap: 2rem; }
+
+        /* Crucial: cards must allow inner content to shrink — without
+           min-width: 0 the horizontal-scroll player strip blows out the
+           card width on narrow screens. */
+        .mo2-content {
+          padding: 0.8rem 0.7rem 2.5rem;
+          gap: 0.6rem;
+          max-width: 100%;
+        }
+        .mo2-card {
+          padding: 0.85rem 0.9rem;
+          min-width: 0;
+          max-width: 100%;
+        }
+        .mo2-row { gap: 0.6rem; }
+
+        /* H2H section */
+        .mo2-h2h-nums { gap: 1rem; margin: 0.3rem 0 0.85rem; padding-bottom: 0.85rem; }
+        .mo2-h2h-big { font-size: 1.85rem; }
+        .mo2-lm-row { font-size: 0.95rem; gap: 0.5rem; flex-wrap: wrap; }
+        .mo2-lm-meta { font-size: 0.46rem; }
+
+        /* Player cards — narrower so 2 fit before scroll, lock the strip
+           width to the card so overflow scrolls inside. */
+        .mo2-players-scroll {
+          gap: 0.5rem;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          width: 100%;
+          max-width: 100%;
+        }
+        .mo2-player-card { width: 110px; padding: 0.75rem 0.5rem 0.65rem; }
+        .mo2-player-avatar { width: 60px; height: 60px; }
+
+        /* Story + comparison: tighter type, allow text wrapping */
+        .mo2-story-title { font-size: 1.15rem; }
+        .mo2-story-desc { font-size: 0.82rem; }
+        .mo2-cmp-header,
+        .mo2-cmp-row { font-size: 0.7rem; gap: 0.35rem; }
+        .mo2-cmp-label { font-size: 0.4rem; }
+      }
 

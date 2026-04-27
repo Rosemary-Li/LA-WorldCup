@@ -257,7 +257,11 @@
       }
       @media (max-width: 768px) {
         #about {
-          padding: var(--nav-h, 82px) 1rem 1rem;
+          padding: calc(var(--nav-h, 64px) + 0.6rem) 1rem 2rem;
+          height: auto;
+          min-height: 100vh;
+          overflow: visible;
+          justify-content: flex-start;
         }
         .about-header {
           align-items: flex-start;
@@ -277,27 +281,6 @@
         }
       }
 
-      /* Responsive */
-      @media (max-width: 768px) {
-        .nav-bar {
-          padding: 0.5rem 1.5rem;
-        }
-        .nav-links {
-          display: none;
-        }
-        section {
-          padding: 3rem 1.5rem;
-        }
-        .journey-result-layout {
-          grid-template-columns: 1fr;
-        }
-        .journey-map-panel {
-          position: relative;
-          top: auto;
-        }
-        .journey-map-box {
-          min-height: 320px;
-          height: 360px;
-        }
-      }
+      /* Stale legacy block removed — nav, journey-result-layout, and section
+         padding are now handled in their dedicated module files. */
 

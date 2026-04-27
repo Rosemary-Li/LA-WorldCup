@@ -98,3 +98,39 @@
         transform: scale(1.5);
       }
 
+      /* ── Mobile: relax full-page snap (touch swipes feel jerky against
+         mandatory snap), let body scroll naturally, hide right-side dots ── */
+      @media (max-width: 768px) {
+        :root { --nav-h: 64px; }
+
+        html { overflow-x: hidden; overflow-y: auto; }
+        body {
+          height: auto;
+          overflow-x: hidden;
+          overflow-y: auto;
+          scroll-snap-type: none;
+          width: 100%;
+          max-width: 100vw;
+        }
+
+        /* Defense in depth: no single section may push the page wider than
+           the viewport. If any inline child overflows, it scrolls inside
+           that section instead of breaking the entire layout. */
+        #mount-photohero,
+        #mount-matches,
+        #mount-showcase,
+        #mount-itinerary,
+        #mount-journey-result,
+        #mount-about {
+          height: auto;
+          min-height: 100vh;
+          scroll-snap-align: none;
+          scroll-snap-stop: normal;
+          overflow-x: hidden;
+          overflow-y: visible;
+          max-width: 100vw;
+        }
+
+        #fp-dots { display: none; }
+      }
+

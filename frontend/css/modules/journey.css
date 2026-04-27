@@ -537,6 +537,193 @@
         .jr-match-date { grid-column: 1 / -1; justify-content: flex-end; }
       }
 
+      /* ──────────────────────────────────────────────────────────────
+         MOBILE — denser, magazine-style form layout
+         ────────────────────────────────────────────────────────────── */
+      @media (max-width: 768px) {
+        .jr-section { height: auto; min-height: 100vh; }
+        .jr-grid { grid-template-columns: 1fr; height: auto; }
+
+        /* Hero — compact band, image fades into paper at the bottom */
+        .jr-hero {
+          min-height: 0;
+          height: auto;
+          padding: calc(var(--nav-h, 64px) + 1rem) 1.1rem 1.6rem;
+          background-image:
+            linear-gradient(180deg, rgba(248,246,242,0.6) 0%, rgba(248,246,242,0.85) 70%, var(--paper) 100%),
+            var(--jt-image, url("../images/LA sunset.jpg"));
+          background-position: center 35%;
+          background-size: cover;
+          background-color: var(--paper);
+        }
+        .jr-hero-content { max-width: none; }
+        .jr-kicker {
+          font-size: 0.5rem;
+          letter-spacing: 0.24em;
+          margin-bottom: 0.6rem;
+          color: #C6922B;
+          font-weight: 700;
+        }
+        .jr-headline {
+          font-size: clamp(1.95rem, 8vw, 2.5rem);
+          line-height: 0.96;
+          letter-spacing: -0.6px;
+          margin-bottom: 0;
+        }
+        .jr-sub, .jr-venue-badge { display: none; }
+
+        /* Content — no padding-top so hero gradient blends in */
+        .jr-content {
+          padding: 0 0.9rem 1.5rem;
+          height: auto;
+          overflow: visible;
+          gap: 1.1rem;
+          justify-content: flex-start;
+        }
+
+        /* Section labels — magazine kicker style, leading divider */
+        .jr-section-block { gap: 0.55rem; }
+        .jr-section-label {
+          font-size: 0.5rem;
+          letter-spacing: 0.24em;
+          color: var(--charcoal);
+          padding-bottom: 0.45rem;
+          border-bottom: 1px solid rgba(20,20,20,0.12);
+          margin-bottom: 0.15rem;
+        }
+
+        /* ── Your Matches ── */
+        .jr-card {
+          padding: 0.85rem 0.95rem;
+          border-radius: 10px;
+        }
+        .jr-card-head { gap: 0.4rem; margin-bottom: 0.55rem; }
+        .jr-card-title { font-size: 0.6rem; letter-spacing: 0.14em; }
+        .jr-view-all { padding: 0.28rem 0.7rem; font-size: 0.48rem; }
+        .jr-match-list { max-height: 200px; gap: 0.35rem; }
+        .jr-match-row {
+          padding: 0.6rem 0.75rem 0.6rem 0.85rem;
+          border-radius: 6px;
+          gap: 0.5rem;
+          grid-template-columns: 70px 1fr;
+        }
+        .jr-match-date { grid-column: 1 / -1; justify-content: flex-end; gap: 0.4rem; }
+        .jr-match-key strong { font-size: 0.85rem; }
+        .jr-match-key em { font-size: 0.42rem; letter-spacing: 0.1em; }
+        .jr-match-flag { font-size: 1rem; }
+        .jr-match-name { font-size: 0.78rem; white-space: normal; }
+        .jr-match-vs { font-size: 0.6rem; }
+        .jr-match-date strong { font-size: 0.68rem; }
+        .jr-match-date em { font-size: 0.46rem; letter-spacing: 0.08em; }
+        .jr-add-more { font-size: 0.72rem; margin-top: 0.45rem; }
+
+        /* ── Traveler grid: balanced 3 + 2 layout (no orphan row) ── */
+        .jr-traveler-grid {
+          grid-template-columns: repeat(6, 1fr);
+          gap: 0.4rem;
+        }
+        .jr-traveler-grid > .jr-traveler:nth-child(1),
+        .jr-traveler-grid > .jr-traveler:nth-child(2),
+        .jr-traveler-grid > .jr-traveler:nth-child(3) { grid-column: span 2; }
+        .jr-traveler-grid > .jr-traveler:nth-child(4),
+        .jr-traveler-grid > .jr-traveler:nth-child(5) { grid-column: span 3; }
+        .jr-traveler {
+          padding: 0.55rem 0.3rem 0.5rem;
+          border-radius: 8px;
+          gap: 0.12rem;
+        }
+        .jr-traveler-icon { width: 24px; height: 24px; margin-bottom: 0.05rem; }
+        .jr-traveler-icon svg { width: 14px; height: 14px; }
+        .jr-traveler-label { font-size: 0.74rem; }
+        .jr-traveler-tag { display: none; }   /* tagline is noise on small screens */
+
+        /* ── Stat cards: icon-left, label-right inline; control below ── */
+        .jr-stats-grid {
+          grid-template-columns: 1fr;
+          background: transparent;
+          border: none;
+          border-radius: 0;
+          gap: 0.5rem;
+          overflow: visible;
+        }
+        .jr-stat {
+          background: #fff;
+          border: 1px solid rgba(20,20,20,0.08);
+          border-right: 1px solid rgba(20,20,20,0.08);
+          border-radius: 10px;
+          padding: 0.7rem 0.85rem 0.75rem;
+          display: grid;
+          grid-template-columns: 26px 1fr;
+          column-gap: 0.55rem;
+          row-gap: 0.05rem;
+          align-items: center;
+        }
+        .jr-stat-icon {
+          width: 26px;
+          height: 26px;
+          margin-bottom: 0;
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .jr-stat-icon svg { width: 13px; height: 13px; }
+        .jr-stat-tag {
+          font-size: 0.5rem;
+          letter-spacing: 0.18em;
+          color: var(--silver);
+          grid-column: 2;
+          grid-row: 1;
+          align-self: center;
+        }
+        .jr-stat-select,
+        .jr-date-row {
+          grid-column: 1 / -1;
+          margin-top: 0.45rem;
+        }
+        .jr-stat-desc {
+          grid-column: 1 / -1;
+          font-size: 0.58rem;
+          line-height: 1.4;
+          margin-top: 0.25rem;
+          color: var(--silver);
+        }
+        .jr-stat-select {
+          font-size: 0.78rem;
+          padding: 0.5rem 1.6rem 0.5rem 0.6rem;
+          margin: 0.45rem 0 0;
+        }
+
+        /* Trip dates — keep arrow, side-by-side */
+        .jr-date-row { gap: 0.35rem; margin: 0.45rem 0 0; flex-wrap: nowrap; }
+        .jr-date-input {
+          flex: 1 1 0;
+          min-width: 0;
+          font-size: 0.7rem;
+          padding: 0.45rem 0.45rem;
+        }
+        .jr-date-arrow { display: inline; font-size: 0.7rem; color: var(--silver); }
+
+        /* CTA */
+        .jr-cta-btn {
+          margin-top: 0.3rem;
+          padding: 0.9rem 1.2rem;
+          font-size: 0.92rem;
+          border-radius: 8px;
+          letter-spacing: 0.04em;
+        }
+
+        /* Result page mobile overrides moved to the end of the file —
+           they need to come AFTER the default .journey-* rules to win the
+           cascade (CSS source order trumps media-query nesting). */
+      }
+
+      /* Extra-narrow phones — guard against overflow on iPhone SE etc. */
+      @media (max-width: 380px) {
+        .jr-headline { font-size: 1.78rem; }
+        .jr-traveler-label { font-size: 0.7rem; }
+        .jr-date-input { font-size: 0.66rem; }
+        .jr-stat-select { font-size: 0.74rem; }
+      }
+
       .itinerary-result {
         max-height: 0;
         overflow: hidden;
@@ -986,4 +1173,37 @@
       }
       .stars {
         color: var(--charcoal);
+      }
+
+      /* ──────────────────────────────────────────────────────────────
+         MOBILE — itinerary RESULT page overrides
+         Placed at the end so source order wins over default desktop rules
+         like `.journey-map-panel { display: flex }` further up.
+         ────────────────────────────────────────────────────────────── */
+      @media (max-width: 768px) {
+        #mount-journey-result { height: auto; min-height: 100vh; }
+
+        .itinerary-result.visible {
+          padding: calc(var(--nav-h, 64px) + 1rem) 1rem 2rem;
+          height: auto;
+          overflow: visible;
+        }
+
+        /* Single column — drop the side map entirely. The day-by-day plan
+           is the actual deliverable; on a phone the map is unreadable. */
+        .journey-result-layout {
+          display: block;
+          grid-template-columns: 1fr;
+          gap: 0;
+          height: auto;
+        }
+        .journey-map-panel,
+        .journey-map-box,
+        .journey-map-note { display: none !important; }
+
+        .journey-timeline {
+          height: auto;
+          overflow-y: visible;
+          padding-right: 0;
+        }
       }

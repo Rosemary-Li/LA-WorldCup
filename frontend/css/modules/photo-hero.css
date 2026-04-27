@@ -104,3 +104,17 @@
         text-decoration: none;
       }
 
+      @media (max-width: 768px) {
+        #photo-hero { min-height: 100vh; height: 100vh; }
+        .ph-text { padding: 1.5rem; padding-top: calc(var(--nav-h, 64px) + 1rem); }
+        .ph-eyebrow { font-size: 0.55rem; letter-spacing: 0.2em; margin-bottom: 1rem; }
+        .ph-headline { font-size: clamp(2.4rem, 11vw, 3.4rem); margin-bottom: 1.2rem; }
+        .ph-sub { font-size: 0.66rem; padding: 0 0.5rem; }
+        .ph-get-started {
+          margin-top: 1.6rem;
+          padding: 0.85rem 2rem;
+          font-size: 0.95rem;
+        }
+        .ph-dots { bottom: 1.4rem; }
+      }
+

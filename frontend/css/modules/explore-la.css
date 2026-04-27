@@ -830,10 +830,67 @@
       }
       @media (max-width: 768px) {
         #la-showcase {
-          padding: var(--nav-h, 82px) 1rem 1rem;
+          padding: calc(var(--nav-h, 64px) + 0.6rem) 1rem 1rem;
+          overflow: visible;
+          height: auto;
+          min-height: 100vh;
         }
         .lg-mag-link--attr { font-size: 1.6rem; }
         .lg-mag-link--hotel { font-size: 4.2rem; }
         .lg-mag-link--rest { font-size: 2.6rem; }
         .lg-mag-link--show { font-size: 1.4rem; }
+
+        /* Magazine: hide vertical "EXPLORE" rail (saves 56px), tighten padding */
+        .lg-mag-vertical { display: none; }
+        .lg-magazine {
+          grid-template-columns: 1fr;
+          gap: 1.4rem;
+          padding: 1.6rem 1.1rem 1.6rem;
+        }
+        .lg-mag-photo {
+          height: 240px;
+          margin-top: 1rem;
+          box-shadow: 6px 6px 0 rgba(0,0,0,0.12);
+        }
+
+        /* Category browse — stack content above map, no fixed heights */
+        .ex-body {
+          flex-direction: column;
+          flex: none;
+        }
+        .ex-cards-col {
+          flex: none;
+          padding: 0.6rem 0 1rem;
+          overflow: visible;
+        }
+        .ex-cards { grid-template-columns: 1fr; }
+        .ex-map-col {
+          flex: none;
+          height: 320px;
+          margin: 0;
+          border-left: none;
+          border-top: 2px solid var(--ink);
+        }
+        .ex-pick-panel {
+          width: calc(100% - 1.2rem);
+          left: 0.6rem;
+          right: 0.6rem;
+          top: 0.6rem;
+        }
+        .ex-pick-list { max-height: 88px; }
+        .ex-go-btn {
+          right: 0.6rem;
+          bottom: 0.6rem;
+          min-width: 130px;
+          min-height: 50px;
+          font-size: 0.7rem;
+          letter-spacing: 0.18em;
+        }
+
+        /* Header + filter strip */
+        .ex-head { padding: 0.6rem 0 0.8rem; }
+        .ex-cat-tabs { gap: 4px; }
+        .ex-cat-tabs button { padding: 0.42rem 0.7rem; font-size: 0.5rem; }
+        .ex-back-btn { padding: 0.42rem 0.6rem; font-size: 0.5rem; }
+        .ex-filters { gap: 0.3rem 0.8rem; padding: 0.45rem 0; }
       }
