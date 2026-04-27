@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="LA-WorldCup-codegen" version="24.0.0">
+  <diagram name="LA × WC26 ER" id="la_wc26_er">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- DIMENSION TABLES (gold) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="dim_team" value="&lt;b&gt;dim_team&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;DIM&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;team_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;country : string&lt;br/&gt;federation : string&lt;br/&gt;status : string&lt;br/&gt;possible_teams : string&lt;br/&gt;group_stage : string&lt;br/&gt;matches_in_la : int&lt;br/&gt;notes : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4d4;strokeColor=#9c7b2f;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="240" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dim_player" value="&lt;b&gt;dim_player&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;DIM&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;player_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;player_name : string&lt;br/&gt;team : string &lt;i&gt;(FK → dim_team.country)&lt;/i&gt;&lt;br/&gt;position : string&lt;br/&gt;club : string&lt;br/&gt;age : int&lt;br/&gt;caps : int&lt;br/&gt;goals : int&lt;br/&gt;is_star : bool&lt;br/&gt;notes : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4d4;strokeColor=#9c7b2f;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="290" width="240" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dim_event_category" value="&lt;b&gt;dim_event_category&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;DIM&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;event_category_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;category : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4d4;strokeColor=#9c7b2f;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="640" y="40" width="240" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- FACT TABLES (wine) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="fact_match" value="&lt;b&gt;fact_match&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;match_number&lt;/b&gt; : string &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;date : date&lt;br/&gt;day_of_week : string&lt;br/&gt;time_pt : time&lt;br/&gt;team1 : string &lt;i&gt;(FK → dim_team.country)&lt;/i&gt;&lt;br/&gt;team2 : string &lt;i&gt;(FK → dim_team.country)&lt;/i&gt;&lt;br/&gt;group : string&lt;br/&gt;stage : string&lt;br/&gt;venue : string&lt;br/&gt;venue_address : string&lt;br/&gt;notes : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e6ed;strokeColor=#7b1c4e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="340" y="40" width="260" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fact_ticket" value="&lt;b&gt;fact_ticket&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;ticket_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;match_number : string &lt;i&gt;(FK → fact_match)&lt;/i&gt;&lt;br/&gt;matchup : string&lt;br/&gt;match_date : date&lt;br/&gt;seating_section : string&lt;br/&gt;section_level : string&lt;br/&gt;ticket_category : string&lt;br/&gt;price_usd : decimal&lt;br/&gt;ticket_status : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e6ed;strokeColor=#7b1c4e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="340" y="340" width="260" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fact_ranking" value="&lt;b&gt;fact_ranking&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;ranking_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;rank : int&lt;br/&gt;country : string &lt;i&gt;(FK → dim_team.country)&lt;/i&gt;&lt;br/&gt;total_points : int&lt;br/&gt;previous_rank : int&lt;br/&gt;rank_change : int&lt;br/&gt;confederation : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e6ed;strokeColor=#7b1c4e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="570" width="260" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fact_event" value="&lt;b&gt;fact_event&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;event_id&lt;/b&gt; : string &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;event_name : string&lt;br/&gt;category : string&lt;br/&gt;event_category_id : text &lt;i&gt;(FK → dim_event_category)&lt;/i&gt;&lt;br/&gt;event_type : string&lt;br/&gt;venue_name : string&lt;br/&gt;area : string&lt;br/&gt;city : string&lt;br/&gt;start_date : date&lt;br/&gt;end_date : date&lt;br/&gt;event_time : time&lt;br/&gt;detail_type : string&lt;br/&gt;source_url : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e6ed;strokeColor=#7b1c4e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="640" y="160" width="280" height="290" as="geometry" />
+        </mxCell>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- DETAIL TABLES (blue) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="event_experience_detail" value="&lt;b&gt;event_experience_detail&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;DETAIL&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;event_id&lt;/b&gt; : string &lt;i&gt;(PK / FK → fact_event)&lt;/i&gt;&lt;br/&gt;key_experience : string&lt;br/&gt;recommended_duration : string&lt;br/&gt;suitable_for : string&lt;br/&gt;transportation : string&lt;br/&gt;spatial_character : string&lt;br/&gt;planning_tag : string&lt;br/&gt;ticket_price : string&lt;br/&gt;admission_info : string&lt;br/&gt;price_level : string&lt;br/&gt;crowdedness : string&lt;br/&gt;intensity_level : string&lt;br/&gt;night_friendly : string&lt;br/&gt;photo_value : string&lt;br/&gt;commercial_level : string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8efff;strokeColor=#1d428a;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="640" y="490" width="280" height="330" as="geometry" />
+        </mxCell>
+
+        <mxCell id="event_sports_detail" value="&lt;b&gt;event_sports_detail&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;DETAIL&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;event_id&lt;/b&gt; : string &lt;i&gt;(PK / FK → fact_event)&lt;/i&gt;&lt;br/&gt;&lt;span style=&quot;color:#888&quot;&gt;(sport type / competition info)&lt;/span&gt;"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8efff;strokeColor=#1d428a;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="640" y="860" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- STAND-ALONE TABLES (gray) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="standalone_label" value="STAND-ALONE — no FK in queries.py;&lt;br/&gt;related to matches at runtime via area-string match"
+                style="text;html=1;fontSize=10;fontStyle=2;fontColor=#666;align=center;"
+                vertex="1" parent="1">
+          <mxGeometry x="980" y="20" width="320" height="36" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fact_hotel" value="&lt;b&gt;fact_hotel&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT · STAND-ALONE&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;hotel_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;hotel_name : string&lt;br/&gt;region : string&lt;br/&gt;address : string&lt;br/&gt;star_rating : int&lt;br/&gt;price_band : string&lt;br/&gt;latitude : float&lt;br/&gt;longitude : float&lt;br/&gt;google_reviews_count : int"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="980" y="70" width="280" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fact_restaurant" value="&lt;b&gt;fact_restaurant&lt;/b&gt; &lt;span style=&quot;color:#888;font-size:10px&quot;&gt;FACT · STAND-ALONE&lt;/span&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;b&gt;restaurant_id&lt;/b&gt; : int &lt;i&gt;(PK)&lt;/i&gt;&lt;br/&gt;restaurant_name : string&lt;br/&gt;region : string&lt;br/&gt;address : string&lt;br/&gt;price_range : string&lt;br/&gt;flavor : string&lt;br/&gt;google_review_score : float&lt;br/&gt;review_count : int&lt;br/&gt;disability_access : bool"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="980" y="320" width="280" height="220" as="geometry" />
+        </mxCell>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- RELATIONSHIPS (ER notation: one-to-many = ERone → ERmany) -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="r_team_player" value="1 : N&#10;country = team" style="endArrow=ERmany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;strokeColor=#9c7b2f;"
+                edge="1" parent="1" source="dim_team" target="dim_player">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_team_match" value="1 : N (×2)&#10;country = team1 / team2" style="endArrow=ERmany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeColor=#9c7b2f;"
+                edge="1" parent="1" source="dim_team" target="fact_match">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_team_ranking" value="1 : 0..1&#10;country" style="endArrow=ERmanyOptional;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#9c7b2f;"
+                edge="1" parent="1" source="dim_player" target="fact_ranking">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell />
+        </mxCell>
+
+        <mxCell id="r_match_ticket" value="1 : N&#10;match_number" style="endArrow=ERmany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#7b1c4e;"
+                edge="1" parent="1" source="fact_match" target="fact_ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_cat_event" value="1 : N&#10;event_category_id" style="endArrow=ERmany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#9c7b2f;"
+                edge="1" parent="1" source="dim_event_category" target="fact_event">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_event_exp" value="1 : 0..1&#10;event_id" style="endArrow=ERoneToMany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#1d428a;"
+                edge="1" parent="1" source="fact_event" target="event_experience_detail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_event_sports" value="1 : 0..1&#10;event_id" style="endArrow=ERoneToMany;html=1;startArrow=ERone;edgeStyle=entityRelationEdgeStyle;rounded=0;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#1d428a;"
+                edge="1" parent="1" source="event_experience_detail" target="event_sports_detail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ════════════════════════════════════════════════════════ -->
+        <!-- LEGEND -->
+        <!-- ════════════════════════════════════════════════════════ -->
+
+        <mxCell id="legend_box" value="&lt;b&gt;Legend&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;span style=&quot;background:#fff4d4;padding:2px 6px;border:1px solid #9c7b2f;&quot;&gt;DIM&lt;/span&gt; &amp;nbsp; reference / lookup tables&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;background:#f5e6ed;padding:2px 6px;border:1px solid #7b1c4e;&quot;&gt;FACT&lt;/span&gt; &amp;nbsp; transactional records&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;background:#e8efff;padding:2px 6px;border:1px solid #1d428a;&quot;&gt;DETAIL&lt;/span&gt; &amp;nbsp; 1:0..1 enrichment of fact_event&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;background:#f0f0f0;padding:2px 6px;border:1px solid #666;&quot;&gt;STAND-ALONE&lt;/span&gt; &amp;nbsp; no FK in queries.py;&lt;br/&gt;related at runtime by area string"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;strokeWidth=1;fontFamily=Helvetica;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;"
+                vertex="1" parent="1">
+          <mxGeometry x="980" y="580" width="320" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="title_box" value="&lt;b style=&quot;font-size:18px;&quot;&gt;LA × WC26 — Database ER Diagram&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color:#666;font-size:11px;font-style:italic;&quot;&gt;reverse-engineered from backend/queries.py · 11 tables · 7 relationships&lt;/span&gt;"
+                style="text;html=1;fontFamily=Helvetica;fontSize=14;align=left;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="780" width="900" height="50" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

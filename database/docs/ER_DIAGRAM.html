@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LA × WC26 — ER Diagram</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #f8f6f2;
+      --ink:   #141414;
+      --gold:  #C6922B;
+      --silver: #888;
+      --rule:  rgba(20, 20, 20, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Playfair Display", Georgia, serif;
+      line-height: 1.55;
+      padding: 3rem clamp(1.25rem, 4vw, 4rem);
+    }
+    header { max-width: 1100px; margin: 0 auto 2rem; }
+    header .eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--silver);
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin: 0 0 0.5rem;
+    }
+    h1 em { font-style: italic; color: var(--gold); }
+    header .sub {
+      font-size: 0.95rem;
+      color: var(--silver);
+      max-width: 720px;
+    }
+    header .sub code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82em;
+      background: rgba(20, 20, 20, 0.05);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+
+    .diagram-card {
+      max-width: 1400px;
+      margin: 0 auto 3rem;
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
+      overflow-x: auto;
+    }
+    .mermaid {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 14px;
+      min-width: 900px;
+    }
+
+    .legend {
+      max-width: 1100px;
+      margin: 0 auto 3rem;
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 880px) {
+      .legend { grid-template-columns: 1fr 1fr; }
+    }
+    .legend section {
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+    }
+    .legend h2 {
+      font-size: 0.66rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 1rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td {
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+    th {
+      font-size: 0.55rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--silver);
+      font-weight: 700;
+    }
+    td code {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.78em;
+      background: rgba(198, 146, 43, 0.08);
+      color: #6d5522;
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .legend ul { margin: 0; padding-left: 1.1rem; font-size: 0.92rem; color: var(--ink); }
+    .legend li { margin-bottom: 0.4rem; }
+    .legend li code {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.78em;
+      background: rgba(20, 20, 20, 0.05);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.55rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      vertical-align: middle;
+      margin-left: 0.45rem;
+    }
+    .badge--dim   { background: rgba(46, 125, 50, 0.12);  color: #2e7d32; }
+    .badge--fact  { background: rgba(123, 28, 78, 0.10);  color: #7b1c4e; }
+    .badge--detail{ background: rgba(29, 66, 138, 0.10);  color: #1d428a; }
+    .badge--solo  { background: rgba(20, 20, 20, 0.08);   color: var(--ink); }
+
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      font-size: 0.8rem;
+      color: var(--silver);
+      border-top: 1px solid var(--rule);
+      padding-top: 1.25rem;
+    }
+    footer code {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.85em;
+      background: rgba(20, 20, 20, 0.05);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Database · APAN5310</div>
+    <h1>LA <em>×</em> WC26 — ER Diagram</h1>
+    <p class="sub">
+      Schema reverse-engineered from every <code>SELECT</code> and <code>JOIN</code> in
+      <code>backend/queries.py</code>. Eleven tables, seven enforced-by-query relationships.
+      Two fact tables (<code>fact_hotel</code>, <code>fact_restaurant</code>) stand alone —
+      they're related to matches at runtime via free-text area string matching, not by
+      database FK.
+    </p>
+  </header>
+
+  <div class="diagram-card">
+    <pre class="mermaid">
+erDiagram
+    dim_team                  ||--o{ dim_player        : "team = country"
+    dim_team                  ||--o{ fact_ranking      : "country (string FK)"
+    dim_team                  ||--o{ fact_match        : "team1 / team2 = country"
+    dim_event_category        ||--o{ fact_event        : "event_category_id"
+    fact_match                ||--o{ fact_ticket       : "match_number"
+    fact_event                ||--o| event_experience_detail : "event_id (1:0..1)"
+    fact_event                ||--o| event_sports_detail     : "event_id (1:0..1)"
+
+    dim_team {
+        int    team_id        PK
+        string country
+        string federation
+        string status
+        string possible_teams
+        string group_stage
+        int    matches_in_la
+        string notes
+    }
+    dim_player {
+        int    player_id      PK
+        string player_name
+        string team           FK
+        string position
+        string club
+        int    age
+        int    caps
+        int    goals
+        bool   is_star
+        string notes
+    }
+    dim_event_category {
+        int    event_category_id PK
+        string category
+    }
+    fact_match {
+        string match_number   PK
+        date   date
+        string day_of_week
+        time   time_pt
+        string team1          FK
+        string team2          FK
+        string group
+        string stage
+        string venue
+        string venue_address
+        string notes
+    }
+    fact_ticket {
+        int    ticket_id      PK
+        string match_number   FK
+        string matchup
+        date   match_date
+        string seating_section
+        string section_level
+        string ticket_category
+        decimal price_usd
+        string ticket_status
+    }
+    fact_ranking {
+        int    ranking_id     PK
+        int    rank
+        string country        FK
+        int    total_points
+        int    previous_rank
+        int    rank_change
+        string confederation
+    }
+    fact_hotel {
+        int    hotel_id       PK
+        string hotel_name
+        string region
+        string address
+        int    star_rating
+        string price_band
+        float  latitude
+        float  longitude
+        int    google_reviews_count
+    }
+    fact_restaurant {
+        int    restaurant_id  PK
+        string restaurant_name
+        string region
+        string address
+        string price_range
+        string flavor
+        float  google_review_score
+        int    review_count
+        bool   disability_access
+    }
+    fact_event {
+        string event_id          PK
+        string event_name
+        string category
+        int    event_category_id FK
+        string event_type
+        string venue_name
+        string area
+        string city
+        date   start_date
+        date   end_date
+        time   event_time
+        string detail_type
+        string source_url
+    }
+    event_experience_detail {
+        string event_id              PK
+        string key_experience
+        string recommended_duration
+        string suitable_for
+        string transportation
+        string spatial_character
+        string planning_tag
+        string ticket_price
+        string admission_info
+        string price_level
+        string crowdedness
+        string intensity_level
+        string night_friendly
+        string photo_value
+        string commercial_level
+    }
+    event_sports_detail {
+        string event_id              PK
+    }
+    </pre>
+  </div>
+
+  <div class="legend">
+    <section>
+      <h2>Relationships</h2>
+      <table>
+        <thead>
+          <tr><th>From → To</th><th>Card.</th><th>Join key</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>dim_team</code> → <code>dim_player</code></td><td>1 : N</td><td>country = team</td></tr>
+          <tr><td><code>dim_team</code> → <code>fact_match</code></td><td>1 : N (×2)</td><td>country = team1 / team2</td></tr>
+          <tr><td><code>dim_team</code> → <code>fact_ranking</code></td><td>1 : 0..1</td><td>country</td></tr>
+          <tr><td><code>dim_event_category</code> → <code>fact_event</code></td><td>1 : N</td><td>event_category_id</td></tr>
+          <tr><td><code>fact_match</code> → <code>fact_ticket</code></td><td>1 : N</td><td>match_number</td></tr>
+          <tr><td><code>fact_event</code> → <code>event_experience_detail</code></td><td>1 : 0..1</td><td>event_id</td></tr>
+          <tr><td><code>fact_event</code> → <code>event_sports_detail</code></td><td>1 : 0..1</td><td>event_id</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Tables by role</h2>
+      <ul>
+        <li><span class="badge badge--dim">DIM</span> <code>dim_team</code> — countries, federations, group stage</li>
+        <li><span class="badge badge--dim">DIM</span> <code>dim_player</code> — squad lists, star flags</li>
+        <li><span class="badge badge--dim">DIM</span> <code>dim_event_category</code> — category labels for events</li>
+        <li><span class="badge badge--fact">FACT</span> <code>fact_match</code> — schedule + teams + venue</li>
+        <li><span class="badge badge--fact">FACT</span> <code>fact_ticket</code> — per-match ticket inventory</li>
+        <li><span class="badge badge--fact">FACT</span> <code>fact_ranking</code> — FIFA ranking snapshot</li>
+        <li><span class="badge badge--fact">FACT</span> <code>fact_event</code> — fan events / shows / attractions</li>
+        <li><span class="badge badge--solo">STAND-ALONE</span> <code>fact_hotel</code> — Explore LA + Journey lookups</li>
+        <li><span class="badge badge--solo">STAND-ALONE</span> <code>fact_restaurant</code> — Explore LA + Journey lookups</li>
+        <li><span class="badge badge--detail">DETAIL</span> <code>event_experience_detail</code> — 14 columns of itinerary metadata</li>
+        <li><span class="badge badge--detail">DETAIL</span> <code>event_sports_detail</code> — sport type / competition info</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Notes on enforcement</h2>
+      <ul>
+        <li>Country is the natural key linking <code>dim_team</code>, <code>dim_player</code>, <code>fact_match</code>, and <code>fact_ranking</code> — no DB-enforced FK. <code>_with_latest_team_data()</code> in <code>queries.py</code> splices in renames after import.</li>
+        <li><code>event_id</code> is both PK and FK on the two detail tables (one row per event at most).</li>
+        <li><code>event_category_id</code> is stored as <code>text</code> in <code>fact_event</code> — note the <code>::int</code> cast in <code>get_events_by_categories()</code>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Not in this diagram</h2>
+      <p style="margin: 0 0 0.7rem; font-size: 0.92rem; color: var(--ink);">
+        The main README mentions three additional tables that exist in the schema but
+        aren't queried by the current backend, so they're not drawn here:
+      </p>
+      <ul>
+        <li><code>dim_place</code> — stadiums, airports, transport places</li>
+        <li><code>dim_mode</code> — transport mode metadata</li>
+        <li><code>fact_route</code> — airport-to-venue and local routes</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    Generated from <code>backend/queries.py</code> · companion to
+    <code>database/docs/ER_DIAGRAM.md</code>. Open this HTML directly in a browser
+    (no build needed). Diagram rendered by Mermaid via CDN.
+  </footer>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      themeVariables: {
+        background: "#ffffff",
+        primaryColor: "#fdf8ee",
+        primaryTextColor: "#141414",
+        primaryBorderColor: "#C6922B",
+        lineColor: "#7b1c4e",
+        secondaryColor: "#f1eee7",
+        tertiaryColor: "#ffffff",
+        fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+        fontSize: "14px",
+      },
+      er: {
+        diagramPadding: 24,
+        layoutDirection: "LR",
+        minEntityWidth: 140,
+        minEntityHeight: 80,
+        entityPadding: 16,
+        useMaxWidth: true,
+      },
+    });
+  </script>
+</body>
+</html>
