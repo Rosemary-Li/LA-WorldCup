@@ -1,0 +1,46 @@
+# Render Blueprint for the LA × WC26 Flask backend.
+# This file lives at the repo root so Render auto-detects it (no Blueprint Path needed).
+# The Flask code itself lives in ./backend (see `rootDir` below).
+#
+# Deploy on Render:
+#   1. New + → "Blueprint" → connect this Git repo
+#   2. Leave the "Blueprint Path" field empty (Render will use the default `render.yaml`)
+#   3. Set the secret env vars in the dashboard (DB_*, ANTHROPIC_API_KEY, API_FOOTBALL_KEY)
+#   4. Click Apply — Render builds the service and gives you a https://<name>.onrender.com URL
+#
+# Use that URL as VITE_API_BASE on Vercel.
+
+services:
+  - type: web
+    name: la-worldcup-api
+    runtime: python
+    plan: free                     # 750h/month free; upgrade if the demo needs to stay warm
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
+    healthCheckPath: /api/matches
+    autoDeploy: true
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+
+      # ── DigitalOcean managed Postgres (set in Render dashboard, not here) ──
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "25060"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: "require"
+
+      # ── Optional integrations (leave blank to disable; circuit breaker / fallback kicks in) ──
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: API_FOOTBALL_KEY
+        sync: false
