@@ -1,8 +1,10 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { generateJourney } from "../api.js";
 import SyncMap from "../components/SyncMap.jsx";
+import ActivityPicker from "../components/ActivityPicker.jsx";
 import ShareCard from "../components/ShareCard.jsx";
 import ShareModal from "../components/ShareModal.jsx";
+import { buildIcsBlob, dateForDay, googleCalendarUrl, parseMatchDate } from "../lib/calendar.js";
 import { mediaForPlace } from "../placeMedia.js";
 import { ACTIVITY_MARKS, JOURNEY_SELECTS, TRAVELER_TYPES } from "../constants/journey.js";
 import { matchRows } from "../constants/matches.js";
@@ -86,11 +88,87 @@ const VIBE_DESC = {
 
 // ── Result component (kept same as before) ────────────────────────────────
 
-export function JourneyResult({ data }) {
+export function JourneyResult({ data, siteData }) {
   const [highlight, setHighlight] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
   const hoverTimer = useRef(null);
   const shareCardRef = useRef(null);
+
+  // Local working copy of the days — every edit / add / delete mutates this,
+  // not the prop. Reset whenever a fresh itinerary arrives from the planner.
+  const [editedDays, setEditedDays] = useState(data.days || []);
+  // { mode: "add"|"edit", dayIdx, actIdx?, time }
+  const [pickerState, setPickerState] = useState(null);
+  useEffect(() => {
+    setEditedDays(data.days || []);
+    setPickerState(null);
+  }, [data]);
+
+  // Mirror the editable copy back into a data-shaped object so ShareCard /
+  // ShareModal / map all see the user's latest edits, not the original plan.
+  const editedData = useMemo(() => ({ ...data, days: editedDays }), [data, editedDays]);
+
+  function openEditPicker(dayIdx, actIdx) {
+    const act = editedDays[dayIdx]?.activities?.[actIdx];
+    if (!act) return;
+    setPickerState({ mode: "edit", dayIdx, actIdx, time: act.time || "12:00", current: act });
+  }
+
+  function openAddPicker(dayIdx) {
+    setPickerState({ mode: "add", dayIdx, time: "12:00", current: null });
+  }
+
+  function closePicker() { setPickerState(null); }
+
+  // Apply the user's choice from the picker. `result` shape:
+  //   { keepCurrent: true,  time }                — edit mode, time-only change
+  //   { keepCurrent: false, activity }            — swap or add a DB-backed item
+  function handlePickerSave(result) {
+    if (!pickerState) return;
+    const { mode, dayIdx, actIdx } = pickerState;
+
+    setEditedDays((prev) => prev.map((day, di) => {
+      if (di !== dayIdx) return day;
+
+      if (mode === "add") {
+        return { ...day, activities: [...day.activities, result.activity] };
+      }
+
+      return {
+        ...day,
+        activities: day.activities.map((act, ai) => {
+          if (ai !== actIdx) return act;
+          if (result.keepCurrent) return { ...act, time: result.time };
+          // Swap in the new activity but preserve the user's time choice.
+          return { ...result.activity, time: result.time };
+        }),
+      };
+    }));
+    setPickerState(null);
+  }
+
+  function deleteActivity(dayIdx, actIdx) {
+    setEditedDays((prev) => prev.map((day, di) => di !== dayIdx ? day : {
+      ...day,
+      activities: day.activities.filter((_, ai) => ai !== actIdx),
+    }));
+  }
+
+  // Match date drives every day's actual calendar date — used by both the
+  // ICS download and the per-activity Google Calendar links.
+  const matchDate = useMemo(() => parseMatchDate(data?.match?.date), [data]);
+
+  function handleDownloadIcs() {
+    const blob = buildIcsBlob(editedData);
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "la-wc26-journey.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  }
 
   // Captures the off-screen ShareCard into a PNG blob. Width is locked to
   // 1080; height is whatever the card actually rendered (>= 1920 for short
@@ -144,7 +222,7 @@ export function JourneyResult({ data }) {
     markerType: p.markerType || (p.category === "hotels" ? "hotel" : p.category === "restaurants" ? "restaurant" : p.category === "attractions" ? "attraction" : "event"),
   }));
 
-  const activityPlaces = (data.days || []).flatMap((day) =>
+  const activityPlaces = (editedDays || []).flatMap((day) =>
     (day.activities || []).filter(hasCoord).map((act) => ({
       name: act.title, detail: act.desc || "",
       lat: Number(act.lat), lng: Number(act.lng),
@@ -168,27 +246,50 @@ export function JourneyResult({ data }) {
 
   return (
     <div className="journey-result-layout">
-      {/* Off-screen IG-Stories template — captured by html2canvas on demand */}
-      <ShareCard ref={shareCardRef} data={data} />
+      {/* Off-screen IG-Stories template — captured by html2canvas on demand.
+          Uses the EDITED data so the share card reflects the user's tweaks. */}
+      <ShareCard ref={shareCardRef} data={editedData} />
 
       <ShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         onGeneratePng={generatePng}
-        data={data}
+        data={editedData}
+      />
+
+      <ActivityPicker
+        open={!!pickerState}
+        onClose={closePicker}
+        onSave={handlePickerSave}
+        siteData={siteData}
+        mode={pickerState?.mode || "add"}
+        dayLabel={pickerState ? editedDays[pickerState.dayIdx]?.label : ""}
+        initialTime={pickerState?.time || "12:00"}
+        initialActivity={pickerState?.current || null}
       />
 
       <div className="journey-timeline">
         <div className="journey-summary-card">
-          <button
-            type="button"
-            className="sc-share-btn"
-            onClick={() => setShareOpen(true)}
-            title="Share your journey"
-          >
-            <span className="sc-share-icon">✦</span>
-            <span>Share</span>
-          </button>
+          <div className="jr-summary-actions">
+            <button
+              type="button"
+              className="sc-share-btn jr-action-btn"
+              onClick={handleDownloadIcs}
+              title="Download .ics — import into Google / Apple / Outlook Calendar"
+            >
+              <span className="sc-share-icon">↓</span>
+              <span>Calendar</span>
+            </button>
+            <button
+              type="button"
+              className="sc-share-btn jr-action-btn"
+              onClick={() => setShareOpen(true)}
+              title="Share your journey"
+            >
+              <span className="sc-share-icon">✦</span>
+              <span>Share</span>
+            </button>
+          </div>
           <div className="journey-summary-info">
             <div className="journey-summary-tags">
               <span>{badgeLabel(data.traveler)}</span>
@@ -204,81 +305,116 @@ export function JourneyResult({ data }) {
           <div className="journey-summary-photo" style={{ backgroundImage: "url('images/match.jpg')" }} />
         </div>
 
-        {data.days.map((day) => (
-          <div className="day-block" key={day.label}>
-            <div className="day-label">{day.label}</div>
-            <div className="day-stack">
-              {day.activities.map((act, i) => {
-                const hasCoordAct = Number.isFinite(Number(act.lat)) && Number.isFinite(Number(act.lng));
-                // Match by name, not by coords. Many activities share the same fallback
-                // coordinates (e.g. when AREA_COORDS lacks an entry for the area), so a
-                // coord-based check would highlight every collision-mate together.
-                const isActive = !!highlight && highlight.name === act.title;
-                const photo = activityPhoto(act);
-                const url = activityUrl(act);
-                return (
-                  <div
-                    key={`${act.time}-${i}`}
-                    className={`timeline-item${hasCoordAct ? " timeline-item--mappable" : ""}${isActive ? " timeline-item--active" : ""}`}
-                    onMouseEnter={() => {
-                      // Always fire the highlight — even without coords the map can match by name.
-                      clearTimeout(hoverTimer.current);
-                      hoverTimer.current = setTimeout(
-                        () => setHighlight({
-                          name: act.title,
-                          lat: hasCoordAct ? Number(act.lat) : null,
-                          lng: hasCoordAct ? Number(act.lng) : null,
-                        }),
-                        200
-                      );
-                    }}
-                    onMouseLeave={() => { clearTimeout(hoverTimer.current); setHighlight(null); }}
-                  >
-                    <div className="timeline-time">
-                      <span className="timeline-dot" />
-                      {act.time}
-                    </div>
-                    <div className="timeline-content">
-                      <div className="timeline-mark">{ACTIVITY_MARKS[act.source] || "PLAN"}</div>
-                      <div className="title">{act.title}</div>
-                      <div className="desc">{act.desc}</div>
-                    </div>
-                    {photo && (
-                      url ? (
+        {editedDays.map((day, dayIdx) => {
+          const dayDate = dateForDay(matchDate, day.day_num ?? dayIdx + 1);
+          return (
+            <div className="day-block" key={day.label || `day-${dayIdx}`}>
+              <div className="day-label">{day.label}</div>
+              <div className="day-stack">
+                {day.activities.map((act, i) => {
+                  const itemKey = `${dayIdx}-${i}`;
+                  const hasCoordAct = Number.isFinite(Number(act.lat)) && Number.isFinite(Number(act.lng));
+                  const isActive = !!highlight && highlight.name === act.title;
+                  const photo = activityPhoto(act);
+                  const url = activityUrl(act);
+                  const calUrl = googleCalendarUrl(act, dayDate);
+
+                  return (
+                    <div
+                      key={itemKey}
+                      className={`timeline-item${hasCoordAct ? " timeline-item--mappable" : ""}${isActive ? " timeline-item--active" : ""}`}
+                      onMouseEnter={() => {
+                        clearTimeout(hoverTimer.current);
+                        hoverTimer.current = setTimeout(
+                          () => setHighlight({
+                            name: act.title,
+                            lat: hasCoordAct ? Number(act.lat) : null,
+                            lng: hasCoordAct ? Number(act.lng) : null,
+                          }),
+                          200
+                        );
+                      }}
+                      onMouseLeave={() => { clearTimeout(hoverTimer.current); setHighlight(null); }}
+                    >
+                      <div className="timeline-time">
+                        <span className="timeline-dot" />
+                        {act.time}
+                      </div>
+                      <div className="timeline-content">
+                        <div className="timeline-mark">{ACTIVITY_MARKS[act.source] || "PLAN"}</div>
+                        <div className="title">{act.title}</div>
+                        <div className="desc">{act.desc}</div>
+                      </div>
+                      {photo && (
+                        url ? (
+                          <a
+                            className="timeline-photo timeline-photo--link"
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Open official site for ${act.title}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
+                          />
+                        ) : (
+                          <div
+                            className="timeline-photo"
+                            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
+                          />
+                        )
+                      )}
+                      {url ? (
                         <a
-                          className="timeline-photo timeline-photo--link"
+                          className="timeline-arrow timeline-arrow--link"
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
                           title={`Open official site for ${act.title}`}
                           onClick={(e) => e.stopPropagation()}
-                          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
-                        />
+                        >›</a>
                       ) : (
-                        <div
-                          className="timeline-photo"
-                          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
-                        />
-                      )
-                    )}
-                    {url ? (
-                      <a
-                        className="timeline-arrow timeline-arrow--link"
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Open official site for ${act.title}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >›</a>
-                    ) : (
-                      hasCoordAct && <span className="timeline-arrow">›</span>
-                    )}
-                  </div>
-                );
-              })}
+                        hasCoordAct && <span className="timeline-arrow">›</span>
+                      )}
+
+                      {/* Edit / delete / Google-Calendar — appear on hover */}
+                      <div className="timeline-actions" onClick={(e) => e.stopPropagation()}>
+                        {calUrl && (
+                          <a
+                            className="timeline-action timeline-action--cal"
+                            href={calUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Add to Google Calendar"
+                            onClick={(e) => e.stopPropagation()}
+                          >📅</a>
+                        )}
+                        <button
+                          type="button"
+                          className="timeline-action timeline-action--edit"
+                          onClick={(e) => { e.stopPropagation(); openEditPicker(dayIdx, i); }}
+                          title="Swap activity / change time"
+                        >✎</button>
+                        <button
+                          type="button"
+                          className="timeline-action timeline-action--del"
+                          onClick={(e) => { e.stopPropagation(); deleteActivity(dayIdx, i); }}
+                          title="Delete activity"
+                        >×</button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="timeline-add-btn"
+                  onClick={() => openAddPicker(dayIdx)}
+                >
+                  + Add activity from database
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <aside className="journey-map-panel">

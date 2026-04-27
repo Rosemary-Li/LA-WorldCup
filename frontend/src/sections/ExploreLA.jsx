@@ -1,89 +1,17 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
-import { mediaForPlace } from "../placeMedia.js";
 import DataNotice from "../components/DataNotice.jsx";
 import ExCard from "../components/ExCard.jsx";
 import FilterRow from "../components/FilterRow.jsx";
 import SyncMap from "../components/SyncMap.jsx";
+import { buildExploreItems } from "../lib/explorePool.js";
 import {
-  AREA_COORDS,
   CATEGORY_EMOJIS,
   CATEGORY_FILTERS,
   CATEGORY_PAGE_SUBTITLES,
   CATEGORY_PAGE_TITLES,
   EXPLORE_CATEGORIES,
   EXPLORE_PICKS_KEY,
-  TYPE_LABELS,
 } from "../constants/explore.js";
-
-function coordsFor(text = "", index = 0) {
-  const hit = Object.entries(AREA_COORDS).find(([key]) => text.toLowerCase().includes(key.toLowerCase()));
-  const base = hit ? hit[1] : [34.043, -118.32];
-  const offset = (index % 5) * 0.006;
-  return [base[0] + offset, base[1] - offset];
-}
-
-function buildExploreItems(data) {
-  const attractionCats = new Set([16, 17, 18, 19, 20, 21, 22]);
-  const officialEventCats = new Set([1, 2, 3, 6]);
-  const cleanType = (cat) => TYPE_LABELS[cat] || cat || "";
-
-  const hotels = (data.hotels || [])
-    .filter((h) => h.lat && h.lon)
-    .map((h, i) => ({
-      id: `hotel-${i}-${h.name}`, category: "hotels", markerType: "hotel",
-      name: h.name, lat: Number(h.lat), lng: Number(h.lon),
-      detail: `${h.region} · ${h.price}`, region: h.region || "", price: h.price || "",
-      stars: h.stars ? `${h.stars}★` : "", starsNum: Number(h.stars) || 0,
-      ...mediaForPlace(h.name, "hotels"),
-    }));
-
-  const restaurants = (data.restaurants || []).map((r, i) => {
-    const [lat, lng] = coordsFor(`${r.region} ${r.address}`, i);
-    return {
-      id: `restaurant-${i}-${r.name}`, category: "restaurants", markerType: "restaurant",
-      name: r.name, lat, lng, detail: `${r.region} · ${r.flavor} · ${r.price}`,
-      region: r.region || "", flavor: r.flavor || "", price: r.price || "",
-      ...mediaForPlace(r.name, "restaurants"),
-    };
-  });
-
-  const events = (data.fanEvents || []).map((e, i) => {
-    const [lat, lng] = coordsFor(`${e.area} ${e.venue} ${e.name}`, i);
-    const type = officialEventCats.has(e.categoryId) ? "Official" : "Fan Scene";
-    // Many fan events have area=null but a real venue (e.g. LARS at Carson, FIFA Fan
-    // Festival at Memorial Coliseum). Fall back to venue so the card shows a real place.
-    const where = e.area || e.venue || "Los Angeles";
-    return {
-      id: `event-${e.id || i}`, category: "events", markerType: "event",
-      name: e.name, lat, lng, detail: `${where} · ${type}`,
-      area: e.area || e.venue || "", type, ...mediaForPlace(e.name, "events", e.officialUrl),
-    };
-  });
-
-  const shows = (data.shows || []).map((s, i) => {
-    const [lat, lng] = coordsFor(`${s.area} ${s.venue} ${s.name}`, i);
-    const type = cleanType(s.category);
-    return {
-      id: `show-${s.id || i}`, category: "shows", markerType: "event",
-      name: s.name, lat, lng, detail: `${s.area || s.venue || "Los Angeles"} · ${type}`,
-      area: s.area || s.venue || "", type, ...mediaForPlace(s.name, "shows", s.officialUrl),
-    };
-  });
-
-  const attractions = (data.allEvents || [])
-    .filter((item) => attractionCats.has(item.categoryId))
-    .map((item, i) => {
-      const [lat, lng] = coordsFor(`${item.area} ${item.venue} ${item.name}`, i);
-      const type = cleanType(item.category);
-      return {
-        id: `attraction-${item.id || i}`, category: "attractions", markerType: "attraction",
-        name: item.name, lat, lng, detail: `${item.area || item.venue || "Los Angeles"} · ${type}`,
-        area: item.area || item.venue || "", type, ...mediaForPlace(item.name, "attractions", item.officialUrl),
-      };
-    });
-
-  return { hotels, restaurants, events, shows, attractions };
-}
 
 const ExploreLA = forwardRef(function ExploreLA(
   { data, apiReady, apiError, journeyLoading = false, onGoJourney, onPicksChange, onRetry },

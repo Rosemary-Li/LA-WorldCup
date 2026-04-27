@@ -117,7 +117,7 @@ function App() {
           </div>
         )}
         {journeyError && <p className="journey-error">{journeyError}</p>}
-        {journey && <JourneyResult data={journey} />}
+        {journey && <JourneyResult data={journey} siteData={data} />}
         {!journeyLoading && !journeyError && !journey && (
           <div className="journey-empty">
             <h2>Your itinerary will appear here</h2>
