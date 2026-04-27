@@ -92,6 +92,7 @@ const ExploreLA = forwardRef(function ExploreLA(
   const [activeCategory, setActiveCategory] = useState(null);
   const [selectedIds, setSelectedIds]       = useState([]);
   const [activeFilters, setActiveFilters]   = useState({});
+  const [searchQuery, setSearchQuery]       = useState("");
 
   // Lets the parent reset us back to the magazine entry view (e.g. when the user
   // clicks "Explore LA" from the Journey CTA, even after they previously drilled in).
@@ -99,6 +100,7 @@ const ExploreLA = forwardRef(function ExploreLA(
     resetToEntry: () => {
       setActiveCategory(null);
       setActiveFilters({});
+      setSearchQuery("");
     },
   }));
 
@@ -113,8 +115,17 @@ const ExploreLA = forwardRef(function ExploreLA(
 
   const filteredItems = useMemo(() => {
     const defs = CATEGORY_FILTERS[activeCategory] || [];
-    return visibleItems.filter((item) => defs.every(({ key }) => !activeFilters[key] || item[key] === activeFilters[key]));
-  }, [visibleItems, activeCategory, activeFilters]);
+    const q = searchQuery.trim().toLowerCase();
+    return visibleItems.filter((item) => {
+      // Filter chips (region / price / etc.) take priority — they're explicit picks.
+      if (!defs.every(({ key }) => !activeFilters[key] || item[key] === activeFilters[key])) return false;
+      if (!q) return true;
+      // Match against the fields that show up on the card so search "feels"
+      // intuitive: name, area / region, type, flavor, etc.
+      return [item.name, item.detail, item.area, item.region, item.type, item.flavor]
+        .some((field) => field && String(field).toLowerCase().includes(q));
+    });
+  }, [visibleItems, activeCategory, activeFilters, searchQuery]);
 
   const selectedByCategory = useMemo(() => {
     const counts = {};
@@ -142,7 +153,7 @@ const ExploreLA = forwardRef(function ExploreLA(
 
   const toggleItem   = (id) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
   const setFilter    = (key, val) => setActiveFilters((prev) => ({ ...prev, [key]: val }));
-  const openCategory = (category) => { setActiveCategory(category); setActiveFilters({}); };
+  const openCategory = (category) => { setActiveCategory(category); setActiveFilters({}); setSearchQuery(""); };
 
   const [hoverCat, setHoverCat] = useState(null);
   const HOVER_IMAGES = {
@@ -254,6 +265,25 @@ const ExploreLA = forwardRef(function ExploreLA(
               <div className="ex-head-title">{CATEGORY_PAGE_TITLES[activeCategory]}</div>
               <div className="ex-head-sub">{CATEGORY_PAGE_SUBTITLES[activeCategory]}</div>
             </div>
+            <div className="ex-search">
+              <span className="ex-search-icon" aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                className="ex-search-input"
+                placeholder={`Search ${CATEGORY_PAGE_TITLES[activeCategory]?.toLowerCase() || "activities"}…`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search activities"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="ex-search-clear"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >×</button>
+              )}
+            </div>
           </div>
           <div className="ex-filters">
             {(CATEGORY_FILTERS[activeCategory] || []).map(({ key, label, select }) => (
@@ -267,7 +297,10 @@ const ExploreLA = forwardRef(function ExploreLA(
               ) : !apiReady ? (
                 <DataNotice title="Loading…" detail="Waiting for data." />
               ) : filteredItems.length === 0 ? (
-                <DataNotice title="No results" detail="Try adjusting the filters." />
+                <DataNotice
+                  title="No results"
+                  detail={searchQuery ? `No matches for "${searchQuery}". Try a different search or clear the filters.` : "Try adjusting the filters."}
+                />
               ) : (
                 <div className="ex-cards">
                   {filteredItems.map((item, i) => (
