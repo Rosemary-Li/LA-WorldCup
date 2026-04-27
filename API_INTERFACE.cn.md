@@ -3,10 +3,11 @@
 React 前端与 Flask/PostgreSQL 后端之间的数据契约。
 
 - React 通过 `frontend/src/api.js` 发送 HTTP 请求。
-- Flask 在 `backend/app.py` 接收请求，调用 `backend/queries.py`。
-- 行程生成逻辑独立于 `backend/services/itinerary.py`。
-- PostgreSQL 返回数据行；Flask 序列化为 JSON。
-- 浏览器不直接接触 PostgreSQL。
+- Flask 在 `backend/app.py` 接收并调用 `backend/queries.py`。
+- 行程生成逻辑在 `backend/services/itinerary.py`。
+- 赛事故事与实时 H2H 数据分别在 `backend/services/match_story.py`（Anthropic）和 `backend/services/match_data.py`（API-Football）。
+- PostgreSQL 返回行；Flask 序列化为 JSON。
+- 浏览器永不直接接触 PostgreSQL。
 
 > English version: [API_INTERFACE.md](API_INTERFACE.md)
 
@@ -14,15 +15,41 @@ React 前端与 Flask/PostgreSQL 后端之间的数据契约。
 
 ## 前端 API 客户端
 
-所有请求通过 `frontend/src/api.js` 发送，基础 URL 从环境变量读取：
+所有请求都走 `frontend/src/api.js`。Base URL 从环境变量读取：
 
 ```js
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001";
 ```
 
-在 `frontend/.env` 中设置 `VITE_API_BASE` 即可指向任意后端地址，无需修改源码。Vite 开发服务器同时将 `/api` 请求代理至同一目标。
+通过 `frontend/.env` 中的 `VITE_API_BASE` 指向任意后端 host。Vite 开发服务器同时把 `/api` 代理到该地址，开发环境下相对路径也能用。
 
-应用挂载时，`loadSiteData()` 并行拉取所有主数据集：
+### 超时 + abort
+
+`apiFetch` 用 `AbortController` 包裹 `fetch`。默认超时 15s；`/api/itinerary` 因为生成可能比较慢，单独设置 30s：
+
+```js
+async function apiFetch(endpoint, { timeoutMs = 15000 } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, { signal: ctrl.signal });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${res.statusText} on ${endpoint}${text ? ` — ${text.slice(0,200)}` : ""}`);
+    }
+    return await res.json();
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error(`Request timed out after ${timeoutMs/1000}s: ${endpoint}`);
+    throw err;
+  } finally { clearTimeout(t); }
+}
+```
+
+后端卡住不会再让 UI 死锁。每个请求会用 `[api] →` / `[api] ✓` / `[api] ✗` 前缀打到浏览器 console。
+
+### 启动时并行加载
+
+App mount 时 `useSiteData` 调用 `loadSiteData()`，并行抓取所有主数据集：
 
 ```js
 Promise.all([
@@ -36,9 +63,17 @@ Promise.all([
 ])
 ```
 
-返回 UI 可直接使用的状态：`{ matches, players, hotels, restaurants, fanEvents, shows, allEvents, rankings, teams }`。
+返回 UI-ready 的 state：`{ matches, players, hotels, restaurants, fanEvents, shows, allEvents, rankings, teams }`。
 
-加载失败时，`apiReady = false`，UI 显示连接错误提示，不展示空数据。
+### 失败自愈
+
+`useSiteData` 最多重试 4 次，指数退避（1s, 2s, 4s）。同时暴露 `refetch()` 让用户在 `DataNotice` 的 "Retry" 按钮上手动重试：
+
+```js
+const { data, apiReady, apiError, refetch } = useSiteData();
+```
+
+如果重试都失败，`apiReady = false`，UI 显示带重试按钮的连接错误，而不是空白数据。
 
 ---
 
@@ -46,22 +81,24 @@ Promise.all([
 
 | 组件 / Hook | 数据来源 |
 |---|---|
-| `useSiteData` | `loadSiteData()` — 挂载时并行拉取 |
+| `useSiteData` | `loadSiteData()` — mount 时并行加载、退避重试、暴露 `refetch()` |
 | `PhotoHero` | 无 |
 | `Matches` | `data.matches`（预加载） |
-| `MatchOverlay` | `data.matches/teams/rankings`；按需调用 `loadTickets()`、`loadPlayersByTeam()` |
-| `ExploreLA` | `data.hotels`、`data.restaurants`、`data.fanEvents`、`data.shows`、`data.allEvents` |
-| `SyncMap` | 通过 props 传入选中项（无 API 调用） |
-| `Journey` | `generateJourney()` → `GET /api/itinerary` |
-| `About` | 静态数据 |
+| `MatchOverlay` | `data.matches/teams/rankings`；按需 `loadMatchStory(num)` + `loadMatchStats(num)` |
+| `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` |
+| `SyncMap` | 通过 props 接收选中项（不自己请求） |
+| `Journey`（表单） | `selectedMatches`、`explorePicks`，来自 App state |
+| `Journey.submit()` | `generateJourney()` → `GET /api/itinerary` |
+| `JourneyResult` | `generateJourney()` 返回的 `data` |
+| `About` | 静态 |
 
 ---
 
-## 接口详情
+## 接口列表
 
 ### `GET /api/matches`
 
-按日期排序的所有洛杉矶赛事。
+LA 全部比赛，按日期排序。
 
 ```sql
 SELECT match_number, date, day_of_week, time_pt,
@@ -72,24 +109,24 @@ ORDER BY date, time_pt
 
 | 字段 | 说明 |
 |---|---|
-| `match_number` | 比赛编号，如 `M4` |
+| `match_number` | 比赛 ID（如 `M4`） |
 | `date` | 比赛日期 |
-| `time_pt` | 开球时间（太平洋时间） |
-| `team1`、`team2` | 数据库中的队伍名称 |
-| `stage` | 赛制阶段 |
+| `time_pt` | 太平洋时间开球时刻 |
+| `team1`, `team2` | 球队名 |
+| `stage` | 赛事阶段 |
 | `venue` | 球场名称 |
 
 ---
 
 ### `GET /api/matches/<match_number>`
 
-含场馆地址和备注的单场比赛详情。接口可用，前端大部分展示使用预加载数据。
+单场比赛详情，含场馆地址、备注。可用；前端大部分场景用预加载数据。
 
 ---
 
 ### `GET /api/tickets/<match_number>`
 
-单场门票选项，在 `MatchOverlay` 的门票标签页打开时按需调用。
+单场票务选项。
 
 ```sql
 SELECT ticket_id, seating_section, section_level,
@@ -99,74 +136,66 @@ WHERE match_number = %s
 ORDER BY price_usd
 ```
 
-| 字段 | 前端用途 |
+| 字段 | UI 用途 |
 |---|---|
-| `ticket_category` | 卡片标题（自动去除中文括号注释） |
-| `seating_section` | 看台区域 |
+| `ticket_category` | 卡片标题 |
+| `seating_section` | 座位区 |
 | `price_usd` | 显示为 `$XXX` |
-| `ticket_status` | 颜色标注：绿色 = 有票，红色 = 售罄 |
+| `ticket_status` | 颜色：绿 = Available，红 = Sold Out |
 
 ---
 
 ### `GET /api/teams`
 
-所有参与洛杉矶赛事的球队，用于 `MatchOverlay` 的球队信息展示。
+LA 全部参赛球队。`MatchOverlay` 用作球队上下文。
 
 | 字段 | 说明 |
 |---|---|
-| `country` | 队伍名称 |
-| `federation` | 所属联合会 |
-| `status` | 资格状态 |
-| `group_stage` | 分组代码 |
-| `matches_in_la` | 洛杉矶赛事参与情况 |
+| `country` | 队名 |
+| `federation` | 足联 |
+| `status` | 晋级状态 |
+| `group_stage` | 小组 |
+| `matches_in_la` | 在 LA 的比赛参与情况 |
 
 ---
 
 ### `GET /api/rankings`
 
-所有洛杉矶赛事球队的 FIFA 排名快照。
+LA 全部参赛队的 FIFA 排名快照。
 
 | 字段 | 说明 |
 |---|---|
-| `country` | 国家/地区 |
-| `rank` | FIFA 排名 |
+| `country` | 国家 |
+| `rank` | FIFA 名次 |
 | `total_points` | 排名积分 |
-| `rank_change` | 与上次排名的变化 |
+| `rank_change` | 较上一期的变化 |
 
 ---
 
 ### `GET /api/players`
 
-全部球员。可选查询参数：`limit`（默认 500）、`offset`（默认 0）、`search`。
+全部球员。可选参数：`limit`（默认 500）、`offset`（默认 0）、`search`。
 
 ### `GET /api/players/stars`
 
-仅返回明星球员（`is_star = true`）。
+仅星级球员（`is_star = true`）。
 
 ### `GET /api/players/<team_country>`
 
-单支球队的球员列表，在 `MatchOverlay` 的阵容标签页打开时按需调用。
-
-| 字段 | 前端用途 |
-|---|---|
-| `player_name` | 球员姓名（明星球员后缀 `★`） |
-| `position` | 位置 |
-| `club` | 俱乐部 |
-| `caps` | 国际出场次数 |
-| `goals` | 国际进球数 |
+单队大名单。开球队详情时按需加载。
 
 ---
 
 ### `GET /api/hotels`
 
-按星级降序排列的全部酒店。
+按星级降序的全部酒店。
 
-`loadSiteData()` 中的前端字段映射：
+`loadSiteData()` 中的前端映射：
 
 ```js
 {
   name:    h.hotel_name,
-  region:  cleanParenthetical(h.region),   // 去除"（注释）"式标注
+  region:  cleanParenthetical(h.region),
   address: h.address,
   stars:   Math.round(h.star_rating) || 3,
   price:   h.price_band ? `${h.price_band}/night` : "N/A",
@@ -176,72 +205,63 @@ ORDER BY price_usd
 }
 ```
 
-用途：探索 LA 酒店标签页、地图图钉、`MatchOverlay` 附近酒店、行程酒店推荐。
+用途：Explore LA 酒店视图、地图标记、Journey 酒店推荐。
 
-额外接口（可用，当前 UI 未调用）：
-- `GET /api/hotels/region/<region>`
-- `GET /api/hotels/price/<price_band>`
+附加：`GET /api/hotels/region/<region>`、`GET /api/hotels/price/<price_band>`。
 
 ---
 
 ### `GET /api/restaurants`
 
-查询参数：`limit`（默认 500）、`offset`、`search`、`region`。
-
-前端字段映射：
+可选参数：`limit`（默认 500）、`offset`、`search`、`region`。
 
 ```js
-{
-  name:   r.restaurant_name,
-  region: r.region,
-  price:  r.price_range,
-  flavor: r.flavor,
-  score:  r.google_review_score
-}
+{ name: r.restaurant_name, region: r.region, price: r.price_range, flavor: r.flavor, score: r.google_review_score }
 ```
 
-用途：探索 LA 餐厅标签页、`MatchOverlay` 附近餐厅、行程餐食安排。
+用途：Explore LA 餐厅视图、Journey 用餐时段。
 
-额外接口：`GET /api/restaurants/flavor/<flavor>`
+附加：`GET /api/restaurants/flavor/<flavor>`。
 
 ---
 
 ### `GET /api/events`
 
-查询参数：`limit`（默认 500）、`offset`、`search`、`area`。
+可选参数：`limit`（默认 500）、`offset`、`search`、`area`。
 
-`fact_event` 与 `dim_event_category` 联表查询，返回 `source_url` 用于官方网站链接。
+JOIN `fact_event` 与 `dim_event_category`，返回 `source_url` 用于官方网站链接。
 
-前端在加载时按类别 ID 拆分：
+加载时前端按类别分流（`api.js`）：
 
 ```js
-showCats     = new Set([12, 13, 14, 15])      // → data.shows（演出）
-fanEventCats = new Set([1-11, 23])             // → data.fanEvents（球迷活动）
-// 全部活动 → data.allEvents（景点从类别 ID 16-22 中筛选）
+showCats     = new Set([12, 13, 14, 15])           // → data.shows
+fanEventCats = new Set([1,2,3,4,5,6,7,8,9,10,11,23]) // → data.fanEvents
+// 全部 events → data.allEvents（景点取 16-22）
 ```
 
-额外接口：
+附加：
 - `GET /api/events/category/<category>`
-- `GET /api/events/<event_id>` — 含 `event_experience_detail` 和 `event_sports_detail` 联表的完整详情
+- `GET /api/events/<event_id>` — 含 `event_experience_detail` 与 `event_sports_detail` 的完整详情
 
 ---
 
 ### `GET /api/itinerary`
 
-生成个性化逐日旅行计划。逻辑在 `backend/services/itinerary.py`；Flask 路由只解析参数并调用 `build_itinerary()`。
+生成个性化按天行程。逻辑在 `backend/services/itinerary.py`，路由只做参数解析。
 
-**查询参数：**
+#### 查询参数
 
-| 参数 | 默认值 | 可选值 |
+| 参数 | 默认 | 取值 |
 |---|---|---|
-| `type` | `football` | `football`、`family`、`backpacker`、`luxury` |
+| `type` | `solo` | `solo`、`family`、`couple`、`friends`、`group` |
 | `budget` | `mid` | `budget`、`mid`、`luxury` |
-| `days` | `3` | 1–7 |
+| `days` | `3` | 任意正整数（之前的 7 天上限已移除） |
 | `match_date` | `jun12` | `jun12`、`jun15`、`jun18`、`jun21`、`jun25`、`jun28`、`jul2`、`jul10` |
-| `vibe` | `culture` | `culture`、`beach`、`nightlife`、`film` |
-| `picks` | `[]` | URL 编码的 JSON 数组，包含探索 LA 选中项 |
+| `vibe` | `culture` | `football`、`culture`、`beach`、`nightlife`、`film` |
+| `picks` | `[]` | URL 编码的 JSON 数组（Explore LA 选中项） |
+| `variant` | `0` | 整数种子偏移；用于在确定性 shuffle 上探索备选方案 |
 
-**`picks` 单项结构：**
+#### `picks` 单项结构
 
 ```json
 {
@@ -256,32 +276,24 @@ fanEventCats = new Set([1-11, 23])             // → data.fanEvents（球迷活
 }
 ```
 
-**后端逻辑（`services/itinerary.py`）：**
+#### 后端逻辑（Phase A → Phase B）
 
-1. `type` → 活动类别 ID → `get_events_by_categories()`
-2. `vibe` → 氛围类别 ID → `get_events_by_categories()`
-3. `budget` → `recommend_hotels_for_budget()` / `recommend_restaurants_for_budget()`
-4. 去重：已出现在 type 池中的 vibe 活动仅保留在 vibe 池
-5. 确定性种子打乱：相同参数集返回相同行程
-6. 从选中酒店（或首选推荐酒店）提取基础区域，同区域餐厅和活动优先排前
-7. 探索 LA 活动选择优先插入每日行程（每天最多 2 项）
-8. 从双端队列池中按类别去重构建每日行程：
+1. **Phase A — `build_candidate_pools`**：把 DB 行 + picks 转成评分候选 dict。每个 event 候选还会带上 JOIN 出来的 `event_experience_detail` 列，放在 `details` 字段下。
+2. **Phase B — `fill_day_slots`**：每个槽位应用评分权重（见 `itinerary.py` 中的 `W`），执行硬约束，挑出可行的最高分候选。同参数 + 同 `variant` ⇒ 输出确定一致。
 
-| 时间 | 安排 |
+普通日结构：
+
+| 时间 | 槽位 |
 |---|---|
-| 09:30 | 上午活动（旅行者类型活动，类别不重复） |
+| 09:30 | 上午活动 |
 | 12:30 | 午餐（餐厅） |
 | 15:00 | 下午活动（不同类别） |
-| 18:00 | 夜间/氛围活动 |
+| 18:00 | 晚间 / vibe 活动 |
 | 20:30 | 晚餐（餐厅） |
 
-比赛日：上午活动 → 午餐 → 比赛，无晚间安排。
+比赛日：上午 → 午餐 → 比赛，无晚间槽位。
 
-**比赛日期和区域坐标配置：**
-
-比赛标签存储在 `backend/config/matches.json`，LA 区域坐标存储在 `backend/config/areas.json`，服务启动时加载，无需修改 Python 代码即可更新。
-
-**响应结构：**
+#### 响应结构
 
 ```json
 {
@@ -292,21 +304,29 @@ fanEventCats = new Set([1-11, 23])             // → data.fanEvents（球迷活
       "activities": [
         {
           "time": "09:30",
-          "title": "Tom's Watch Bar",
-          "desc": "West Hollywood · Watch Party",
+          "title": "LACMA",
+          "desc": "Urban · Mid City",
           "source": "event",
-          "id": "EVT_042",
-          "lat": 34.09,
-          "lng": -118.36
-        },
-        {
-          "time": "12:30",
-          "title": "Lunch at Forma Restaurant & Cheese Bar",
-          "desc": "Santa Monica · Italian · $50-100 · ⭐ 4.5",
-          "source": "restaurant",
-          "id": "RST_007",
-          "lat": 34.0195,
-          "lng": -118.4912
+          "id": "75",
+          "reason": ["fits morning slot", "matches traveler type"],
+          "lat": 34.0639,
+          "lng": -118.3592,
+          "details": {
+            "key_experience":        "Urban Light installation",
+            "recommended_duration":  "2-3 hours",
+            "suitable_for":          "Tourists",
+            "transportation":        "Transit + Car",
+            "spatial_character":     "Urban embedded",
+            "planning_tag":          "Exhibition",
+            "ticket_price":          "$25",
+            "admission_info":        "Reservation recommended",
+            "price_level":           "1.0",
+            "crowdedness":           "High",
+            "intensity_level":       "1",
+            "night_friendly":        "1.0",
+            "photo_value":           "5.0",
+            "commercial_level":      "Medium"
+          }
         }
       ]
     }
@@ -325,88 +345,126 @@ fanEventCats = new Set([1-11, 23])             // → data.fanEvents（球迷活
     "label": "USA vs Paraguay (M4)"
   },
   "budget_label": "mid",
-  "traveler": "football",
-  "picks_used": []
+  "traveler": "solo",
+  "picks_used": [],
+  "variant": 0
 }
 ```
 
-有坐标时，活动对象包含 `lat`/`lng`（酒店来自 `fact_hotel` 精确坐标，活动/餐厅来自 `config/areas.json` 区域中心点近似值）。前端用这些坐标在鼠标悬停时高亮地图标记。
+#### `details`（每条活动）
 
-活动 `source` 取值说明：
+来自 `event_experience_detail`。后端在序列化前会过滤掉空 / `NaN` / null，所以 JSON 里只会有实际有数据的字段。前端把每个字段渲染成活动标题下方的 chip（`Journey.jsx` 中的 `activityChips()`）：
 
-| `source` | 显示标签 | 数据来源 |
+| 字段 | 前端 chip |
+|---|---|
+| `transportation` | 🚗 |
+| `recommended_duration` | ⏱ |
+| `ticket_price` | 🎟 |
+| `admission_info` | ✓ |
+| `suitable_for` | 👥 |
+| `spatial_character` | 🏛 |
+| `planning_tag` | ✦ |
+| `key_experience` | ✎ |
+| `price_level` | $（格式化为 N/5） |
+| `intensity_level` | ⚡（格式化为 N/5） |
+| `crowdedness` | 👣 |
+| `night_friendly` | 🌙（格式化为 N/5） |
+| `photo_value` | 📷（格式化为 N/5） |
+| `commercial_level` | 🛍 |
+
+#### `source` 取值
+
+| `source` | 显示标签 | 来源 |
 |---|---|---|
 | `event` | `EVENT` | `fact_event` 行 |
 | `restaurant` | `DINE` | `fact_restaurant` 行 |
-| `match` | `MATCH` | 固定比赛活动 |
-| `explore_pick` | `PICK` | 用户在探索 LA 中选择的项目 |
+| `match` | `MATCH` | 固定的比赛活动 |
+| `explore_pick` | `PICK` | 用户 Explore LA 选项 |
 
 ---
 
-## 探索 LA 选择传递流程
+### `GET /api/match-story/<match_number>`
 
-1. 用户在探索 LA 中选择卡片 → 存储到 `ExploreLA.jsx` 的 React 状态和 `localStorage`。
-2. 页面刷新时 `localStorage` 清空 —— 每次访问始终重新选择。
-3. 点击"生成我的旅程 →" 滚动至行程板块；选择通过 `App` 状态向下传递给 `Journey`。
-4. 提交时最多 12 个选择被序列化为 JSON，作为 `picks` 查询参数发送。
-5. `services/itinerary.py` 将酒店选择（用于区域匹配）与活动选择（用于行程插入）分开处理。
-6. 响应包含 `picks_used`，前端据此显示已纳入的选择数量。
+LLM 生成的赛前导读。由 `services/match_story.py` 调用 Anthropic Claude Opus 4.7，使用 `messages.parse()` + Pydantic `MatchStory` schema。
+
+```json
+{
+  "title":   "A Pacific Northwest debut against a Conmebol contender",
+  "desc":    "USA opens its home World Cup at SoFi against a battle-tested Paraguay side …",
+  "bullets": [
+    "USA's tournament opener — full Rose Bowl crowd expected",
+    "Paraguay returns to the World Cup after 16 years",
+    "First competitive meeting in this format since 2022"
+  ]
+}
+```
+
+**行为：**
+- 按 `match_number` 在内存中缓存。
+- **熔断器：** 一旦遇到额度耗尽 / 限流类错误，前端会在本次会话内停止调用此接口，回退到硬编码的 `matchMeta.story`。UI 不会降级。
+- Anthropic 错误返回 503（前端视为 fallback 信号）；其他错误返回 500。
 
 ---
 
-## 全部接口一览
+### `GET /api/match-stats/<match_number>`
+
+实时 H2H + 近况数据。由 `services/match_data.py` 调用 API-Football（api-sports.io）拉取双方球队。
+
+```json
+{
+  "home": { "winRate": 58, "goalsPerGame": 1.7, "form": ["W","D","W","L","W"], "goalsConceded": 0.8 },
+  "away": { "winRate": 42, "goalsPerGame": 1.3, "form": ["L","W","D","L","W"], "goalsConceded": 1.1 },
+  "h2h": { "total": 12, "team1wins": 5, "draws": 4, "team2wins": 3 },
+  "lastMeeting": { "date": "2022-09-23", "type": "Friendly", "homeScore": 0, "awayScore": 0 },
+  "allTime": { "matches": 12, "team1wins": 5, "draws": 4 }
+}
+```
+
+**缓存策略**（`match_data.py`）：
+1. 进程内存 dict
+2. JSON 文件 `backend/.cache/match_stats.json`（重启后仍可用）
+3. 前端硬编码的 `matchMeta.stats` 兜底（无 API key 也能正常显示）
+
+`MatchOverlay` 在前端把 API 数据按字段与硬编码兜底合并 — 双方球队的 stats 独立 fallback，但 H2H 整体 fallback，避免出现 "0 次交手" + "上次交锋 2014 年" 这种自相矛盾的展示。
+
+---
+
+## Explore LA Picks 流程
+
+1. 用户在 Explore LA 选卡片 → 存入 `selectedIds` state，并写入 `localStorage`（key 为 `laWorldCupExplorePicks`）。
+2. `App` 通过 `onPicksChange` 把 picks 提升到全局，使 `Journey` 调用 API 时能带上。
+3. ExploreLA 中点 "Build My Journey →" 会调用 Journey 组件的 `journeyRef.current?.submit()`（forwardRef + useImperativeHandle）。submit 内部：
+   - 立即滚动到 `#mount-journey-result`（平滑滚动期间临时关掉 snap，避免 mandatory snap 把它拽走），
+   - 把最多 12 个 picks 序列化成 JSON 放进 `picks` 查询参数，
+   - 触发 `generateJourney()`。
+4. 后端 `services/itinerary.py` 把酒店 picks（用于区域匹配）与活动 picks（用于排程注入）分离。
+5. 响应里带上 `picks_used`，前端可显示已纳入的 picks 数。
+6. 防重入：`submittingRef` 在请求飞行期间会拦截重复 submit — 加上 `apiFetch` 的 30s 超时，即便后端卡住，锁也会自动释放。
+
+---
+
+## 全部接口
 
 | 接口 | 状态 |
 |---|---|
-| `GET /api/matches` | 已使用 |
+| `GET /api/matches` | 在用 |
 | `GET /api/matches/<match_number>` | 可用 |
-| `GET /api/tickets/<match_number>` | 已使用（按需） |
+| `GET /api/tickets/<match_number>` | 在用（按需） |
 | `GET /api/tickets` | 可用 |
-| `GET /api/teams` | 已使用 |
+| `GET /api/teams` | 在用 |
 | `GET /api/teams/<country>` | 可用 |
-| `GET /api/players` | 已使用 |
+| `GET /api/players` | 在用 |
 | `GET /api/players/stars` | 可用 |
-| `GET /api/players/<team_country>` | 已使用（按需） |
-| `GET /api/rankings` | 已使用 |
-| `GET /api/hotels` | 已使用 |
+| `GET /api/players/<team_country>` | 在用（按需） |
+| `GET /api/rankings` | 在用 |
+| `GET /api/hotels` | 在用 |
 | `GET /api/hotels/region/<region>` | 可用 |
 | `GET /api/hotels/price/<price_band>` | 可用 |
-| `GET /api/restaurants` | 已使用 |
+| `GET /api/restaurants` | 在用 |
 | `GET /api/restaurants/flavor/<flavor>` | 可用 |
-| `GET /api/events` | 已使用 |
+| `GET /api/events` | 在用 |
 | `GET /api/events/category/<category>` | 可用 |
 | `GET /api/events/<event_id>` | 可用 |
-| `GET /api/itinerary` | 已使用 |
-
----
-
-## 数据库 → 接口映射
-
-| 数据库表 | 对应接口 |
-|---|---|
-| `fact_match` | `/api/matches`、`/api/matches/<match_number>` |
-| `fact_ticket` | `/api/tickets`、`/api/tickets/<match_number>` |
-| `dim_team` | `/api/teams`、`/api/teams/<country>` |
-| `dim_player` | `/api/players`、`/api/players/<team>`、`/api/players/stars` |
-| `fact_ranking` | `/api/rankings` |
-| `fact_hotel` | `/api/hotels`、`/api/hotels/region/<r>`、`/api/hotels/price/<p>`、`/api/itinerary` |
-| `fact_restaurant` | `/api/restaurants`、`/api/restaurants/flavor/<f>`、`/api/itinerary` |
-| `fact_event` | `/api/events`、`/api/events/<id>`、`/api/events/category/<c>`、`/api/itinerary` |
-| `dim_event_category` | 联表于 `/api/events`、`/api/itinerary` |
-| `event_experience_detail` | 联表于 `/api/events/<id>` |
-| `event_sports_detail` | `/api/events/<id>` |
-| `fact_route` | 数据库中存在，当前 API 未暴露 |
-| `dim_place` | 数据库中存在，当前 API 未暴露 |
-| `dim_mode` | 数据库中存在，当前 API 未暴露 |
-
----
-
-## 安全边界
-
-前端仅从环境变量读取 `VITE_API_BASE`，不接触：
-
-- 数据库 host、用户名、密码、SSL 模式
-- 原始 SQL
-- 连接池内部状态
-
-所有用户控制的查询参数在 `queries.py` 中通过参数化 SQL 处理，代码库中无任何用户输入的字符串拼接。
+| `GET /api/itinerary` | 在用 |
+| `GET /api/match-story/<match_number>` | 在用（按需，带熔断器） |
+| `GET /api/match-stats/<match_number>` | 在用（按需，三层缓存） |
