@@ -1,0 +1,18 @@
+      /* ══════════════════════════════════
+   SECTION DIVIDER — shared helper
+══════════════════════════════════ */
+      .section-divider {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 0 3rem;
+      }
+      .section-divider .d1 {
+        height: 3px;
+        background: var(--ink);
+      }
+      .section-divider .d2 {
+        height: 1px;
+        background: var(--ink);
+      }
+

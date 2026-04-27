@@ -89,7 +89,7 @@ export default function MatchOverlay({ matchNumber, data, onClose }) {
 
   return (
     <div id="matchOverlay" className="overlay" style={{ display: "block" }}>
-      <button className="overlay-close" onClick={onClose} style={{ zIndex: 300 }}>×</button>
+      <button className="overlay-close" onClick={onClose}>×</button>
       <div className="mo2-page">
 
         {/* ══ HERO ══ */}

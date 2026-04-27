@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { mediaForPlace } from "../placeMedia.js";
 import DataNotice from "../components/DataNotice.jsx";
 import ExCard from "../components/ExCard.jsx";
@@ -10,7 +10,6 @@ import {
   CATEGORY_FILTERS,
   CATEGORY_PAGE_SUBTITLES,
   CATEGORY_PAGE_TITLES,
-  EXPLORE_CARDS,
   EXPLORE_CATEGORIES,
   EXPLORE_PICKS_KEY,
   TYPE_LABELS,
@@ -51,10 +50,13 @@ function buildExploreItems(data) {
   const events = (data.fanEvents || []).map((e, i) => {
     const [lat, lng] = coordsFor(`${e.area} ${e.venue} ${e.name}`, i);
     const type = officialEventCats.has(e.categoryId) ? "Official" : "Fan Scene";
+    // Many fan events have area=null but a real venue (e.g. LARS at Carson, FIFA Fan
+    // Festival at Memorial Coliseum). Fall back to venue so the card shows a real place.
+    const where = e.area || e.venue || "Los Angeles";
     return {
       id: `event-${e.id || i}`, category: "events", markerType: "event",
-      name: e.name, lat, lng, detail: `${e.area || "Los Angeles"} · ${type}`,
-      area: e.area || "", type, ...mediaForPlace(e.name, "events", e.officialUrl),
+      name: e.name, lat, lng, detail: `${where} · ${type}`,
+      area: e.area || e.venue || "", type, ...mediaForPlace(e.name, "events", e.officialUrl),
     };
   });
 
@@ -83,10 +85,22 @@ function buildExploreItems(data) {
   return { hotels, restaurants, events, shows, attractions };
 }
 
-export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPicksChange }) {
+const ExploreLA = forwardRef(function ExploreLA(
+  { data, apiReady, apiError, journeyLoading = false, onGoJourney, onPicksChange, onRetry },
+  ref
+) {
   const [activeCategory, setActiveCategory] = useState(null);
   const [selectedIds, setSelectedIds]       = useState([]);
   const [activeFilters, setActiveFilters]   = useState({});
+
+  // Lets the parent reset us back to the magazine entry view (e.g. when the user
+  // clicks "Explore LA" from the Journey CTA, even after they previously drilled in).
+  useImperativeHandle(ref, () => ({
+    resetToEntry: () => {
+      setActiveCategory(null);
+      setActiveFilters({});
+    },
+  }));
 
   const exploreItems = useMemo(() => buildExploreItems(data), [data.allEvents, data.hotels, data.restaurants, data.fanEvents, data.shows]);
   const allExploreItems = useMemo(() => [
@@ -130,29 +144,92 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
   const setFilter    = (key, val) => setActiveFilters((prev) => ({ ...prev, [key]: val }));
   const openCategory = (category) => { setActiveCategory(category); setActiveFilters({}); };
 
+  const [hoverCat, setHoverCat] = useState(null);
+  const HOVER_IMAGES = {
+    hotels:      "Hotel_1.jpg",
+    restaurants: "Resturant.jpg",
+    events:      "Fansevent_1.jpg",
+    shows:       "shows_4.jpg",
+    attractions: "Attraction_1.jpg",
+  };
+  const HOVER_LABELS = {
+    hotels:      "Hotels",
+    restaurants: "Restaurants",
+    events:      "Fan Events",
+    shows:       "Shows",
+    attractions: "Attractions",
+  };
+  const heroImg   = HOVER_IMAGES[hoverCat] || "LA2.jpg";
+  const heroLabel = HOVER_LABELS[hoverCat] || "Los Angeles";
+
   return (
     <section id="la-showcase">
       {!activeCategory ? (
-        <div className="lg-grid">
-          {EXPLORE_CARDS.map((card) => (
+        <div className="lg-magazine">
+          <button
+            className="lg-mag-vertical"
+            type="button"
+            onClick={() => openCategory("events")}
+            onMouseEnter={() => setHoverCat("events")}
+            onMouseLeave={() => setHoverCat(null)}
+          >
+            Fan Event
+          </button>
+
+          <div className="lg-mag-stack">
+            <div className="lg-mag-eyebrow">
+              <span>Explore</span>
+              <em>Los Angeles · N° 26</em>
+            </div>
+
             <button
-              key={card.category}
-              className="lg-card"
+              className="lg-mag-link lg-mag-link--attr"
               type="button"
-              onClick={() => openCategory(card.category)}
-              aria-label={`Open ${card.label}`}
-              style={{ "--lg-img": `url('images/${card.img}')` }}
+              onClick={() => openCategory("attractions")}
+              onMouseEnter={() => setHoverCat("attractions")}
+              onMouseLeave={() => setHoverCat(null)}
             >
-              <span className="lg-card-inner">
-                <span className="lg-face lg-front" />
-                <span className="lg-face lg-back">
-                  <span className="lg-kicker">{card.kicker}</span>
-                  <span className="lg-name">{card.label}</span>
-                  <span className="lg-action">{card.action}</span>
-                </span>
-              </span>
+              Attraction
             </button>
-          ))}
+
+            <button
+              className="lg-mag-link lg-mag-link--hotel"
+              type="button"
+              onClick={() => openCategory("hotels")}
+              onMouseEnter={() => setHoverCat("hotels")}
+              onMouseLeave={() => setHoverCat(null)}
+            >
+              HOTEL
+            </button>
+
+            <div className="lg-mag-row">
+              <button
+                className="lg-mag-link lg-mag-link--rest"
+                type="button"
+                onClick={() => openCategory("restaurants")}
+                onMouseEnter={() => setHoverCat("restaurants")}
+                onMouseLeave={() => setHoverCat(null)}
+              >
+                Restaurant
+              </button>
+              <button
+                className="lg-mag-link lg-mag-link--show"
+                type="button"
+                onClick={() => openCategory("shows")}
+                onMouseEnter={() => setHoverCat("shows")}
+                onMouseLeave={() => setHoverCat(null)}
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="lg-mag-photo"
+            style={{ backgroundImage: `url('images/${heroImg}')` }}
+          >
+            <span className="lg-mag-photo-tag">{heroLabel}</span>
+          </div>
         </div>
       ) : (
         <div className="ex-wrap">
@@ -186,7 +263,7 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
           <div className="ex-body">
             <div className="ex-cards-col">
               {apiError ? (
-                <DataNotice title="Backend unavailable" detail="Start the Flask server and reload." />
+                <DataNotice title="Backend unavailable" detail="Start the Flask server and click Retry." onRetry={onRetry} />
               ) : !apiReady ? (
                 <DataNotice title="Loading…" detail="Waiting for data." />
               ) : filteredItems.length === 0 ? (
@@ -230,8 +307,24 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
               <div className="ex-map-box">
                 <SyncMap mode={activeCategory} places={selectedItems} />
               </div>
-              <button className="ex-go-btn" type="button" onClick={onGoJourney}>
-                Build My Journey →
+              <button
+                className={`ex-go-btn${journeyLoading ? " ex-go-btn--busy" : ""}`}
+                type="button"
+                aria-busy={journeyLoading || undefined}
+                onClick={() => {
+                  console.info("[explore] Build My Journey clicked", { journeyLoading, picks: selectedItems.length });
+                  if (journeyLoading) {
+                    console.warn("[explore] click ignored — journey already generating");
+                    return;
+                  }
+                  if (typeof onGoJourney !== "function") {
+                    console.error("[explore] onGoJourney is not a function — wiring broken in main.jsx");
+                    return;
+                  }
+                  onGoJourney();
+                }}
+              >
+                {journeyLoading ? "Building…" : "Build My Journey →"}
               </button>
             </div>
           </div>
@@ -239,4 +332,6 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
       )}
     </section>
   );
-}
+});
+
+export default ExploreLA;

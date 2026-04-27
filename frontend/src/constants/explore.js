@@ -75,17 +75,43 @@ export const AREA_COORDS = {
   "East Los Angeles": [34.0333, -118.1667],
   "Los Feliz":      [34.1083, -118.2872],
   "Studio City":    [34.1396, -118.3871],
+  // Beaches & outdoor — added to avoid coord collision in coordsFor() fallback.
+  Malibu:           [34.0259, -118.7798],
+  "Zuma Beach":     [34.0181, -118.8252],
+  "Point Dume":     [34.0061, -118.8060],
+  "El Matador":     [34.0383, -118.8750],
+  Topanga:          [34.0936, -118.6042],
+  "Laguna Beach":   [33.5427, -117.7854],
+  "Huntington Beach": [33.6603, -117.9992],
+  // Landmarks & big attractions
+  Griffith:         [34.1365, -118.2944],
+  "Griffith Park":  [34.1365, -118.2944],
+  "Hollywood Sign": [34.1341, -118.3215],
+  "Walk of Fame":   [34.1014, -118.3413],
+  "Beverly Hills":  [34.0736, -118.4004],
+  "Rodeo Drive":    [34.0697, -118.4008],
+  "Universal City": [34.1381, -118.3534],
+  "Runyon Canyon":  [34.1108, -118.3514],
+  "Echo Park":      [34.0782, -118.2606],
+  Melrose:          [34.0837, -118.3614],
+  "Abbot Kinney":   [33.9920, -118.4658],
+  "The Grove":      [34.0722, -118.3576],
+  // Stadiums & venues that show up as venue_name in the events table
+  "Memorial Coliseum": [34.0141, -118.2879],
+  Coliseum:         [34.0141, -118.2879],
+  "BMO Stadium":    [34.0124, -118.2858],
+  "Hollywood Bowl": [34.1122, -118.3392],
+  "Hollywood Forever": [34.0901, -118.3198],
+  "The Comedy Store": [34.0966, -118.3837],
+  "Laugh Factory":  [34.0989, -118.3530],
+  "Hollywood Improv": [34.0837, -118.3614],
+  "The Echo":       [34.0782, -118.2606],
+  "The Roxy":       [34.0905, -118.3854],
+  Troubadour:       [34.0817, -118.3893],
+  Cinespia:         [34.0901, -118.3198],
 };
 
 export const EXPLORE_PICKS_KEY = "laWorldCupExplorePicks";
-
-export const EXPLORE_CARDS = [
-  { category: "hotels",      label: "Hotels",      kicker: "Stay",       action: "Choose stays",      img: "LA1.jpg" },
-  { category: "restaurants", label: "Restaurants", kicker: "Taste",      action: "Choose dining",     img: "LA2.jpg" },
-  { category: "events",      label: "Fan Events",  kicker: "Gather",     action: "Choose events",     img: "LA3.jpg" },
-  { category: "shows",       label: "Shows",       kicker: "After Dark", action: "Choose shows",      img: "LA4.jpg" },
-  { category: "attractions", label: "Attractions", kicker: "Theme Park", action: "Choose activities", img: "LA7.jpg" },
-];
 
 export const EXPLORE_CATEGORIES = [
   ["hotels",      "Hotels"],

@@ -1,8 +1,37 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { generateJourney } from "../api.js";
 import SyncMap from "../components/SyncMap.jsx";
+import { mediaForPlace } from "../placeMedia.js";
 import { ACTIVITY_MARKS, JOURNEY_SELECTS, TRAVELER_TYPES } from "../constants/journey.js";
 import { matchRows } from "../constants/matches.js";
+
+// Map an activity's "source" → category understood by mediaForPlace, so we can
+// reuse the scraped place images as activity thumbnails on the itinerary.
+const SOURCE_TO_CATEGORY = {
+  restaurant:   "restaurants",
+  event:        "events",
+  explore_pick: "events",
+  match:        null, // matches use the SoFi Stadium hero
+};
+// Strip meal-prefix backend prepends so PLACE_URLS lookup hits the bare name.
+//   "Lunch at Forma Restaurant & Cheese Bar" → "Forma Restaurant & Cheese Bar"
+function bareTitle(title = "") {
+  return title.replace(/^(Breakfast|Brunch|Lunch|Dinner|Drinks|Coffee)\s+at\s+/i, "");
+}
+function activityPhoto(act) {
+  if (act.source === "match") return "images/match.jpg";
+  const cat = SOURCE_TO_CATEGORY[act.source] || "events";
+  // mediaForPlace.imageUrl can be a local scraped photo, a thum.io screenshot,
+  // or the per-category fallback. All are valid backgrounds.
+  return mediaForPlace(bareTitle(act.title), cat).imageUrl;
+}
+function activityUrl(act) {
+  if (act.source === "match") {
+    return "https://www.sofistadium.com/";
+  }
+  const cat = SOURCE_TO_CATEGORY[act.source] || "events";
+  return mediaForPlace(bareTitle(act.title), cat).officialUrl || "";
+}
 
 const scrollToId = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
@@ -106,16 +135,19 @@ export function JourneyResult({ data }) {
     <div className="journey-result-layout">
       <div className="journey-timeline">
         <div className="journey-summary-card">
-          <div className="journey-summary-tags">
-            <span>{badgeLabel(data.traveler)}</span>
-            <span>{badgeLabel(data.budget_label)} Budget</span>
-            <span>{data.days.length} Days</span>
-            <span>{budgetLabel}</span>
+          <div className="journey-summary-info">
+            <div className="journey-summary-tags">
+              <span>{badgeLabel(data.traveler)}</span>
+              <span>{badgeLabel(data.budget_label)} Budget</span>
+              <span>{data.days.length} Days</span>
+              <span>{budgetLabel}</span>
+            </div>
+            <h2>{data.match.label}</h2>
+            <p><span className="jr-summary-icon">▦</span> Match: {data.match.date} at SoFi Stadium</p>
+            {data.hotel && <p><span className="jr-summary-icon">⌂</span> Stay: <strong>{data.hotel.hotel_name}</strong>{hotelBits ? ` · ${hotelBits}` : ""}</p>}
+            {data.picks_used?.length > 0 && <p><span className="jr-summary-icon">✦</span> {data.picks_used.length} Explore LA picks included in this journey.</p>}
           </div>
-          <h2>{data.match.label}</h2>
-          <p>Match: {data.match.date} at SoFi Stadium</p>
-          {data.hotel && <p>Stay: <strong>{data.hotel.hotel_name}</strong>{hotelBits ? ` · ${hotelBits}` : ""}</p>}
-          {data.picks_used?.length > 0 && <p>{data.picks_used.length} Explore LA picks included in this journey.</p>}
+          <div className="journey-summary-photo" style={{ backgroundImage: "url('images/match.jpg')" }} />
         </div>
 
         {data.days.map((day) => (
@@ -124,27 +156,69 @@ export function JourneyResult({ data }) {
             <div className="day-stack">
               {day.activities.map((act, i) => {
                 const hasCoordAct = Number.isFinite(Number(act.lat)) && Number.isFinite(Number(act.lng));
-                const isActive = highlight && hasCoordAct
-                  && Math.abs(Number(act.lat) - highlight.lat) < 0.0001
-                  && Math.abs(Number(act.lng) - highlight.lng) < 0.0001;
+                // Match by name, not by coords. Many activities share the same fallback
+                // coordinates (e.g. when AREA_COORDS lacks an entry for the area), so a
+                // coord-based check would highlight every collision-mate together.
+                const isActive = !!highlight && highlight.name === act.title;
+                const photo = activityPhoto(act);
+                const url = activityUrl(act);
                 return (
                   <div
                     key={`${act.time}-${i}`}
                     className={`timeline-item${hasCoordAct ? " timeline-item--mappable" : ""}${isActive ? " timeline-item--active" : ""}`}
                     onMouseEnter={() => {
-                      if (!hasCoordAct) return;
+                      // Always fire the highlight — even without coords the map can match by name.
                       clearTimeout(hoverTimer.current);
-                      hoverTimer.current = setTimeout(() => setHighlight({ lat: Number(act.lat), lng: Number(act.lng) }), 200);
+                      hoverTimer.current = setTimeout(
+                        () => setHighlight({
+                          name: act.title,
+                          lat: hasCoordAct ? Number(act.lat) : null,
+                          lng: hasCoordAct ? Number(act.lng) : null,
+                        }),
+                        200
+                      );
                     }}
                     onMouseLeave={() => { clearTimeout(hoverTimer.current); setHighlight(null); }}
                   >
-                    <div className="timeline-time">{act.time}</div>
+                    <div className="timeline-time">
+                      <span className="timeline-dot" />
+                      {act.time}
+                    </div>
                     <div className="timeline-content">
                       <div className="timeline-mark">{ACTIVITY_MARKS[act.source] || "PLAN"}</div>
                       <div className="title">{act.title}</div>
                       <div className="desc">{act.desc}</div>
                     </div>
-                    {hasCoordAct && <span className="timeline-pin">{isActive ? "●" : "○"}</span>}
+                    {photo && (
+                      url ? (
+                        <a
+                          className="timeline-photo timeline-photo--link"
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Open official site for ${act.title}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
+                        />
+                      ) : (
+                        <div
+                          className="timeline-photo"
+                          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.18)), url('${photo}')` }}
+                        />
+                      )
+                    )}
+                    {url ? (
+                      <a
+                        className="timeline-arrow timeline-arrow--link"
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`Open official site for ${act.title}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >›</a>
+                    ) : (
+                      hasCoordAct && <span className="timeline-arrow">›</span>
+                    )}
                   </div>
                 );
               })}
@@ -154,12 +228,7 @@ export function JourneyResult({ data }) {
       </div>
 
       <aside className="journey-map-panel">
-        <div className="journey-map-head">
-          <span>Live Route Map</span>
-          <strong>{mapPlaces.length ? `${mapPlaces.length} locations` : "SoFi Stadium"}</strong>
-        </div>
         <div className="journey-map-box"><SyncMap mode="journey" places={mapPlaces} highlight={highlight} /></div>
-        <div className="journey-map-note">Selected Explore LA picks appear here with SoFi Stadium highlighted as the match venue.</div>
       </aside>
     </div>
   );
@@ -168,7 +237,7 @@ export function JourneyResult({ data }) {
 // ── Main Journey component ────────────────────────────────────────────────
 
 // World Cup window — date input bounds
-const WC_START = "2026-06-11";
+const WC_START = "2026-06-01";
 const WC_END   = "2026-07-19";
 
 function daysBetween(start, end) {
@@ -183,7 +252,7 @@ function shortDate(iso) {
 }
 
 const Journey = forwardRef(function Journey(
-  { explorePicks = [], selectedMatches = [], onClearMatches, onPrefsChange, setJourney, setLoading, setError },
+  { explorePicks = [], selectedMatches = [], onClearMatches, onPrefsChange, onGoExplore, setJourney, setLoading, setError },
   ref
 ) {
   const [form, setForm] = useState({
@@ -195,6 +264,10 @@ const Journey = forwardRef(function Journey(
     startDate: "2026-06-11",
     endDate:   "2026-06-15",
   });
+
+  // Guards against double-clicks on "Build My Journey" while a request is already in-flight.
+  // useRef avoids a re-render and dodges any prop staleness on the lifted loading state.
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (!selectedMatches.length) return;
@@ -208,24 +281,71 @@ const Journey = forwardRef(function Journey(
 
   const update = (key, value) => setForm((old) => ({ ...old, [key]: value }));
 
-  // Compute trip length from dates, capped to 1–7 (backend cap)
-  const tripDays = Math.min(7, Math.max(1, daysBetween(form.startDate, form.endDate)));
+  const tripDays = Math.max(1, daysBetween(form.startDate, form.endDate));
 
   const selectedRows = selectedMatches.map((k) => matchRows.find((r) => r.key === k)).filter(Boolean);
 
   async function submit() {
+    console.info("[journey] submit() called", {
+      submittingInFlight: submittingRef.current,
+      form,
+      tripDays,
+      selectedMatchKeys: selectedMatches,
+      explorePicksCount: explorePicks.length,
+    });
+
+    // Edge case: double-click while a request is in-flight.
+    if (submittingRef.current) {
+      console.warn("[journey] submit() ignored — previous request still in-flight (submittingRef=true). " +
+        "If this state persists, the previous fetch hung; api.js now has a 30s timeout so it should self-recover.");
+      return;
+    }
+    submittingRef.current = true;
+
     setLoading(true); setError(""); setJourney(null);
-    const scrollToResult = () => document.getElementById("mount-journey-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // Jump to the itinerary section immediately so the user sees the loading state.
+    // The body uses scroll-snap mandatory; temporarily disable it so the smooth scroll
+    // reliably lands on #mount-journey-result instead of being yanked to the nearest
+    // snap target. Restore after the scroll has settled (~700ms covers most distances).
+    const target = document.getElementById("mount-journey-result");
+    if (!target) {
+      console.error("[journey] #mount-journey-result not in DOM — itinerary section won't be visible");
+    } else {
+      const prevSnap = document.body.style.scrollSnapType;
+      document.body.style.scrollSnapType = "none";
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => { document.body.style.scrollSnapType = prevSnap; }, 800);
+    }
+
     const journeyPicks = explorePicks.slice(0, 12).map(({ id, category, name, detail, officialUrl, lat, lng, markerType }) => ({ id, category, name, detail, officialUrl, lat, lng, markerType }));
     try {
+      console.info("[journey] generateJourney() request fired");
       const result = await generateJourney({ ...form, days: String(tripDays), picks: journeyPicks });
+      console.info("[journey] generateJourney() resolved — days:", result?.days?.length);
       setJourney(result);
-      setTimeout(scrollToResult, 80);
-    } catch {
-      setError("Unable to connect to the server. Please make sure the Flask API is running.");
-      setTimeout(scrollToResult, 80);
+    } catch (err) {
+      console.error("[journey] generateJourney() failed:", err);
+      // Surface the actual error so the user (or future-me) doesn't have to open
+      // DevTools to know what went wrong. Common shapes:
+      //   • TypeError: Failed to fetch       → backend down / wrong port / CORS
+      //   • Request timed out after 30s      → backend hung
+      //   • HTTP 500 ... — <body>            → backend exception (body included)
+      //   • HTTP 4xx ...                     → bad request shape
+      const raw = err?.message || String(err);
+      let msg;
+      if (raw.includes("timed out")) {
+        msg = "Itinerary generation timed out after 30s — try again or check the Flask logs.";
+      } else if (raw.includes("Failed to fetch") || raw.includes("NetworkError")) {
+        msg = "Cannot reach the Flask API. Is it running on port 5001?";
+      } else {
+        msg = `Generation failed — ${raw}`;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
+      submittingRef.current = false;
+      console.info("[journey] submit() finished, lock released");
     }
   }
   useImperativeHandle(ref, () => ({ submit }));
@@ -385,7 +505,7 @@ const Journey = forwardRef(function Journey(
             </div>
           </div>
 
-          <button className="jr-cta-btn" type="button" onClick={() => scrollToId("la-showcase")}>
+          <button className="jr-cta-btn" type="button" onClick={onGoExplore}>
             <span>Explore LA</span>
             <span className="jr-cta-spark">✦</span>
           </button>

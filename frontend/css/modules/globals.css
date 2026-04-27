@@ -1,0 +1,100 @@
+/* ═══════════════════════════════════════
+   GLOBALS — palette, root variables, snap layout, page dots
+═══════════════════════════════════════ */
+      :root {
+        --ink: #0d0d0d;
+        --ink-soft: #1c1c1c;
+        --charcoal: #2e2e2e;
+        --silver: #8a8a8a;
+        --silver-lt: #b0b0b0;
+        --ash: #d0d0d0;
+        --cream: #f5f2ec;
+        --white: #fafaf8;
+        --paper: #ede9df;
+
+        --accent: #c9a84c; /* one touch of gold for awards/prestige */
+        --red-title: #1a1a1a;
+
+        --bg-page: #fafaf8;
+        --bg-section: #f0ede5;
+        --bg-dark: #111111;
+        --bg-card: #ffffff;
+
+        --border-ink: rgba(13, 13, 13, 0.15);
+        --border-med: rgba(13, 13, 13, 0.25);
+        --border-hard: rgba(13, 13, 13, 0.6);
+      }
+
+      :root {
+        --nav-h: 82px; /* fixed nav height — adjust if nav changes */
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        background: var(--bg-page);
+        color: var(--ink);
+        font-family: "Playfair Display", serif;
+        font-weight: 300;
+        overflow-x: hidden;
+        /* Full-page scroll container */
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
+
+      /* ── Snap sections ─────────────────────────── */
+      #mount-photohero,
+      #mount-matches,
+      #mount-showcase,
+      #mount-itinerary,
+      #mount-journey-result,
+      #mount-about {
+        height: 100vh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* ── Page dots (right side) ─────────────────── */
+      #fp-dots {
+        position: fixed;
+        right: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 150;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        mix-blend-mode: difference; /* auto-inverts on dark/light bg */
+        pointer-events: none;
+      }
+
+      .fp-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.45);
+        cursor: pointer;
+        transition: background 0.3s, transform 0.3s;
+        pointer-events: auto;
+        padding: 0;
+      }
+
+      .fp-dot.active {
+        background: #fff;
+        transform: scale(1.5);
+      }
+

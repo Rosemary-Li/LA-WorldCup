@@ -147,7 +147,7 @@ def itinerary():
         days = int(request.args.get("days", 3))
     except (TypeError, ValueError):
         days = 3
-    days     = min(max(days, 1), 7)
+    days     = max(days, 1)
     match_dt = request.args.get("match_date", "jun12")
     vibe     = request.args.get("vibe", "culture")
     picks_raw = request.args.get("picks")

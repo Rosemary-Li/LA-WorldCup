@@ -9,8 +9,8 @@ const PLACE_URLS = {
   "kimpton hotel palomar": "https://www.ihg.com/kimptonhotels/hotels/us/en/hotel-palomar-beverly-hills-ca/laxww/hoteldetail",
   "holiday inn express west la": "https://www.ihg.com/holidayinnexpress/hotels/us/en/los-angeles/laxwl/hoteldetail",
   "royal palace westwood hotel": "https://www.royalpalacewestwood.com/",
-  "the ritz-carlton, dtla": "https://www.ritzcarlton.com/en/hotels/laxlr-the-ritz-carlton-los-angeles/overview/",
-  "the ritz-carlton, los angeles": "https://www.ritzcarlton.com/en/hotels/laxlr-the-ritz-carlton-los-angeles/overview/",
+  "the ritz-carlton, dtla": "https://www.ritzcarlton.com/en/hotels/laxlz-the-ritz-carlton-los-angeles/overview/?nst=paid&cid=PAI_GLB0004YXD_GLE000BIM6_GLF000OETD&ppc=ppc&pId=ustbppc&gclsrc=aw.ds&gad_source=1&gad_campaignid=1658413582&gbraid=0AAAAADilnieBRaSzkRFNwoBixAySOU7Ni&gclid=Cj0KCQjw77bPBhC_ARIsAGAjjV_znhKpUytN5X5M8CwJSVK3Zvsu0tmsR5LOkrSyvSME7ryM47-sKVoaAlYZEALw_wcB",
+  "the ritz-carlton, los angeles": "https://www.ritzcarlton.com/en/hotels/laxlz-the-ritz-carlton-los-angeles/overview/?nst=paid&cid=PAI_GLB0004YXD_GLE000BIM6_GLF000OETD&ppc=ppc&pId=ustbppc&gclsrc=aw.ds&gad_source=1&gad_campaignid=1658413582&gbraid=0AAAAADilnieBRaSzkRFNwoBixAySOU7Ni&gclid=Cj0KCQjw77bPBhC_ARIsAGAjjV_znhKpUytN5X5M8CwJSVK3Zvsu0tmsR5LOkrSyvSME7ryM47-sKVoaAlYZEALw_wcB",
   "hotel figueroa": "https://www.hotelfigueroa.com/",
   "courtyard l.a. live": "https://www.marriott.com/en-us/hotels/laxcy-courtyard-los-angeles-l-a-live/overview/",
   "moxy downtown los angeles": "https://www.marriott.com/en-us/hotels/laxox-moxy-downtown-los-angeles/overview/",
@@ -125,10 +125,21 @@ const PLACE_URLS = {
   "socal pro series: claremont": "https://socalproseries.com/",
 };
 
+// Built by frontend/scripts/scrape-place-images.mjs — name → local image path under /public.
+import PLACE_IMAGES from "./placeImages.json";
+
+// Per-category fallback. Events use a 5-photo pool so cards don't all share the same
+// background — picked deterministically from the place name so each event keeps a stable image.
 const FALLBACK_IMAGES = {
   hotels: "images/hotel.jpg",
   restaurants: "images/Resturant.jpg",
-  events: "images/fanevent.jpg",
+  events: [
+    "images/fanevent.jpg",
+    "images/Fansevent_1.jpg",
+    "images/FansEvent_2.jpg",
+    "images/FansEvent_3.jpg",
+    "images/FansEvent_4.jpg",
+  ],
   shows: "images/shows.jpg",
   attractions: "images/attraction.jpg",
 };
@@ -142,12 +153,29 @@ function screenshotFor(url) {
   return `https://image.thum.io/get/width/700/crop/440/noanimate/${encodeURIComponent(url)}`;
 }
 
+// Stable string hash → integer (used to deterministically pick a fallback from a pool).
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function pickFallback(category, key) {
+  const f = FALLBACK_IMAGES[category];
+  if (Array.isArray(f)) return f[hashStr(key) % f.length];
+  return f || "images/LA5.jpg";
+}
+
 export function mediaForPlace(name, category, officialUrl = "") {
-  const url = officialUrl || PLACE_URLS[keyFor(name)] || "";
-  const fallbackImage = FALLBACK_IMAGES[category] || "images/LA5.jpg";
+  const key = keyFor(name);
+  const url = officialUrl || PLACE_URLS[key] || "";
+  const fallbackImage = pickFallback(category, key);
+  // Prefer the locally-scraped og:image (durable, no hot-link risk),
+  // fall back to a live screenshot of the official site, then to the bundled hero.
+  const localImage = PLACE_IMAGES[key];
   return {
     officialUrl: url,
     fallbackImage,
-    imageUrl: url ? screenshotFor(url) : fallbackImage,
+    imageUrl: localImage || (url ? screenshotFor(url) : fallbackImage),
   };
 }

@@ -1,0 +1,106 @@
+      /* ══════════════════════════════════
+   PHOTO HERO — full-bleed landing slide
+══════════════════════════════════ */
+      #photo-hero {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: #0a0a0a;
+      }
+      .ph-slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        transition: opacity 1.2s ease-in-out;
+      }
+      .ph-slide.active { opacity: 1; }
+      .ph-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.7));
+        z-index: 1;
+      }
+      .ph-text {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+      }
+      .ph-eyebrow {
+        font-family: "Playfair Display", serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 1.5rem;
+      }
+      .ph-headline {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.8rem, 8vw, 7rem);
+        font-weight: 900;
+        color: #fff;
+        line-height: 1.05;
+        margin: 0 0 1.5rem;
+        text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+      }
+      .ph-headline em { font-style: italic; color: #e8d5a3; }
+      .ph-outline { -webkit-text-stroke: 2px #fff; color: transparent; }
+      .ph-sub {
+        font-family: "Playfair Display", serif;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        color: rgba(255,255,255,0.65);
+      }
+      .ph-get-started {
+        margin-top: 2.2rem;
+        padding: 1rem 3rem;
+        background: #fff;
+        color: var(--ink);
+        border: none;
+        border-radius: 999px;
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.18s;
+      }
+      .ph-get-started:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.36);
+        background: #f5f0e8;
+      }
+      .ph-dots {
+        position: absolute;
+        bottom: 2.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: flex;
+        gap: 0.6rem;
+      }
+      .ph-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255,255,255,0.6);
+        background: transparent;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.3s, transform 0.3s;
+      }
+      .ph-dot.active { background: #fff; transform: scale(1.25); }
+      .rec-card {
+        border: 0;
+        text-decoration: none;
+      }
+

@@ -1,9 +1,33 @@
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001";
 
-async function apiFetch(endpoint) {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`API error: ${endpoint}`);
-  return res.json();
+// Per-request timeout. Without this, a hung backend would lock submit()
+// forever (the await never resolves → finally never runs → loading stays true).
+const DEFAULT_TIMEOUT_MS = 15000;
+
+async function apiFetch(endpoint, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const url = `${API_BASE}${endpoint}`;
+  console.debug(`[api] → ${url}`);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${res.statusText} on ${endpoint}${text ? ` — ${text.slice(0, 200)}` : ""}`);
+    }
+    const json = await res.json();
+    console.debug(`[api] ✓ ${endpoint}`);
+    return json;
+  } catch (err) {
+    if (err.name === "AbortError") {
+      console.error(`[api] ✗ ${endpoint} timed out after ${timeoutMs}ms`);
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s: ${endpoint}`);
+    }
+    console.error(`[api] ✗ ${endpoint}: ${err.message}`);
+    throw err;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 function cleanParenthetical(value) {
@@ -112,5 +136,6 @@ export async function generateJourney(params) {
       query.set(key, value);
     }
   });
-  return apiFetch(`/api/itinerary?${query.toString()}`);
+  // Itinerary generation can be slow (multi-day plan, many picks) — give it more headroom.
+  return apiFetch(`/api/itinerary?${query.toString()}`, { timeoutMs: 30000 });
 }

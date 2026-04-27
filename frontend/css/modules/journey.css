@@ -1,0 +1,989 @@
+      /* ══════════════════════════════════
+   JOURNEY — hero + step cards + result
+══════════════════════════════════ */
+      #la-showcase {
+        background: var(--ink);
+        padding: 4rem 0;
+        overflow: hidden;
+      }
+      #itinerary { background: var(--paper); }
+
+      .jr-section {
+        background: var(--paper);
+        height: 100%;
+        min-height: 0;
+        position: relative;
+      }
+      .jr-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        height: 100%;
+        min-height: 0;
+      }
+
+      /* ── LEFT: Hero ── */
+      .jr-hero {
+        position: relative;
+        min-height: 0;
+        height: 100%;                     /* fill grid cell vertically — no blank below */
+        background-image:
+          linear-gradient(90deg, rgba(248,246,242,0.96) 0%, rgba(248,246,242,0.82) 42%, rgba(248,246,242,0.35) 68%, rgba(248,246,242,0.05) 100%),
+          var(--jt-image, url("../images/LA sunset.jpg"));
+        background-size: cover;
+        background-position: 58% center;
+        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 150px 0 0 72px;
+        color: var(--ink);
+        transition: background-image 0.5s ease;
+      }
+      .jr-hero-overlay { display: none; }
+      .jr-hero-content { position: relative; z-index: 1; max-width: 560px; }
+      .jr-kicker {
+        display: block;
+        font-size: 0.62rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+        margin-bottom: 1.2rem;
+      }
+      .jr-headline {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(3rem, 5.6vw, 4.75rem);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -1.5px;
+        margin: 0 0 1.5rem;
+        color: #111;
+      }
+      .jr-headline-accent {
+        font-style: italic;
+        font-weight: 700;
+        color: #C6922B;
+      }
+      .jr-sub {
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--charcoal);
+        max-width: 440px;
+        margin: 0 0 2rem;
+      }
+      /* Full-width gold CTA at the bottom of the right column */
+      .jr-cta-btn {
+        appearance: none;
+        width: 100%;
+        border: none;
+        cursor: pointer;
+        margin-top: 0.25rem;
+        padding: 0.85rem 1.5rem;
+        background: linear-gradient(180deg, #C6922B 0%, #B07F1F 100%);
+        color: #fff;
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border-radius: 4px;
+        box-shadow: 0 6px 18px rgba(198,146,43,0.22);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.7rem;
+        transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+      }
+      .jr-cta-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(198,146,43,0.35);
+        background: linear-gradient(180deg, #D49E33 0%, #B98823 100%);
+      }
+      .jr-cta-spark { font-size: 1rem; opacity: 0.9; }
+
+      .jr-venue-badge {
+        position: absolute;
+        bottom: 2rem;
+        left: 4vw;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.1rem;
+        background: rgba(20,20,20,0.78);
+        backdrop-filter: blur(8px);
+        border-radius: 999px;
+        color: #fff;
+      }
+      .jr-venue-pin { font-size: 0.9rem; color: var(--jt-accent, #c9a84c); }
+      .jr-venue-badge strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .jr-venue-badge em {
+        display: block;
+        font-style: normal;
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.65);
+        text-transform: uppercase;
+      }
+
+      /* ── RIGHT: Content ── */
+      .jr-content {
+        padding: 1.5rem 2.5vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1rem;
+        background: var(--paper);
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .jr-card {
+        background: #fff;
+        border: 1px solid rgba(20,20,20,0.08);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+      }
+      .jr-card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
+      }
+      .jr-trophy { font-size: 1rem; color: var(--jt-accent, #c9a84c); }
+      .jr-card-title {
+        font-size: 0.7rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .jr-view-all {
+        margin-left: auto;
+        appearance: none;
+        background: transparent;
+        border: 1px solid rgba(20,20,20,0.18);
+        border-radius: 999px;
+        padding: 0.4rem 0.95rem;
+        font-size: 0.55rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--charcoal);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .jr-view-all:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+      /* Empty state */
+      /* Inline "+ Add More Matches" link inside the matches card */
+      .jr-add-more {
+        appearance: none;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        margin-top: 0.85rem;
+        padding: 0.55rem 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-family: "Playfair Display", serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--charcoal);
+        transition: color 0.18s, transform 0.18s;
+      }
+      .jr-add-more:hover { color: #C6922B; transform: translateX(2px); }
+      .jr-add-more-plus {
+        font-size: 1.1rem;
+        line-height: 1;
+        color: #C6922B;
+      }
+
+      /* Match list */
+      .jr-match-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        max-height: 150px;
+        overflow-y: auto;
+        padding-right: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(20,20,20,0.2) transparent;
+      }
+      .jr-match-list::-webkit-scrollbar { width: 6px; }
+      .jr-match-list::-webkit-scrollbar-thumb {
+        background: rgba(20,20,20,0.18);
+        border-radius: 999px;
+      }
+      .jr-match-list::-webkit-scrollbar-track { background: transparent; }
+      .jr-match-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 110px 1fr auto;
+        gap: 1rem;
+        align-items: center;
+        padding: 0.85rem 1rem 0.85rem 1.2rem;
+        background: rgba(250,248,242,0.6);
+        border-radius: 8px;
+        border-left: 5px solid var(--m-color, var(--ink));
+        animation: jr-fade-in 0.25s ease;
+      }
+      @keyframes jr-fade-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: none; }
+      }
+      .jr-match-key strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--m-color, var(--ink));
+      }
+      .jr-match-key em {
+        display: block;
+        font-style: normal;
+        font-size: 0.5rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-top: 0.15rem;
+      }
+      .jr-match-teams { display: flex; align-items: center; gap: 0.55rem; }
+      .jr-match-flag { font-size: 1.4rem; line-height: 1; }
+      .jr-match-name {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .jr-match-vs {
+        font-style: italic;
+        color: var(--silver);
+        font-size: 0.7rem;
+        font-weight: 400;
+      }
+      .jr-match-date { display: flex; align-items: center; gap: 0.5rem; }
+      .jr-cal { color: var(--silver); font-size: 0.85rem; }
+      .jr-match-date strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.05em;
+      }
+      .jr-match-date em {
+        display: block;
+        font-style: normal;
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-top: 0.15rem;
+      }
+      .jr-match-primary {
+        position: absolute;
+        top: 4px;
+        right: 8px;
+        font-size: 0.42rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--m-color, var(--silver));
+        opacity: 0.65;
+      }
+
+      /* Section block */
+      .jr-section-block { display: flex; flex-direction: column; gap: 0.55rem; }
+      .jr-section-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--silver);
+        font-weight: 700;
+      }
+
+      /* Traveler grid */
+      .jr-traveler-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.5rem;
+      }
+      .jr-traveler {
+        appearance: none;
+        background: #fff;
+        border: 1.5px solid rgba(20,20,20,0.08);
+        border-radius: 10px;
+        padding: 0.6rem 0.4rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.2rem;
+        cursor: pointer;
+        transition: all 0.18s;
+      }
+      .jr-traveler:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.07); }
+      .jr-traveler:focus-visible { outline: none; }
+      .jr-traveler--on {
+        background: #fffaf0;
+        border-color: #C6922B;
+        box-shadow: 0 0 0 3px rgba(198, 146, 43, 0.12);
+      }
+      .jr-traveler-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(198,146,43,0.1);
+        color: #C6922B;
+        margin-bottom: 0.1rem;
+      }
+      .jr-traveler-icon svg { width: 18px; height: 18px; }
+      .jr-traveler-icon svg { display: block; }
+      .jr-traveler-label {
+        font-family: "Playfair Display", serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .jr-traveler--on .jr-traveler-label { color: #C6922B; }
+      .jr-traveler-tag {
+        font-style: normal;
+        font-size: 0.5rem;
+        letter-spacing: 0.05em;
+        color: var(--silver);
+        line-height: 1.3;
+      }
+
+      /* Stats grid (4 cards) */
+      .jr-stats-grid {
+        background: #fff;
+        border: 1px solid rgba(20,20,20,0.08);
+        border-radius: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1.4fr 1fr;
+        gap: 0;
+        overflow: hidden;
+      }
+      .jr-stat {
+        appearance: none;
+        background: transparent;
+        border: none;
+        border-right: 1px solid rgba(20,20,20,0.08);
+        border-radius: 0;
+        padding: 0.8rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 0.2rem;
+        transition: background 0.18s;
+      }
+      .jr-stat:last-child { border-right: none; }
+      .jr-stat:hover { transform: none; box-shadow: none; }
+      .jr-stat-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: rgba(198,146,43,0.1);
+        color: #C6922B;
+        margin-bottom: 0.25rem;
+      }
+      .jr-stat-icon svg { width: 14px; height: 14px; }
+      .jr-stat-icon svg { display: block; }
+      .jr-stat-tag {
+        font-size: 0.5rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--silver);
+        font-weight: 600;
+      }
+      .jr-stat-value {
+        font-family: "Playfair Display", serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.2;
+      }
+      .jr-stat-desc {
+        font-style: normal;
+        font-size: 0.62rem;
+        color: var(--charcoal);
+        line-height: 1.35;
+        margin-top: 0.15rem;
+      }
+
+      /* Select dropdowns inside stat cards (Daily Budget, Vibe) */
+      .jr-stat--select { cursor: default; }
+      .jr-stat--select:hover { transform: none; box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-color: rgba(20,20,20,0.08); }
+      .jr-stat-select {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        border: 1px solid rgba(20,20,20,0.15);
+        border-radius: 4px;
+        padding: 0.5rem 1.6rem 0.5rem 0.55rem;
+        font-family: "Playfair Display", serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--ink);
+        cursor: pointer;
+        margin: 0.15rem 0 0.3rem;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23141414' stroke-width='1.4' fill='none' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        transition: border-color 0.15s, background-color 0.15s;
+      }
+      .jr-stat-select:hover { border-color: var(--ink); }
+      .jr-stat-select:focus { outline: none; border-color: var(--ink); background-color: rgba(0,0,0,0.02); }
+
+      /* Date inputs in the trip-dates stat card */
+      .jr-stat--dates { cursor: default; }
+      .jr-stat--dates:hover { transform: none; box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-color: rgba(20,20,20,0.08); }
+      .jr-date-row {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.2rem 0 0.35rem;
+      }
+      .jr-date-input {
+        flex: 1;
+        min-width: 0;
+        appearance: none;
+        background: transparent;
+        border: 1px solid rgba(20,20,20,0.15);
+        border-radius: 4px;
+        padding: 0.35rem 0.45rem;
+        font-family: "Playfair Display", serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--ink);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .jr-date-input:hover  { border-color: var(--ink); }
+      .jr-date-input:focus  { outline: none; border-color: var(--ink); background: rgba(0,0,0,0.02); }
+      .jr-date-arrow {
+        color: var(--silver);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+
+      /* Picks card (4th, dark themed) */
+      .jr-stat--dark {
+        background:
+          linear-gradient(135deg, rgba(20,20,20,0.92) 0%, rgba(20,20,20,0.85) 100%),
+          url("../images/LA1.jpg") center / cover no-repeat;
+        color: #fff;
+        cursor: default;
+        align-items: stretch;
+        justify-content: space-between;
+      }
+      .jr-stat--dark:hover { transform: none; box-shadow: none; border-color: rgba(20,20,20,0.08); }
+      .jr-stat--dark .jr-stat-icon {
+        color: var(--jt-accent, #c9a84c);
+        align-self: flex-start;
+      }
+      .jr-picks-count {
+        font-family: "Playfair Display", serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.95);
+      }
+      .jr-picks-cta {
+        appearance: none;
+        background: #fff;
+        color: var(--ink);
+        border: none;
+        border-radius: 999px;
+        padding: 0.7rem 1rem;
+        font-family: "Playfair Display", serif;
+        font-size: 0.55rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.18s, transform 0.18s;
+      }
+      .jr-picks-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+
+      /* Result section spacing */
+      .jr-section .itinerary-result { padding: 0 3vw 3rem; background: var(--paper); }
+
+      /* Responsive */
+      @media (max-width: 1100px) {
+        .jr-grid { grid-template-columns: 1fr; }
+        .jr-hero { min-height: 70vh; position: relative; }
+        .jr-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .jr-traveler-grid { grid-template-columns: repeat(3, 1fr); }
+        .jr-traveler-tag { display: none; }
+      }
+      @media (max-width: 700px) {
+        .jr-stats-grid { grid-template-columns: 1fr; }
+        .jr-traveler-grid { grid-template-columns: repeat(2, 1fr); }
+        .jr-match-row { grid-template-columns: 80px 1fr; gap: 0.5rem; }
+        .jr-match-date { grid-column: 1 / -1; justify-content: flex-end; }
+      }
+
+      .itinerary-result {
+        max-height: 0;
+        overflow: hidden;
+        scroll-margin-top: calc(var(--nav-h, 82px) + 1rem);
+        transition: max-height 0.3s ease;
+      }
+      /* #mount-journey-result is a snap section (height: 100vh). Inner grid
+         columns scroll independently — the left timeline scrolls vertically
+         while the right map stays put. .itinerary-result itself does NOT scroll
+         (overflow: hidden) so the snap container never conflicts with the
+         inner scrollable timeline. */
+      .itinerary-result.visible {
+        max-height: none;
+        height: 100%;
+        overflow: hidden;
+        padding: calc(var(--nav-h, 82px) + 1.5rem) 4vw 3rem;
+        background: var(--paper);
+        box-sizing: border-box;
+      }
+
+      /* Empty-state placeholder shown when no journey has been generated yet. */
+      .journey-empty {
+        max-width: 640px;
+        margin: 4rem auto;
+        text-align: center;
+        font-family: "Playfair Display", serif;
+      }
+      .journey-empty h2 {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 0.85rem;
+        letter-spacing: -0.01em;
+      }
+      .journey-empty p {
+        font-size: 0.95rem;
+        line-height: 1.55;
+        color: var(--charcoal);
+        margin: 0;
+        font-style: italic;
+      }
+      .journey-empty strong {
+        font-style: normal;
+        color: var(--ink);
+      }
+
+      .journey-loading {
+        background: var(--white);
+        border: 1px solid rgba(20,20,20,0.12);
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+      }
+      .journey-loading span,
+      .journey-error {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-top: 1rem;
+      }
+
+      .journey-result-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.75fr);
+        gap: 1.4rem;
+        align-items: stretch;
+        height: 100%;
+        min-height: 0;
+      }
+      /* Left column: vertical scroll for the day-by-day plan. */
+      .journey-timeline {
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(20,20,20,0.25) transparent;
+      }
+      .journey-timeline::-webkit-scrollbar { width: 8px; }
+      .journey-timeline::-webkit-scrollbar-thumb {
+        background: rgba(20,20,20,0.22);
+        border-radius: 999px;
+      }
+      .journey-timeline::-webkit-scrollbar-track { background: transparent; }
+      .journey-summary-card {
+        background: var(--white);
+        border: 1px solid rgba(20,20,20,0.08);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        box-shadow: 0 16px 45px rgba(0,0,0,0.08);
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        overflow: hidden;
+      }
+      .journey-summary-info { padding: 1.35rem 1.5rem; min-width: 0; }
+      .journey-summary-photo {
+        background-size: cover;
+        background-position: center;
+        min-height: 220px;
+      }
+      .journey-summary-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 1rem;
+      }
+      .journey-summary-tags span {
+        border: 1px solid rgba(156,123,47,0.38);
+        background: rgba(156,123,47,0.08);
+        border-radius: 999px;
+        color: #6d5522;
+        font-family: "Playfair Display", serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 0.38rem 0.62rem;
+      }
+      .journey-summary-card h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.7rem;
+        font-weight: 800;
+        line-height: 1.05;
+        color: var(--ink);
+        margin: 0 0 0.85rem;
+        letter-spacing: -0.01em;
+      }
+      .journey-summary-info p {
+        font-family: "Playfair Display", serif;
+        font-size: 0.78rem;
+        line-height: 1.6;
+        color: var(--charcoal);
+        margin: 0.3rem 0;
+        display: flex;
+        align-items: baseline;
+        gap: 0.45rem;
+      }
+      .journey-summary-info p strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .jr-summary-icon {
+        color: #C6922B;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+      }
+
+      .day-block {
+        margin-bottom: 1.4rem;
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+      .day-label {
+        font-family: "Playfair Display", serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 0.85rem;
+        letter-spacing: -0.005em;
+      }
+      .day-stack {
+        display: grid;
+        gap: 0.7rem;
+      }
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) 130px 18px;
+        align-items: center;
+        gap: 1rem;
+        background: var(--white);
+        border: 1px solid rgba(20,20,20,0.08);
+        border-radius: 12px;
+        padding: 0.85rem 0.95rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+        transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+        min-height: 92px;
+      }
+      .timeline-item--mappable {
+        cursor: pointer;
+      }
+      .timeline-item--mappable:hover {
+        border-color: rgba(198,146,43,0.55);
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+        transform: translateY(-1px);
+      }
+      .timeline-item--active {
+        border-color: #C6922B;
+        box-shadow: 0 0 0 2px rgba(198,146,43,0.35), 0 10px 26px rgba(0,0,0,0.1);
+      }
+      .timeline-time {
+        font-family: "Playfair Display", serif;
+        font-size: 0.85rem;
+        color: var(--ink);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .timeline-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ink);
+        flex-shrink: 0;
+      }
+      .timeline-item--active .timeline-dot { background: #C6922B; }
+      .timeline-content { min-width: 0; }
+      .timeline-mark {
+        display: inline-block;
+        font-family: "Playfair Display", serif;
+        font-size: 0.55rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #9c7b2f;
+        margin-bottom: 0.3rem;
+      }
+      .timeline-content .title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: var(--ink);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .timeline-content .desc {
+        font-family: "Playfair Display", serif;
+        font-size: 0.7rem;
+        color: var(--silver);
+        line-height: 1.45;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .timeline-photo {
+        width: 130px;
+        height: 80px;
+        border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+        background-color: rgba(20,20,20,0.05);
+        flex-shrink: 0;
+      }
+      /* Linked variants — clicking opens the official site in a new tab. */
+      a.timeline-photo--link {
+        display: block;
+        cursor: pointer;
+        transition: transform 0.18s, box-shadow 0.18s;
+        text-decoration: none;
+      }
+      a.timeline-photo--link:hover {
+        transform: scale(1.03);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+      }
+      a.timeline-arrow--link {
+        text-decoration: none;
+        cursor: pointer;
+        color: rgba(20,20,20,0.45);
+      }
+      a.timeline-arrow--link:hover {
+        color: var(--ink);
+        transform: translateX(3px);
+      }
+      .timeline-arrow {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        color: rgba(20,20,20,0.35);
+        line-height: 1;
+        text-align: center;
+        transition: color 0.18s, transform 0.18s;
+      }
+      .timeline-item--mappable:hover .timeline-arrow {
+        color: var(--ink);
+        transform: translateX(2px);
+      }
+      /* Older .timeline-pin selector kept as a no-op in case other markup uses it. */
+      .timeline-pin { display: none; }
+
+      /* Right column: structural only — no chrome. The Leaflet map fills it. */
+      .journey-map-panel {
+        align-self: stretch;
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .journey-map-box {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+      }
+      .journey-map-box .showcase-map {
+        height: 100% !important;
+        min-height: 100%;
+        width: 100%;
+      }
+      .journey-map-note {
+        background: var(--white);
+        color: var(--silver);
+        font-family: "Playfair Display", serif;
+        font-size: 0.62rem;
+        line-height: 1.65;
+        padding: 0.9rem 1rem;
+      }
+
+      .journey-screen-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid rgba(20,20,20,0.16);
+        color: var(--silver);
+        font-family: "Playfair Display", serif;
+        font-size: 0.56rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding-top: 0.9rem;
+      }
+
+      .loading-bar {
+        height: 2px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--ink),
+          transparent
+        );
+        background-size: 300% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -300% 0;
+        }
+        100% {
+          background-position: 300% 0;
+        }
+      }
+
+      /* Hide all Leaflet attribution and zoom controls across the whole app. */
+      .leaflet-control-attribution,
+      .leaflet-control-zoom,
+      .leaflet-control-zoom-in,
+      .leaflet-control-zoom-out {
+        display: none !important;
+      }
+
+      /* ── Custom popup ──────────────────────────── */
+      .lf-popup-wrap .leaflet-popup-content-wrapper {
+        background: #0d0d0d;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        padding: 0;
+      }
+      .lf-popup-wrap .leaflet-popup-content {
+        margin: 0;
+      }
+      .lf-popup-wrap .leaflet-popup-tip-container { display: none; }
+
+      .lf-popup {
+        padding: 0.75rem 1rem;
+      }
+      .lf-popup-type {
+        font-family: "Playfair Display", serif;
+        font-size: 0.5rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.35);
+        margin-bottom: 0.25rem;
+      }
+      .lf-popup-name {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.2rem;
+        line-height: 1.2;
+      }
+      .lf-popup-detail {
+        font-family: "Playfair Display", serif;
+        font-size: 0.55rem;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.6;
+      }
+
+      .rec-card {
+        background: var(--white);
+        overflow: hidden;
+        transition: all 0.25s;
+        cursor: pointer;
+      }
+      .rec-card:hover {
+        background: var(--paper);
+        transform: translateY(-3px);
+      }
+
+      .rec-card-img {
+        height: 140px;
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-ink);
+        filter: grayscale(30%);
+      }
+      .rec-card-body {
+        padding: 1rem;
+      }
+      .rec-card-tag {
+        font-family: "Playfair Display", serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--silver);
+        margin-bottom: 0.4rem;
+      }
+      .rec-card-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .rec-card-sub {
+        font-family: "Playfair Display", serif;
+        font-size: 0.62rem;
+        color: var(--silver);
+      }
+      .rec-card-price {
+        font-family: "Playfair Display", serif;
+        font-size: 0.65rem;
+        color: var(--charcoal);
+        margin-top: 0.6rem;
+      }
+      .stars {
+        color: var(--charcoal);
+      }

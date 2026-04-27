@@ -1,0 +1,353 @@
+      /* ══════════════════════════════════
+   MATCH OVERLAY — modal shell + mo2-* page
+══════════════════════════════════ */
+      /* Modal layers must sit above the navbar (nav is at z-index: 1000)
+         so the overlay covers everything and the close button is reachable. */
+      #matchOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background:
+          linear-gradient(rgba(245,243,238,0.92), rgba(245,243,238,0.95)),
+          url("../images/match.jpg") center / cover no-repeat;
+        overflow-y: auto;
+      }
+      .overlay-close {
+        position: fixed;
+        top: 1.2rem;
+        right: 1.2rem;
+        background: var(--ink);
+        color: #fff;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2001;
+        font-size: 1rem;
+        border: none;
+        transition: opacity 0.18s;
+      }
+      .overlay-close:hover { opacity: 0.72; }
+
+      .mo2-page {
+        --mo-gold:   #9c7b2f;
+        --mo-text:   #141414;
+        --mo-muted:  #888;
+        --mo-border: rgba(20,20,20,0.1);
+        --mo-card:   rgba(255,255,255,0.88);
+        --mo-card2:  rgba(250,248,242,0.9);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        color: var(--mo-text);
+        font-family: "Playfair Display", serif;
+      }
+
+      /* ── Hero ── */
+      .mo2-hero {
+        position: relative;
+        flex-shrink: 0;
+        min-height: 32vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background:
+          linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.7) 100%),
+          url("../images/match.jpg") center / cover no-repeat;
+        padding: 4rem 2rem 1.5rem;
+      }
+      .mo2-hero-bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 25% 50%, rgba(29,66,138,0.2) 0%, transparent 60%),
+                    radial-gradient(ellipse at 75% 50%, rgba(183,28,28,0.15) 0%, transparent 60%);
+        pointer-events: none;
+      }
+      .mo2-hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        width: 100%;
+        max-width: 900px;
+      }
+      .mo2-hero-meta {
+        font-size: 0.55rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.65);
+        margin-bottom: 0.85rem;
+      }
+      .mo2-hero-matchup {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 0.85rem;
+      }
+      .mo2-hero-team { display: flex; align-items: center; gap: 0.6rem; }
+      .mo2-hero-team--away { flex-direction: row-reverse; }
+      .mo2-hero-flag { font-size: 2.2rem; line-height: 1; }
+      .mo2-hero-name {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.6rem, 4.5vw, 3.4rem);
+        font-weight: 900;
+        color: #fff;
+        text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+        line-height: 1;
+      }
+      .mo2-hero-vs {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mo2-hero-vs span {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: clamp(0.85rem, 2vw, 1.2rem);
+        color: #e8d5a3;
+        border: 1.5px solid rgba(232,213,163,0.6);
+        border-radius: 50%;
+        width: 2.4rem;
+        height: 2.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mo2-hero-rankings {
+        display: flex;
+        justify-content: center;
+        gap: 6rem;
+      }
+      .mo2-hero-rank { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+      .mo2-hero-rank strong {
+        font-family: "Playfair Display", serif;
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: #e8d5a3;
+        line-height: 1;
+      }
+      .mo2-hero-rank span {
+        font-size: 0.48rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+      }
+      /* ── Content ── */
+      .mo2-content {
+        flex: 1;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem 1.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .mo2-row {
+        flex: 1;                              /* each row fills remaining height equally */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        min-height: 0;                        /* allow grid items to shrink */
+      }
+
+      /* ── Cards ── */
+      .mo2-card {
+        background: var(--mo-card);
+        border: 1px solid var(--mo-border);
+        padding: 1.1rem 1.3rem;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;                        /* allow shrink in grid */
+      }
+      .mo2-card--dark { background: rgba(20,20,20,0.06); }
+
+      .mo2-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--mo-gold);
+        margin-bottom: 0.55rem;
+      }
+      .mo2-loading { color: var(--mo-muted); font-size: 0.8rem; font-style: italic; }
+
+      /* ── AI tag + loading state ── */
+      .mo2-story-ai-tag {
+        display: inline-block;
+        margin-left: 0.6rem;
+        font-size: 0.42rem;
+        letter-spacing: 0.16em;
+        font-weight: 700;
+        background: var(--mo-gold);
+        color: #fff;
+        padding: 0.12rem 0.4rem;
+        border-radius: 2px;
+        vertical-align: middle;
+      }
+      .mo2-live-tag {
+        display: inline-block;
+        margin-left: 0.6rem;
+        font-size: 0.42rem;
+        letter-spacing: 0.16em;
+        font-weight: 700;
+        background: #2E7D32;
+        color: #fff;
+        padding: 0.12rem 0.4rem;
+        border-radius: 2px;
+        vertical-align: middle;
+      }
+      .mo2-story-loading {
+        display: inline-block;
+        margin-left: 0.6rem;
+        font-size: 0.5rem;
+        letter-spacing: 0.12em;
+        color: var(--mo-muted);
+        font-style: italic;
+        text-transform: lowercase;
+        animation: mo2-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes mo2-pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+      /* ── Story ── */
+      .mo2-story-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+        font-weight: 900;
+        font-style: italic;
+        color: var(--mo-text);
+        line-height: 1.15;
+        margin: 0 0 0.7rem;
+      }
+      .mo2-story-desc {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: var(--charcoal);
+        margin-bottom: 0.85rem;
+      }
+      .mo2-story-bullets { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+      .mo2-story-bullets li { display: flex; align-items: flex-start; gap: 0.5rem; font-family: "Playfair Display", serif; font-size: 0.85rem; color: var(--charcoal); line-height: 1.4; }
+      .mo2-story-bullets li::before { content: "✦"; color: var(--mo-gold); flex-shrink: 0; font-size: 0.5rem; margin-top: 0.1rem; }
+
+      /* ── Team comparison ── */
+      .mo2-cmp-header {
+        display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem;
+        font-family: "Playfair Display", serif; font-size: 0.82rem; font-weight: 700;
+        margin-bottom: 0.35rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--mo-border);
+      }
+      .mo2-cmp-right { text-align: right; }
+      .mo2-cmp-row {
+        display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem;
+        align-items: center; padding: 0.32rem 0; border-bottom: 1px solid rgba(20,20,20,0.05); font-size: 0.7rem;
+      }
+      .mo2-cmp-row:last-child { border-bottom: none; }
+      .mo2-cmp-label { text-align: center; font-size: 0.44rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mo-muted); white-space: nowrap; }
+      .mo2-cmp-val { font-weight: 700; color: var(--ink); }
+      .mo2-cmp-val--right { text-align: right; color: #b71c1c; }
+      .mo2-form-pills { display: flex; gap: 0.2rem; }
+      .mo2-form-pills--right { justify-content: flex-end; }
+
+      /* ── H2H ── */
+      .mo2-h2h-nums { display: flex; gap: 1.6rem; justify-content: center; margin: 0.5rem 0 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--mo-border); }
+      .mo2-h2h-block { text-align: center; }
+      .mo2-h2h-big { display: block; font-family: "Playfair Display", serif; font-size: 2.6rem; font-weight: 900; line-height: 1; margin-bottom: 0.25rem; }
+      .mo2-h2h-block span { font-size: 0.46rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mo-muted); }
+      .mo2-last-meeting { }
+      .mo2-lm-row { display: flex; align-items: center; justify-content: center; gap: 0.75rem; font-family: "Playfair Display", serif; font-size: 1.15rem; margin-bottom: 0.25rem; }
+      .mo2-lm-score { font-weight: 900; color: var(--ink); }
+      .mo2-lm-meta { text-align: center; font-size: 0.5rem; letter-spacing: 0.1em; color: var(--mo-muted); }
+
+      /* ── Players ── */
+      .mo2-players-scroll {
+        display: flex;
+        gap: 0.6rem;
+        overflow-x: auto;
+        padding-bottom: 0.4rem;
+        scrollbar-width: thin;
+        flex: 1;
+        align-items: center;
+      }
+      .mo2-players-scroll::-webkit-scrollbar { height: 4px; }
+      .mo2-players-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+      .mo2-player-card {
+        flex-shrink: 0; width: 130px;
+        background: var(--white); border: 1px solid var(--mo-border); border-top: 2px solid var(--ink);
+        padding: 0.85rem 0.6rem 0.75rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        text-decoration: none; cursor: pointer;
+        transition: box-shadow 0.18s, transform 0.18s;
+      }
+      .mo2-player-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+        border-top-color: var(--mo-gold);
+      }
+      /* Avatar circle */
+      .mo2-player-avatar {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--ink) 0%, #3a3a3a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.35rem;
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 2px solid var(--white);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+        transition: transform 0.2s;
+      }
+      .mo2-player-card:hover .mo2-player-avatar { transform: scale(1.08); }
+      .mo2-player-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+      }
+      .mo2-player-initials {
+        font-family: "Playfair Display", serif;
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .mo2-player-av-flag {
+        position: absolute;
+        bottom: -3px;
+        right: -3px;
+        font-size: 0.8rem;
+        line-height: 1;
+        background: var(--white);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        z-index: 2;
+      }
+      .mo2-player-team { font-size: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mo-gold); margin-bottom: 0.05rem; }
+      .mo2-player-name { font-family: "Playfair Display", serif; font-size: 0.65rem; font-weight: 700; color: var(--ink); line-height: 1.15; }
+      .mo2-player-pos { font-size: 0.42rem; color: var(--mo-muted); margin-top: 0.1rem; line-height: 1.25; }
+
+      /* ── Responsive ── */
+      @media (max-width: 700px) {
+        .mo2-row { grid-template-columns: 1fr; }
+        .mo2-hero-name { font-size: 1.8rem; }
+        .mo2-hero-rankings { gap: 3rem; }
+        .mo2-content { padding: 1rem 1rem 3rem; }
+      }
+

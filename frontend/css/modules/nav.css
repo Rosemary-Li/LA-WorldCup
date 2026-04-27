@@ -1,0 +1,70 @@
+      /* ══════════════════════════════════
+   NAV
+══════════════════════════════════ */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        /* Above Leaflet panes (≤400) and the .ex-go-btn (450) so the navbar
+           is never overlapped by content from any section. */
+        z-index: 1000;
+        background: var(--bg-page);
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .nav-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        color: var(--ink);
+        line-height: 1;
+        text-align: center;
+      }
+      .nav-logo-la {
+        color: var(--jt-accent, #c9a84c);
+        transition: color 0.5s ease;
+      }
+
+      .nav-bar {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 2.5rem 0.45rem;
+      }
+
+      .nav-rule {
+        font-size: 0.65rem;
+        color: var(--charcoal);
+        font-family: "Playfair Display", serif;
+        letter-spacing: 0.06em;
+      }
+      .nav-rule:first-child  { text-align: left; }
+      .nav-rule:last-child   { text-align: right; }
+
+      .nav-links {
+        display: flex;
+        gap: 4.5rem;
+        list-style: none;
+        justify-content: center;
+        margin: 0;
+        padding: 0.4rem 0 0.7rem;
+      }
+      .nav-links a {
+        color: var(--charcoal);
+        text-decoration: none;
+        font-size: 0.68rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-family: "Playfair Display", serif;
+        transition: color 0.2s;
+        padding-bottom: 2px;
+        border-bottom: 1px solid transparent;
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 const DEFAULT_CENTER = [33.9534, -118.3391];
 
@@ -30,13 +30,12 @@ export default function SyncMap({ mode, places = [], highlight = null }) {
 
   useEffect(() => {
     if (!window.L || mapRef.current) return;
-    const map = window.L.map(mapId, { center: DEFAULT_CENTER, zoom: 13, zoomControl: false, attributionControl: true });
+    const map = window.L.map(mapId, { center: DEFAULT_CENTER, zoom: 13, zoomControl: false, attributionControl: false });
     mapRef.current = map;
     layerRef.current = window.L.layerGroup().addTo(map);
     window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: "© OSM © CARTO", subdomains: "abcd", maxZoom: 19,
     }).addTo(map);
-    window.L.control.zoom({ position: "bottomright" }).addTo(map);
     return () => { map.remove(); mapRef.current = null; layerRef.current = null; };
   }, [mapId]);
 
@@ -67,10 +66,30 @@ export default function SyncMap({ mode, places = [], highlight = null }) {
   useEffect(() => {
     const L = window.L;
     if (!L || !mapRef.current) return;
+    // Two-pass matching:
+    //   Pass 1: prefer marker whose name === highlight.name (most precise).
+    //   Pass 2: if no name match (the activity's marker may have been deduped out
+    //           because another place shares its coords), fall back to coord match.
+    let matchedMarker = null;
+    if (highlight) {
+      if (highlight.name) {
+        matchedMarker = markersRef.current.find(
+          (m) => m._placeData && m._placeData.name === highlight.name
+        );
+      }
+      if (!matchedMarker && Number.isFinite(highlight.lat) && Number.isFinite(highlight.lng)) {
+        matchedMarker = markersRef.current.find((m) => {
+          const p = m._placeData;
+          return p
+            && Math.abs(p.lat - highlight.lat) < 0.0001
+            && Math.abs(p.lng - highlight.lng) < 0.0001;
+        });
+      }
+    }
     markersRef.current.forEach((marker) => {
       const p = marker._placeData;
       if (!p) return;
-      const isMatch = highlight && Math.abs(p.lat - highlight.lat) < 0.0001 && Math.abs(p.lng - highlight.lng) < 0.0001;
+      const isMatch = marker === matchedMarker;
       marker.setIcon(makeIcon(L, p.markerType || "event", isMatch));
       if (isMatch) {
         mapRef.current.panTo([p.lat, p.lng], { animate: true, duration: 0.4 });

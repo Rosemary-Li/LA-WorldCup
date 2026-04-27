@@ -1,0 +1,22 @@
+      /* ══════════════════════════════════
+   SHARED SECTION STYLES
+══════════════════════════════════ */
+      section {
+        padding: 5rem 3rem;
+      }
+
+      /* Full-page: all snap-mounted sections fill their container */
+      #mount-itinerary > section {
+        height: 100%;
+        overflow: hidden;
+        padding-top: 0;
+        padding-bottom: 0;
+        box-sizing: border-box;
+      }
+
+      #mount-about > section {
+        height: 100%;
+        overflow-y: auto;
+        padding-top: calc(var(--nav-h, 82px) + 2rem);
+        box-sizing: border-box;
+      }

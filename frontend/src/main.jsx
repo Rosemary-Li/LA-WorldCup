@@ -15,7 +15,7 @@ import { TRAVELER_THEMES } from "./constants/journey.js";
 const scrollToId = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
 function App() {
-  const { data, apiReady, apiError } = useSiteData();
+  const { data, apiReady, apiError, refetch } = useSiteData();
   const [matchNumber,     setMatchNumber]     = useState(null);
   const [selectedMatches, setSelectedMatches] = useState([]);
   const [explorePicks,    setExplorePicks]    = useState([]);
@@ -24,6 +24,12 @@ function App() {
   const [journeyLoading,  setJourneyLoading]  = useState(false);
   const [journeyError,    setJourneyError]    = useState("");
   const journeyRef = useRef(null);
+  const exploreRef = useRef(null);
+
+  function goExplore() {
+    exploreRef.current?.resetToEntry();   // back to magazine view
+    scrollToId("mount-showcase");
+  }
 
   // Per-traveler hero background image (colors stay universal)
   useEffect(() => {
@@ -50,6 +56,7 @@ function App() {
           selectedMatches={selectedMatches}
           onClearMatches={() => setSelectedMatches([])}
           onPrefsChange={setJourneyPrefs}
+          onGoExplore={goExplore}
           setJourney={setJourney}
           setLoading={setJourneyLoading}
           setError={setJourneyError}
@@ -57,17 +64,24 @@ function App() {
       </div>
       <div id="mount-showcase">
         <ExploreLA
+          ref={exploreRef}
           data={data}
           apiReady={apiReady}
           apiError={apiError}
-          onGoJourney={() => journeyRef.current?.submit()}
+          onRetry={refetch}
+          journeyLoading={journeyLoading}
+          onGoJourney={() => {
+            if (!journeyRef.current) {
+              console.error("[journey] onGoJourney fired but journeyRef.current is null — Journey hasn't mounted?");
+              return;
+            }
+            console.info("[journey] onGoJourney → calling Journey.submit()");
+            journeyRef.current.submit();
+          }}
           onPicksChange={setExplorePicks}
         />
       </div>
-      <div
-        id="mount-journey-result"
-        className={`itinerary-result ${journeyLoading || journey || journeyError ? "visible" : ""}`}
-      >
+      <div id="mount-journey-result" className="itinerary-result visible">
         {journeyLoading && (
           <div className="journey-loading">
             <div className="loading-bar" />
@@ -76,6 +90,12 @@ function App() {
         )}
         {journeyError && <p className="journey-error">{journeyError}</p>}
         {journey && <JourneyResult data={journey} />}
+        {!journeyLoading && !journeyError && !journey && (
+          <div className="journey-empty">
+            <h2>Your itinerary will appear here</h2>
+            <p>Pick your matches in <strong>Plan Your Journey</strong>, then choose your stays / dining / events in <strong>Explore LA</strong> and hit <strong>Build My Journey →</strong>.</p>
+          </div>
+        )}
       </div>
       <div id="mount-about"><About /></div>
       <MatchOverlay
