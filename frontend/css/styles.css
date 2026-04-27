@@ -14,3 +14,4 @@
 @import "./modules/about.css";            /* About — team grid + bios */
 @import "./modules/photo-hero.css";       /* Photo Hero — full-bleed landing slide */
 @import "./modules/explore-la.css";       /* Explore LA — magazine + opened-category split view */
+@import "./modules/share-card.css";       /* IG-Stories shareable card + share button */

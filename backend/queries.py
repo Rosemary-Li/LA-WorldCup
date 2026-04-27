@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import secrets
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
@@ -469,6 +471,60 @@ def recommend_restaurants_for_budget(price_ranges, limit=20):
         ORDER BY google_review_score DESC
         LIMIT %s
     """, price_ranges + [limit])
+
+
+# ─────────────────────────────────────────
+# Journey share — persist a generated itinerary so the user can share a URL
+# ─────────────────────────────────────────
+
+# 8-char URL-safe ID (~5 trillion combinations) — short enough to look clean
+# in a URL, long enough that guessing is not practical.
+_SHARE_ID_BYTES = 6
+
+
+def _new_share_id():
+    return secrets.token_urlsafe(_SHARE_ID_BYTES)[:8]
+
+
+def save_journey_share(payload):
+    """Persist an itinerary payload and return its short ID.
+
+    Retries on the (extremely rare) event of an ID collision so callers
+    don't have to handle UNIQUE-violation errors.
+    """
+    payload_json = json.dumps(payload)
+    for _ in range(5):
+        share_id = _new_share_id()
+        try:
+            with _conn() as conn, conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO journey_share (id, payload) VALUES (%s, %s::jsonb)",
+                    (share_id, payload_json),
+                )
+                conn.commit()
+            return share_id
+        except psycopg2.errors.UniqueViolation:
+            continue
+    raise RuntimeError("Could not allocate a unique share ID after 5 attempts")
+
+
+def get_journey_share(share_id):
+    """Return the saved payload, or None if no row matches.
+
+    Bumps view_count atomically so we can later see which shares get traffic.
+    """
+    rows = query(
+        """
+        UPDATE journey_share
+           SET view_count = view_count + 1
+         WHERE id = %s
+        RETURNING payload, created_at, view_count
+        """,
+        (share_id,),
+    )
+    if not rows:
+        return None
+    return rows[0]["payload"]
 
 
 # ─────────────────────────────────────────

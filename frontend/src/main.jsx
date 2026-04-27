@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../css/styles.css";
+import { loadJourneyShare } from "./api.js";
 import Nav from "./components/Nav.jsx";
 import { useSiteData } from "./hooks/useSiteData.js";
 import About from "./sections/About.jsx";
@@ -36,6 +37,33 @@ function App() {
     const theme = TRAVELER_THEMES[journeyPrefs?.type] || TRAVELER_THEMES.solo;
     document.documentElement.style.setProperty("--jt-image", `url("${theme.image}")`);
   }, [journeyPrefs]);
+
+  // ── Shared-link entry: ?i=<id> → fetch the saved itinerary, render it
+  // straight into the result section, and scrub the param from the URL so
+  // refresh doesn't re-trigger.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("i");
+    if (!id) return;
+
+    setJourneyLoading(true);
+    setJourneyError("");
+    loadJourneyShare(id)
+      .then((shared) => {
+        setJourney(shared);
+        setTimeout(() => scrollToId("mount-journey-result"), 250);
+      })
+      .catch((err) => {
+        console.error("[journey-share] load failed:", err);
+        setJourneyError("Couldn't load that shared itinerary — the link may have expired.");
+      })
+      .finally(() => {
+        setJourneyLoading(false);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("i");
+        window.history.replaceState({}, "", url);
+      });
+  }, []);
 
   function handlePlanJourney(keys) {
     if (keys && keys.length) setSelectedMatches(keys);

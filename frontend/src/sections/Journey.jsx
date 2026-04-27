@@ -1,6 +1,8 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { generateJourney } from "../api.js";
 import SyncMap from "../components/SyncMap.jsx";
+import ShareCard from "../components/ShareCard.jsx";
+import ShareModal from "../components/ShareModal.jsx";
 import { mediaForPlace } from "../placeMedia.js";
 import { ACTIVITY_MARKS, JOURNEY_SELECTS, TRAVELER_TYPES } from "../constants/journey.js";
 import { matchRows } from "../constants/matches.js";
@@ -86,7 +88,40 @@ const VIBE_DESC = {
 
 export function JourneyResult({ data }) {
   const [highlight, setHighlight] = useState(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const hoverTimer = useRef(null);
+  const shareCardRef = useRef(null);
+
+  // Captures the off-screen ShareCard into a PNG blob. Width is locked to
+  // 1080; height is whatever the card actually rendered (>= 1920 for short
+  // trips, taller for trips with many days). Passed into the modal so it
+  // owns the preview lifecycle.
+  const generatePng = useCallback(async () => {
+    const node = shareCardRef.current;
+    if (!node) throw new Error("ShareCard not mounted");
+    // Lazy-load html2canvas — keeps the initial bundle small for users who
+    // never hit the share button.
+    const html2canvas = (await import("html2canvas")).default;
+
+    // Measure the actual rendered card. The frame has min-height: 1920px so
+    // a one-day trip stays IG-Stories shaped; a 20-day trip grows to fit.
+    const rect = node.getBoundingClientRect();
+    const renderHeight = Math.max(1920, Math.round(rect.height));
+
+    const canvas = await html2canvas(node, {
+      width: 1080,
+      height: renderHeight,
+      windowWidth: 1080,
+      windowHeight: renderHeight,
+      scale: 1,
+      useCORS: true,
+      backgroundColor: "#0d0d0d",
+      logging: false,
+    });
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 0.95));
+    if (!blob) throw new Error("canvas.toBlob returned null");
+    return blob;
+  }, []);
 
   const budgetLabel = data.budget_label === "budget" ? "$150–250/day" : data.budget_label === "mid" ? "$350–500/day" : "$700+/day";
 
@@ -133,8 +168,27 @@ export function JourneyResult({ data }) {
 
   return (
     <div className="journey-result-layout">
+      {/* Off-screen IG-Stories template — captured by html2canvas on demand */}
+      <ShareCard ref={shareCardRef} data={data} />
+
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        onGeneratePng={generatePng}
+        data={data}
+      />
+
       <div className="journey-timeline">
         <div className="journey-summary-card">
+          <button
+            type="button"
+            className="sc-share-btn"
+            onClick={() => setShareOpen(true)}
+            title="Share your journey"
+          >
+            <span className="sc-share-icon">✦</span>
+            <span>Share</span>
+          </button>
           <div className="journey-summary-info">
             <div className="journey-summary-tags">
               <span>{badgeLabel(data.traveler)}</span>

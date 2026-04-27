@@ -173,6 +173,44 @@ def itinerary():
     return jsonify(result)
 
 
+# Persist a generated itinerary so the user can share a short URL.
+# Frontend calls this from ShareModal; we return { id } and the URL becomes
+# https://la-world-cup-journey.vercel.app/?i=<id>.
+@app.route("/api/itinerary/save", methods=["POST"])
+def itinerary_save():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or not payload.get("days"):
+        return jsonify({"error": "missing or invalid itinerary payload"}), 400
+
+    # Sanity cap — block obviously-wrong giant payloads from filling the table.
+    raw = (request.get_data(cache=False, as_text=True) or "")
+    if len(raw) > 200_000:                              # 200KB ≈ ~30-day plan
+        return jsonify({"error": "itinerary too large to share"}), 413
+
+    try:
+        share_id = queries.save_journey_share(payload)
+        return jsonify({"id": share_id})
+    except Exception:
+        app.logger.exception("Could not save journey share")
+        return jsonify({"error": "could not save share"}), 500
+
+
+# Re-hydrate a shared itinerary by its short ID. Returns the same shape as
+# /api/itinerary so the frontend can render it without re-running the planner.
+@app.route("/api/itinerary/share/<share_id>")
+def itinerary_share(share_id):
+    if not share_id or len(share_id) > 32:
+        return jsonify({"error": "invalid share id"}), 400
+    try:
+        payload = queries.get_journey_share(share_id)
+    except Exception:
+        app.logger.exception("Could not load journey share")
+        return jsonify({"error": "could not load share"}), 500
+    if payload is None:
+        return jsonify({"error": "share not found"}), 404
+    return jsonify(payload)
+
+
 # ─────────────────────────────────────────
 # Match Story (LLM-generated)
 # ─────────────────────────────────────────

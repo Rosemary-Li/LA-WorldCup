@@ -813,6 +813,7 @@
       }
       .journey-timeline::-webkit-scrollbar-track { background: transparent; }
       .journey-summary-card {
+        position: relative;            /* anchors the .sc-share-btn corner chip */
         background: var(--white);
         border: 1px solid rgba(20,20,20,0.08);
         border-radius: 12px;
@@ -1206,4 +1207,14 @@
           overflow-y: visible;
           padding-right: 0;
         }
+
+        /* Stack the summary card so the photo sits above the text + share btn */
+        .journey-summary-card {
+          grid-template-columns: 1fr;
+        }
+        .journey-summary-photo {
+          min-height: 160px;
+          order: -1;       /* photo on top, info below — easier to scan on phone */
+        }
+        .journey-summary-info { padding: 1rem 1.1rem 1.1rem; }
       }

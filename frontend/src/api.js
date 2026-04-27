@@ -4,13 +4,18 @@ export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001"
 // forever (the await never resolves → finally never runs → loading stays true).
 const DEFAULT_TIMEOUT_MS = 15000;
 
-async function apiFetch(endpoint, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+async function apiFetch(endpoint, { timeoutMs = DEFAULT_TIMEOUT_MS, method = "GET", body } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   const url = `${API_BASE}${endpoint}`;
-  console.debug(`[api] → ${url}`);
+  console.debug(`[api] → ${method} ${url}`);
   try {
-    const res = await fetch(url, { signal: ctrl.signal });
+    const init = { signal: ctrl.signal, method };
+    if (body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(body);
+    }
+    const res = await fetch(url, init);
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`HTTP ${res.status} ${res.statusText} on ${endpoint}${text ? ` — ${text.slice(0, 200)}` : ""}`);
@@ -138,4 +143,18 @@ export async function generateJourney(params) {
   });
   // Itinerary generation can be slow (multi-day plan, many picks) — give it more headroom.
   return apiFetch(`/api/itinerary?${query.toString()}`, { timeoutMs: 30000 });
+}
+
+// ── Journey share (persisted to Postgres so a short URL re-opens the same plan)
+export async function saveJourneyShare(payload) {
+  const { id } = await apiFetch("/api/itinerary/save", {
+    method: "POST",
+    body: payload,
+    timeoutMs: 15000,
+  });
+  return id;
+}
+
+export async function loadJourneyShare(id) {
+  return apiFetch(`/api/itinerary/share/${encodeURIComponent(id)}`, { timeoutMs: 15000 });
 }
