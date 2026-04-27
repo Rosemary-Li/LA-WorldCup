@@ -1,9 +1,9 @@
 {
   "jun12": { "date": "June 12", "time": "18:00", "label": "USA vs Paraguay (M4)" },
   "jun15": { "date": "June 15", "time": "18:00", "label": "Iran vs New Zealand (M15)" },
-  "jun18": { "date": "June 18", "time": "12:00", "label": "Switzerland vs UEFA Playoff A (M26)" },
+  "jun18": { "date": "June 18", "time": "12:00", "label": "Switzerland vs Bosnia and Herzegovina (M26)" },
   "jun21": { "date": "June 21", "time": "12:00", "label": "Belgium vs Iran (M39)" },
-  "jun25": { "date": "June 25", "time": "19:00", "label": "UEFA Playoff C vs USA (M59)" },
+  "jun25": { "date": "June 25", "time": "19:00", "label": "Türkiye vs USA (M59)" },
   "jun28": { "date": "June 28", "time": "12:00", "label": "Round of 32 (M73)" },
   "jul2":  { "date": "July 2",  "time": "12:00", "label": "Round of 32 (M84)" },
   "jul10": { "date": "July 10", "time": "12:00", "label": "Quarter-Finals (M98)" }

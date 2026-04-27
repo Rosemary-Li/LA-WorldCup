@@ -34,7 +34,8 @@ function buildExploreItems(data) {
       id: `hotel-${i}-${h.name}`, category: "hotels", markerType: "hotel",
       name: h.name, lat: Number(h.lat), lng: Number(h.lon),
       detail: `${h.region} · ${h.price}`, region: h.region || "", price: h.price || "",
-      stars: h.stars ? `${h.stars}★` : "", ...mediaForPlace(h.name, "hotels"),
+      stars: h.stars ? `${h.stars}★` : "", starsNum: Number(h.stars) || 0,
+      ...mediaForPlace(h.name, "hotels"),
     }));
 
   const restaurants = (data.restaurants || []).map((r, i) => {
@@ -93,10 +94,10 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
     ...exploreItems.events, ...exploreItems.shows, ...exploreItems.attractions,
   ], [exploreItems]);
 
-  const visibleItems   = exploreItems[activeCategory] || [];
-  const selectedItems  = useMemo(() => allExploreItems.filter((item) => selectedIds.includes(item.id)), [allExploreItems, selectedIds]);
+  const visibleItems  = exploreItems[activeCategory] || [];
+  const selectedItems = useMemo(() => allExploreItems.filter((item) => selectedIds.includes(item.id)), [allExploreItems, selectedIds]);
 
-  const filteredItems  = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const defs = CATEGORY_FILTERS[activeCategory] || [];
     return visibleItems.filter((item) => defs.every(({ key }) => !activeFilters[key] || item[key] === activeFilters[key]));
   }, [visibleItems, activeCategory, activeFilters]);
@@ -125,20 +126,18 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
     onPicksChange?.(picks);
   }, [apiReady, selectedItems, onPicksChange]);
 
-  const toggleItem    = (id) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
-  const setFilter     = (key, val) => setActiveFilters((prev) => ({ ...prev, [key]: val }));
-  const openCategory  = (category) => { setActiveCategory(category); setActiveFilters({}); };
+  const toggleItem   = (id) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+  const setFilter    = (key, val) => setActiveFilters((prev) => ({ ...prev, [key]: val }));
+  const openCategory = (category) => { setActiveCategory(category); setActiveFilters({}); };
 
   return (
     <section id="la-showcase">
       {!activeCategory ? (
         <div className="lg-grid">
-          {EXPLORE_CARDS.map((card, i) => card.photo ? (
-            <div key={i} className={`lg-photo ${card.cls || ""}`} style={{ "--lg-img": `url('images/${card.img}')` }} aria-hidden="true" />
-          ) : (
+          {EXPLORE_CARDS.map((card) => (
             <button
               key={card.category}
-              className={`lg-card ${card.cls || ""}`}
+              className="lg-card"
               type="button"
               onClick={() => openCategory(card.category)}
               aria-label={`Open ${card.label}`}
@@ -162,7 +161,8 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
             <div className="ex-cat-tabs">
               {EXPLORE_CATEGORIES.map(([key, label]) => (
                 <button key={key} className={key === activeCategory ? "active" : ""} type="button" onClick={() => openCategory(key)}>
-                  {label}{selectedByCategory[key] > 0 && <span className="ex-cat-badge">{selectedByCategory[key]}</span>}
+                  {label}
+                  {selectedByCategory[key] > 0 && <span className="ex-cat-badge">{selectedByCategory[key]}</span>}
                 </button>
               ))}
             </div>
@@ -194,7 +194,14 @@ export default function ExploreLA({ data, apiReady, apiError, onGoJourney, onPic
               ) : (
                 <div className="ex-cards">
                   {filteredItems.map((item, i) => (
-                    <ExCard key={item.id} item={item} category={activeCategory} selected={selectedIds.includes(item.id)} onToggle={toggleItem} index={i + 1} />
+                    <ExCard
+                      key={item.id}
+                      item={item}
+                      category={activeCategory}
+                      selected={selectedIds.includes(item.id)}
+                      onToggle={toggleItem}
+                      index={i + 1}
+                    />
                   ))}
                 </div>
               )}

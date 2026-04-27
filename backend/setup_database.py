@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS dim_team (
 cur.execute("""
 CREATE TABLE IF NOT EXISTS dim_player (
     player_id   TEXT PRIMARY KEY,
-    team        TEXT REFERENCES dim_team(country),
+    team        TEXT REFERENCES dim_team(country) ON UPDATE CASCADE,
     player_name TEXT,
     position    TEXT,
     club        TEXT,
@@ -242,6 +242,16 @@ CREATE TABLE IF NOT EXISTS event_sports_detail (
 conn.commit()
 print("All tables created successfully")
 
+# Keep existing databases compatible with team-name updates after playoffs.
+cur.execute("""
+ALTER TABLE dim_player DROP CONSTRAINT IF EXISTS dim_player_team_fkey;
+ALTER TABLE dim_player
+ADD CONSTRAINT dim_player_team_fkey
+FOREIGN KEY (team) REFERENCES dim_team(country)
+ON UPDATE CASCADE;
+""")
+conn.commit()
+
 # ─────────────────────────────────────────
 # 3. Import data (ETL)
 # ─────────────────────────────────────────
@@ -255,7 +265,29 @@ def load_csv(filename, table_name):
     df = df.where(pd.notnull(df), None)  # Convert NaN to None
     cols = ", ".join([f'"{c}"' for c in df.columns])
     placeholders = ", ".join(["%s"] * len(df.columns))
-    sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
+    primary_keys = {
+        "dim_event_category": "event_category_id",
+        "dim_mode": "mode_id",
+        "dim_place": "place_id",
+        "dim_team": "team_id",
+        "dim_player": "player_id",
+        "fact_match": "match_number",
+        "fact_ranking": "ranking_id",
+        "fact_hotel": "hotel_id",
+        "fact_restaurant": "restaurant_id",
+        "fact_event": "event_id",
+        "fact_route": "route_id",
+        "fact_ticket": "ticket_id",
+        "event_experience_detail": "event_id",
+        "event_sports_detail": "event_id",
+    }
+    pk = primary_keys[table_name]
+    update_cols = [c for c in df.columns if c != pk]
+    update_sql = ", ".join([f'"{c}" = EXCLUDED."{c}"' for c in update_cols])
+    sql = (
+        f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders}) "
+        f'ON CONFLICT ("{pk}") DO UPDATE SET {update_sql}'
+    )
     for _, row in df.iterrows():
         cur.execute(sql, list(row))
     conn.commit()

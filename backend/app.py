@@ -3,6 +3,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import queries
 from services.itinerary import build_itinerary
+from services.match_story import generate_story as generate_match_story
+from services.match_data  import get_match_stats
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -139,7 +141,7 @@ def event_detail(event_id):
 
 @app.route("/api/itinerary")
 def itinerary():
-    traveler = request.args.get("type", "football")
+    traveler = request.args.get("type", "solo")
     budget   = request.args.get("budget", "mid")
     try:
         days = int(request.args.get("days", 3))
@@ -149,14 +151,77 @@ def itinerary():
     match_dt = request.args.get("match_date", "jun12")
     vibe     = request.args.get("vibe", "culture")
     picks_raw = request.args.get("picks")
+    variant = request.args.get("variant", 0, type=int)
 
     try:
-        result = build_itinerary(traveler, budget, days, match_dt, vibe, picks_raw)
+        result = build_itinerary(traveler, budget, days, match_dt, vibe, picks_raw, variant=variant)
     except Exception:
         app.logger.exception("Could not build journey")
         return jsonify({"error": "Could not build journey"}), 500
 
     return jsonify(result)
+
+
+# ─────────────────────────────────────────
+# Match Story (LLM-generated)
+# ─────────────────────────────────────────
+
+@app.route("/api/match-story/<match_number>")
+def match_story(match_number):
+    matches = queries.get_all_matches()
+    match   = next((m for m in matches if m["match_number"] == match_number), None)
+    if not match:
+        return jsonify({"error": "match not found"}), 404
+
+    rankings = queries.get_all_rankings()
+    rank_map = {(r.get("country") or "").lower(): r.get("rank") for r in rankings}
+
+    home = match.get("team1") or "TBD"
+    away = match.get("team2") or "TBD"
+
+    ctx = {
+        "home_country": home,
+        "away_country": away,
+        "home_rank":    rank_map.get(home.lower()),
+        "away_rank":    rank_map.get(away.lower()),
+        "stage":        match.get("stage", "Group Stage"),
+        "date":         str(match.get("date", "")),
+    }
+
+    try:
+        story = generate_match_story(match_number, ctx)
+        return jsonify(story)
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
+    except Exception:
+        app.logger.exception("Could not generate match story")
+        return jsonify({"error": "could not generate story"}), 500
+
+
+# ─────────────────────────────────────────
+# Match Stats (API-Football)
+# ─────────────────────────────────────────
+
+@app.route("/api/match-stats/<match_number>")
+def match_stats_endpoint(match_number):
+    matches = queries.get_all_matches()
+    match   = next((m for m in matches if m["match_number"] == match_number), None)
+    if not match:
+        return jsonify({"error": "match not found"}), 404
+
+    home = match.get("team1") or "TBD"
+    away = match.get("team2") or "TBD"
+    if "TBD" in (home, away) or not home or not away:
+        return jsonify({}), 200  # nothing to fetch for TBD matches
+
+    try:
+        stats = get_match_stats(home, away)
+        return jsonify(stats)
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 503
+    except Exception:
+        app.logger.exception("Could not fetch match stats")
+        return jsonify({"error": "could not fetch stats"}), 500
 
 
 # ─────────────────────────────────────────

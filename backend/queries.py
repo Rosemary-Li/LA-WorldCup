@@ -10,6 +10,81 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 log = logging.getLogger(__name__)
 
+LATEST_MATCH_OVERRIDES = {
+    "M26": {
+        "team2": "Bosnia and Herzegovina",
+        "notes": "European Play-Off A winner confirmed as Bosnia and Herzegovina",
+    },
+    "M59": {
+        "team1": "Türkiye",
+        "time_pt": "19:00",
+        "notes": "European Play-Off C winner confirmed as Türkiye",
+    },
+}
+
+LATEST_TICKET_MATCHUPS = {
+    "M26": "Switzerland vs Bosnia and Herzegovina",
+    "M59": "Türkiye vs USA",
+}
+
+LATEST_TEAM_RENAMES = {
+    "UEFA Playoff A Winner": {
+        "country": "Bosnia and Herzegovina",
+        "status": "Scheduled in LA",
+        "possible_teams": "-",
+        "notes": "European Play-Off A winner - Group B",
+        "last_verified": "2026-03-31",
+        "update_after_playoff": "No",
+    },
+    "UEFA Playoff C Winner": {
+        "country": "Türkiye",
+        "status": "Scheduled in LA",
+        "possible_teams": "-",
+        "notes": "European Play-Off C winner - Group D",
+        "last_verified": "2026-03-31",
+        "update_after_playoff": "No",
+    },
+}
+
+
+def _with_latest_match_data(rows):
+    updated = []
+    for row in rows:
+        item = dict(row)
+        item.update(LATEST_MATCH_OVERRIDES.get(item.get("match_number"), {}))
+        updated.append(item)
+    return updated
+
+
+def _with_latest_ticket_data(rows):
+    updated = []
+    for row in rows:
+        item = dict(row)
+        matchup = LATEST_TICKET_MATCHUPS.get(item.get("match_number"))
+        if matchup:
+            item["matchup"] = matchup
+            if "match_info" in item:
+                match_num = str(item.get("match_number", "")).replace("M", "")
+                item["match_info"] = f"Match {match_num}: {matchup}"
+            if item.get("match_number") == "M59" and "match_time" in item:
+                item["match_time"] = "19:00:00"
+        updated.append(item)
+    return updated
+
+
+def _with_latest_team_data(rows):
+    teams = []
+    seen = set()
+    for row in rows:
+        item = dict(row)
+        item.update(LATEST_TEAM_RENAMES.get(item.get("country"), {}))
+        country = item.get("country")
+        if country in seen:
+            continue
+        seen.add(country)
+        teams.append(item)
+    return teams
+
 # ─────────────────────────────────────────
 # Connection Pool (lazy-initialized)
 # ─────────────────────────────────────────
@@ -71,21 +146,21 @@ def query(sql, params=None, conn=None):
 
 def get_all_matches():
     """Return all matches ordered by date."""
-    return query("""
+    return _with_latest_match_data(query("""
         SELECT match_number, date, day_of_week, time_pt,
                team1, team2, "group", stage, venue
         FROM fact_match
         ORDER BY date, time_pt
-    """)
+    """))
 
 def get_match_by_id(match_number):
     """Return a single match by match number."""
-    return query("""
+    return _with_latest_match_data(query("""
         SELECT match_number, date, day_of_week, time_pt,
                team1, team2, "group", stage, venue, venue_address, notes
         FROM fact_match
         WHERE match_number = %s
-    """, [match_number])
+    """, [match_number]))
 
 
 # ─────────────────────────────────────────
@@ -94,23 +169,23 @@ def get_match_by_id(match_number):
 
 def get_tickets_by_match(match_number):
     """Return all ticket options for a given match."""
-    return query("""
-        SELECT ticket_id, seating_section, section_level,
+    return _with_latest_ticket_data(query("""
+        SELECT ticket_id, match_number, seating_section, section_level,
                ticket_category, price_usd, ticket_status, matchup
         FROM fact_ticket
         WHERE match_number = %s
         ORDER BY price_usd
-    """, [match_number])
+    """, [match_number]))
 
 def get_all_tickets():
     """Return all ticket options."""
-    return query("""
+    return _with_latest_ticket_data(query("""
         SELECT ticket_id, match_number, matchup,
                match_date, seating_section, section_level,
                ticket_category, price_usd, ticket_status
         FROM fact_ticket
         ORDER BY match_date, price_usd
-    """)
+    """))
 
 
 # ─────────────────────────────────────────
@@ -119,21 +194,33 @@ def get_all_tickets():
 
 def get_all_teams():
     """Return all teams playing in LA."""
-    return query("""
+    return _with_latest_team_data(query("""
         SELECT team_id, country, federation, status,
                group_stage, matches_in_la
         FROM dim_team
         ORDER BY group_stage, country
-    """)
+    """))
 
 def get_team_by_country(country):
     """Return a single team by country name."""
-    return query("""
+    rows = _with_latest_team_data(query("""
         SELECT team_id, country, federation, status,
                possible_teams, group_stage, matches_in_la, notes
         FROM dim_team
         WHERE country = %s
-    """, [country])
+    """, [country]))
+    if rows:
+        return rows
+
+    old_country = next((old for old, new in LATEST_TEAM_RENAMES.items() if new["country"] == country), None)
+    if not old_country:
+        return []
+    return _with_latest_team_data(query("""
+        SELECT team_id, country, federation, status,
+               possible_teams, group_stage, matches_in_la, notes
+        FROM dim_team
+        WHERE country = %s
+    """, [old_country]))
 
 
 # ─────────────────────────────────────────
@@ -344,6 +431,7 @@ def get_events_by_categories(category_ids, limit=80):
     placeholders = ','.join(['%s'] * len(category_ids))
     return query(f"""
         SELECT e.event_id, e.event_name, e.category,
+               e.event_category_id,
                e.venue_name, e.area, e.city,
                e.start_date, e.end_date, e.event_time,
                c.category AS category_label,

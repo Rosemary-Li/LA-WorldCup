@@ -95,6 +95,14 @@ export async function loadPlayersByTeam(team) {
   return apiFetch(`/api/players/${encodeURIComponent(team)}`);
 }
 
+export async function loadMatchStory(matchNumber) {
+  return apiFetch(`/api/match-story/${encodeURIComponent(matchNumber)}`);
+}
+
+export async function loadMatchStats(matchNumber) {
+  return apiFetch(`/api/match-stats/${encodeURIComponent(matchNumber)}`);
+}
+
 export async function generateJourney(params) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {

@@ -15,21 +15,21 @@ match_date,match_time,match_info,stage,seating_section,section_level,ticket_cate
 2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,80.0,Available,14,M15,IR Iran vs New Zealand
 2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 400-442 (400 Deck),Level 4,Category 3,80.0,Available,15,M15,IR Iran vs New Zealand
 2026-06-15,18:00:00,Match 15: IR Iran vs New Zealand,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,40.0,Available,16,M15,IR Iran vs New Zealand
-2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality,1500.0,Available,17,M26,Switzerland vs Playoff A
-2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1,220.0,Available,18,M26,Switzerland vs Playoff A
-2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2,150.0,Available,19,M26,Switzerland vs Playoff A
-2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,80.0,Available,20,M26,Switzerland vs Playoff A
-2026-06-18,12:00:00,Match 26: Switzerland vs Playoff A,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,40.0,Available,21,M26,Switzerland vs Playoff A
+2026-06-18,12:00:00,Match 26: Switzerland vs Bosnia and Herzegovina,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality,1500.0,Available,17,M26,Switzerland vs Bosnia and Herzegovina
+2026-06-18,12:00:00,Match 26: Switzerland vs Bosnia and Herzegovina,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1,220.0,Available,18,M26,Switzerland vs Bosnia and Herzegovina
+2026-06-18,12:00:00,Match 26: Switzerland vs Bosnia and Herzegovina,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2,150.0,Available,19,M26,Switzerland vs Bosnia and Herzegovina
+2026-06-18,12:00:00,Match 26: Switzerland vs Bosnia and Herzegovina,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,80.0,Available,20,M26,Switzerland vs Bosnia and Herzegovina
+2026-06-18,12:00:00,Match 26: Switzerland vs Bosnia and Herzegovina,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,40.0,Available,21,M26,Switzerland vs Bosnia and Herzegovina
 2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality,3000.0,Low Stock,22,M39,Belgium vs IR Iran
 2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1,450.0,Available,23,M39,Belgium vs IR Iran
 2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2,250.0,Available,24,M39,Belgium vs IR Iran
 2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,150.0,Available,25,M39,Belgium vs IR Iran
 2026-06-21,12:00:00,Match 39: Belgium vs IR Iran,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,80.0,Low Stock,26,M39,Belgium vs IR Iran
-2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality,3000.0,Waitlist,27,M59,USA vs Playoff C
-2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1,450.0,Low Stock,28,M59,USA vs Playoff C
-2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2,250.0,Available,29,M59,USA vs Playoff C
-2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,150.0,Available,30,M59,USA vs Playoff C
-2026-06-25,18:00:00,Match 59: USA vs Playoff C,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,80.0,Sold Out,31,M59,USA vs Playoff C
+2026-06-25,19:00:00,Match 59: Türkiye vs USA,Group Stage,Pechanga Founders Club,Level 1,VIP Hospitality,3000.0,Waitlist,27,M59,Türkiye vs USA
+2026-06-25,19:00:00,Match 59: Türkiye vs USA,Group Stage,Sections 111-115 (Lower Sideline),Level 1,Category 1,450.0,Low Stock,28,M59,Türkiye vs USA
+2026-06-25,19:00:00,Match 59: Türkiye vs USA,Group Stage,Sections 100-110 (Lower Endzone),Level 1,Category 2,250.0,Available,29,M59,Türkiye vs USA
+2026-06-25,19:00:00,Match 59: Türkiye vs USA,Group Stage,Sections 300-347 (Upper Bowl),Level 3,Category 3,150.0,Available,30,M59,Türkiye vs USA
+2026-06-25,19:00:00,Match 59: Türkiye vs USA,Group Stage,Sections 504-542 (500 Deck),Level 5,Category 4 - Most Affordable,80.0,Sold Out,31,M59,Türkiye vs USA
 2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Pechanga Founders Club,Level 1,VIP Hospitality,3500.0,Available,32,M73,Group A 2nd vs Group B 2nd
 2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 111-115 (Lower Sideline),Level 1,Category 1,500.0,Available,33,M73,Group A 2nd vs Group B 2nd
 2026-06-28,12:00:00,Match 73: Group A 2nd vs Group B 2nd,Round of 32,Sections 100-110 (Lower Endzone),Level 1,Category 2,300.0,Available,34,M73,Group A 2nd vs Group B 2nd

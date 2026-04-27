@@ -22,13 +22,9 @@ export default function PhotoHero() {
         <div className="ph-eyebrow">✦ FIFA World Cup 2026™ · Los Angeles ✦</div>
         <h1 className="ph-headline">THE <em>BEAUTIFUL</em><br />GAME COMES TO<br /><span className="ph-outline">HOLLYWOOD</span></h1>
         <p className="ph-sub">June – July 2026 · SoFi Stadium · Inglewood, California</p>
-        <div className="ph-steps">
-          <button className="ph-step-btn" onClick={() => scrollToId("mount-matches")}>Pick your match</button>
-          <span className="ph-steps-arrow">→</span>
-          <button className="ph-step-btn" onClick={() => scrollToId("la-showcase")}>Explore the city</button>
-          <span className="ph-steps-arrow">→</span>
-          <button className="ph-step-btn" onClick={() => scrollToId("mount-itinerary")}>Generate your trip</button>
-        </div>
+        <button className="ph-get-started" onClick={() => scrollToId("mount-matches")}>
+          Get Started
+        </button>
       </div>
       <div className="ph-dots">
         {SLIDES.map((slide, i) => (
