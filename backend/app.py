@@ -13,6 +13,17 @@ CORS(app)  # Allow frontend to call this API
 
 
 # ─────────────────────────────────────────
+# Health check — must NOT touch the DB so Render deploys succeed even when
+# the database connection is being reconfigured. /api/matches still works
+# as a deeper smoke test once the deploy is live.
+# ─────────────────────────────────────────
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
+# ─────────────────────────────────────────
 # Matches
 # ─────────────────────────────────────────
 
