@@ -90,7 +90,7 @@ const { data, apiReady, apiError, refetch } = useSiteData();
 | `PhotoHero` | 无 |
 | `Matches` | `data.matches`（预加载） |
 | `MatchOverlay` | `data.matches/teams/rankings`；按需 `loadMatchStory(num)` + `loadMatchStats(num)` |
-| `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` |
+| `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` — 客户端通过 `lib/personaSort.js` 用 `journeyPrefs` + 当前 picks 重新排序 |
 | `SyncMap` | 通过 props 接收选中项（不自己请求） |
 | `Journey`（表单） | `selectedMatches`、`explorePicks`，来自 App state |
 | `Journey.submit()` | `generateJourney()` → `GET /api/itinerary` |
@@ -497,6 +497,21 @@ LLM 生成的赛前导读。由 `services/match_story.py` 调用 Anthropic Claud
 4. 后端 `services/itinerary.py` 把酒店 picks（用于区域匹配）与活动 picks（用于排程注入）分离。
 5. 响应里带上 `picks_used`，前端可显示已纳入的 picks 数。
 6. 防重入：`submittingRef` 在请求飞行期间会拦截重复 submit — 加上 `apiFetch` 的 30s 超时，即便后端卡住，锁也会自动释放。
+
+### Persona 个性化排序（纯前端）
+
+在卡片渲染前，`ExploreLA` 把过滤后的列表交给 `frontend/src/lib/personaSort.js` 重排。**完全在客户端**，不动任何 API、不发额外请求。输入：
+
+- `journeyPrefs` — `{ type, budget, vibe }`，由 `Journey` 表单的 `useEffect` 通过 `onPrefsChange` 实时同步上来。
+- `selectedItems` — 用户在 Explore 当前已选项，作为距离锚点（已选酒店优先；否则 SoFi Stadium）。
+
+按类别评分（值越小排越前）：
+
+- **Hotels** — `|价格档 − 预算目标档| × 10` + `距离(km) × 0.5`。
+- **Restaurants** — `|价格档 − 预算目标档| × 5` + `距离(km) × 0.5`（锚点 = 已选酒店；没选时回落 SoFi）。
+- **Events / Shows / Attractions** — 若 `item.type` 命中 `VIBE_TO_TYPES[vibe]` 则 `−10`，再叠加同样的距离项。
+
+卡片网格上方的 `✦ Sorted for you` 横幅会显示当前生效的信号，并提供一键切回默认插入顺序的按钮。Persona 信号**不会**传给后端 — 不论排序模式如何，发给 `/api/itinerary` 的 `picks` 负载都完全一致。
 
 ---
 

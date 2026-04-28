@@ -17,6 +17,7 @@ raw Excel / CSV files
     → itinerary service      backend/services/itinerary.py
     → Flask JSON API         backend/app.py
     → React API client       frontend/src/api.js
+    → persona ranking layer  frontend/src/lib/personaSort.js   (Explore card order)
     → React UI               frontend/src/
 ```
 
@@ -32,7 +33,7 @@ One scroll-snap page; six full-viewport sections plus a snap-aligned itinerary r
 2. **Matches** — Eight LA matches at SoFi Stadium. Multi-select with checkboxes; selected matches feed Journey. Click any row to open the match overlay.
 3. **Match Overlay** — Stage, date/time, team flags + FIFA rankings, AI-generated match story (Anthropic), live H2H stats (API-Football), and Players to Watch with photos.
 4. **Journey** — Step-card form: Your Matches · Who's Coming · Trip Preferences · Generate. The hero photo on the left switches per traveler type. CTA scrolls to Explore LA.
-5. **Explore LA** — Magazine-style typography entry view (HOTEL · Restaurant · Show · Attraction · vertical FAN EVENT) with a featured photo that swaps on hover. Each category opens a split view with cards + Leaflet map, plus a magazine-style **search bar** (matches name / area / region / type / flavor as you type). "Build My Journey →" triggers itinerary generation.
+5. **Explore LA** — Magazine-style typography entry view (HOTEL · Restaurant · Show · Attraction · vertical FAN EVENT) with a featured photo that swaps on hover. Each category opens a split view with cards + Leaflet map, plus a magazine-style **search bar** (matches name / area / region / type / flavor as you type). Cards are ranked **persona-aware** — once the Journey form has any preferences, the list re-orders by budget fit + distance to a relevant anchor (selected hotel for restaurants; SoFi otherwise) + vibe match. A small `✦ Sorted for you · …` banner above the cards explains the active signal and offers a one-click toggle back to default order. "Build My Journey →" triggers itinerary generation.
 6. **Itinerary** — Snap-aligned result panel with summary card (tags, match, hotel, picks count + hero photo), per-day timeline cards (per-activity photo, transit/duration/price chips), and a full-height map on the right. Hovering a timeline item highlights its marker; clicking the photo or arrow opens the official site. Each activity also gets hover-revealed action chips:
    - **✎ Edit / swap** opens an **Activity Picker** modal — search the entire DB (restaurants / events / shows / attractions) and replace the planner's pick with a real entry, or just adjust the time
    - **× Delete** removes the activity
@@ -131,7 +132,8 @@ LA_WorldCup/
 │       │   └── ActivityPicker.jsx # Modal: pick a real DB activity to add/swap on the itinerary
 │       ├── lib/
 │       │   ├── calendar.js       # ICS builder + Google Calendar URL helpers
-│       │   └── explorePool.js    # Shared activity pool (used by ExploreLA + ActivityPicker)
+│       │   ├── explorePool.js    # Shared activity pool (used by ExploreLA + ActivityPicker)
+│       │   └── personaSort.js    # Persona-aware ranking for Explore cards (budget · distance · vibe)
 │       ├── sections/
 │       │   ├── PhotoHero.jsx
 │       │   ├── Matches.jsx       # Schedule with multi-select
@@ -286,6 +288,42 @@ Match day: morning activity → lunch → match. No evening slots.
 - **No upper limit on days** — the previous 7-day cap was removed; itineraries scale with the date range the user picks.
 
 Match dates and LA area coordinates live in `backend/config/matches.json` and `backend/config/areas.json` — update them without touching Python.
+
+---
+
+## Persona-aware Explore Ranking
+
+Explore LA cards re-rank themselves based on the Journey form, so the same database can feel personal without a backend round-trip. Pure client-side, deterministic, and gated by an in-page toggle.
+
+**Signal flow** (all in-memory, no API):
+
+```text
+Journey form { type, budget, vibe }      Explore picks (selected so far)
+        │                                       │
+        └────────────► main.jsx state ◄─────────┘
+                            │
+              journeyPrefs + selectedItems
+                            │
+        frontend/src/lib/personaSort.js → sortByPersona()
+                            │
+                ExploreLA.jsx → cards re-ordered
+```
+
+**Scoring** (lower = ranked higher):
+
+| Category | Term 1 | Term 2 |
+|---|---|---|
+| Hotels | `|priceTier − budgetTarget| × 10` | distance to SoFi (km) × 0.5 |
+| Restaurants | `|priceTier − budgetTarget| × 5` | distance to selected hotel (km) × 0.5 — falls back to SoFi |
+| Events / Shows / Attractions | `−10` if `item.type` ∈ `VIBE_TO_TYPES[vibe]` | distance × 0.5 |
+
+**Distance anchor:** first hotel in the user's Explore picks; falls back to SoFi Stadium (`33.953, −118.339`) when none has been selected yet.
+
+**Price tiers:** hotels use `100+`/`200+`/`400+` per night → 1/2/3; restaurants use `$10-20` … `$100+` → 1…5; budget targets are `Essentials → 1` (hotels) / `2` (restaurants), `Comfort → 2/3`, `Premium → 3/4`.
+
+**Vibe → type tags:** `football → Watch Party · Official · MLS · Sports · Bar/Party · Meetup`, `culture → Landmark · Museum · Community · Special`, `beach → Beach & Coast · Outdoor`, `nightlife → Bar/Party · Club · Music · Comedy · Cinema`, `film → Cinema · Music · Landmark · Shopping`.
+
+A `✦ Sorted for you` banner appears above the card grid whenever the persona signal is non-empty; clicking the inline button restores insertion order.
 
 ---
 

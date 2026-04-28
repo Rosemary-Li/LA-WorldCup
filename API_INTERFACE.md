@@ -90,7 +90,7 @@ If all retries fail, `apiReady = false` and the UI shows a connection error with
 | `PhotoHero` | None |
 | `Matches` | `data.matches` (preloaded) |
 | `MatchOverlay` | `data.matches/teams/rankings`; `loadMatchStory(num)` + `loadMatchStats(num)` on demand |
-| `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` |
+| `ExploreLA` | `data.hotels`, `data.restaurants`, `data.fanEvents`, `data.shows`, `data.allEvents` — re-ranked client-side by `lib/personaSort.js` from `journeyPrefs` + current picks |
 | `SyncMap` | Selected items passed as props (no API call) |
 | `Journey` (form) | `selectedMatches`, `explorePicks` from App state |
 | `Journey.submit()` | `generateJourney()` → `GET /api/itinerary` |
@@ -497,6 +497,21 @@ The frontend's `MatchOverlay` merges API data field-by-field with the hardcoded 
 4. Backend `services/itinerary.py` separates hotel picks (for area-matching) from activity picks (for schedule insertion).
 5. The response includes `picks_used` so the frontend can display a count of incorporated picks.
 6. Re-entry guard: a `submittingRef` blocks duplicate submits while one is in flight — and the 30s `apiFetch` timeout guarantees the lock self-releases even if the backend hangs.
+
+### Persona-aware ranking (client-only)
+
+Before the cards render, `ExploreLA` runs the filtered list through `frontend/src/lib/personaSort.js`. This is a **pure client-side re-rank** — no API change, no extra request. Inputs:
+
+- `journeyPrefs` — `{ type, budget, vibe }` lifted from `Journey`'s form state via `onPrefsChange` (synced on every form mutation through a `useEffect`).
+- `selectedItems` — the user's current Explore picks, used as the distance anchor (first hotel pick wins; otherwise SoFi Stadium).
+
+Per-category scoring (lower = ranked higher):
+
+- **Hotels** — `|priceTier − budgetTarget| × 10` + `distance(km) × 0.5`.
+- **Restaurants** — `|priceTier − budgetTarget| × 5` + `distance(km) × 0.5` (anchor = selected hotel; falls back to SoFi).
+- **Events / Shows / Attractions** — `−10` if the item's `type` is in `VIBE_TO_TYPES[vibe]`, plus the same distance term.
+
+A `✦ Sorted for you` banner above the card grid surfaces the active signal and offers a one-click toggle to revert to default insertion order. The persona signal never reaches the backend — the `picks` payload sent to `/api/itinerary` is identical regardless of sort mode.
 
 ---
 
