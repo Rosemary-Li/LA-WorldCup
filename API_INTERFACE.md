@@ -25,14 +25,19 @@ Set `VITE_API_BASE` in `frontend/.env` to point at any backend host. The Vite de
 
 ### Timeout + abort
 
-`apiFetch` wraps `fetch` with an `AbortController`. Default timeout is 15s; `/api/itinerary` uses 30s because itinerary generation can be slow:
+`apiFetch` wraps `fetch` with an `AbortController`. Default timeout is 15s; `/api/itinerary` uses 30s because itinerary generation can be slow. The wrapper now also supports `method` + `body` so POSTed requests (e.g. `saveJourneyShare`) go through the same logging + timeout path:
 
 ```js
-async function apiFetch(endpoint, { timeoutMs = 15000 } = {}) {
+async function apiFetch(endpoint, { timeoutMs = 15000, method = "GET", body } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, { signal: ctrl.signal });
+    const init = { signal: ctrl.signal, method };
+    if (body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(body);
+    }
+    const res = await fetch(`${API_BASE}${endpoint}`, init);
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`HTTP ${res.status} ${res.statusText} on ${endpoint}${text ? ` — ${text.slice(0,200)}` : ""}`);
@@ -89,7 +94,10 @@ If all retries fail, `apiReady = false` and the UI shows a connection error with
 | `SyncMap` | Selected items passed as props (no API call) |
 | `Journey` (form) | `selectedMatches`, `explorePicks` from App state |
 | `Journey.submit()` | `generateJourney()` → `GET /api/itinerary` |
-| `JourneyResult` | The `data` returned by `generateJourney()` |
+| `JourneyResult` | The `data` returned by `generateJourney()`, mutated locally by edit/add/delete |
+| `ShareModal` | `saveJourneyShare(payload)` → `POST /api/itinerary/save` (gets short ID for the share URL) |
+| `App` (mount) | If `?i=<id>` is in the URL: `loadJourneyShare(id)` → `GET /api/itinerary/share/<id>` → renders into `JourneyResult` |
+| `ActivityPicker` | Reads `siteData` only; no API call (uses the already-loaded explore pool from `useSiteData`) |
 | `About` | Static |
 
 ---
@@ -380,6 +388,55 @@ Surfaced from `event_experience_detail`. Empty / `NaN` / null fields are filtere
 | `restaurant` | `DINE` | `fact_restaurant` row |
 | `match` | `MATCH` | Fixed match activity |
 | `explore_pick` | `PICK` | User-selected Explore LA item |
+| `custom` | `PLAN` | Activity inserted via the in-page Activity Picker after generation |
+
+---
+
+### `POST /api/itinerary/save`
+
+Persists a generated (or user-edited) itinerary so a short URL re-opens the same plan. Called by `ShareModal` when the user clicks **Share**.
+
+**Request body** — the full `JourneyResult` payload (same shape as `GET /api/itinerary` returns):
+
+```json
+{
+  "days":     [...],
+  "hotel":    {...},
+  "match":    {...},
+  "traveler": "solo",
+  "budget_label": "mid",
+  "picks_used": [...]
+}
+```
+
+**Response:**
+
+```json
+{ "id": "RPgiSHq8" }
+```
+
+`id` is 8 chars, URL-safe (`secrets.token_urlsafe(6)[:8]`). The frontend builds `https://la-world-cup-journey.vercel.app/?i=<id>` and uses that URL in the Copy / X / LinkedIn / Reddit / native share buttons.
+
+**Constraints:**
+- Body must be a JSON object containing a `days` array (otherwise 400).
+- Body size capped at 200 KB (≈ 30-day plan) → 413 if exceeded.
+- ID collisions are retried up to 5 times before erroring (effectively never happens at 6 random bytes).
+
+---
+
+### `GET /api/itinerary/share/<id>`
+
+Re-hydrates a saved itinerary. Called by `App` on mount when `?i=<id>` is present in the URL.
+
+**Behavior:**
+- Atomically `UPDATE … RETURNING` bumps `view_count` by 1 every fetch — useful for later analytics on which shares get traffic.
+- Returns the original payload (same shape as the body of `/api/itinerary/save`).
+- 404 if no row matches; 400 if `id` is empty or > 32 chars.
+- After loading, the frontend strips `?i=<id>` from the URL via `history.replaceState` so a manual refresh doesn't re-fetch.
+
+```bash
+curl http://127.0.0.1:5001/api/itinerary/share/RPgiSHq8 | head -40
+```
 
 ---
 
@@ -466,5 +523,7 @@ The frontend's `MatchOverlay` merges API data field-by-field with the hardcoded 
 | `GET /api/events/category/<category>` | Available |
 | `GET /api/events/<event_id>` | Available |
 | `GET /api/itinerary` | Used |
+| `POST /api/itinerary/save` | Used (on Share, persists to `journey_share` table) |
+| `GET /api/itinerary/share/<id>` | Used (on `?i=<id>` URL load, bumps `view_count`) |
 | `GET /api/match-story/<match_number>` | Used (on demand, circuit-breaker protected) |
 | `GET /api/match-stats/<match_number>` | Used (on demand, 3-layer cache) |

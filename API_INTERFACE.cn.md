@@ -25,14 +25,19 @@ export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:5001"
 
 ### 超时 + abort
 
-`apiFetch` 用 `AbortController` 包裹 `fetch`。默认超时 15s；`/api/itinerary` 因为生成可能比较慢，单独设置 30s：
+`apiFetch` 用 `AbortController` 包裹 `fetch`。默认超时 15s；`/api/itinerary` 因为生成可能比较慢，单独设置 30s。封装现在也支持 `method` + `body`，所以 POST 请求（如 `saveJourneyShare`）走同样的日志 + 超时链路：
 
 ```js
-async function apiFetch(endpoint, { timeoutMs = 15000 } = {}) {
+async function apiFetch(endpoint, { timeoutMs = 15000, method = "GET", body } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, { signal: ctrl.signal });
+    const init = { signal: ctrl.signal, method };
+    if (body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(body);
+    }
+    const res = await fetch(`${API_BASE}${endpoint}`, init);
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`HTTP ${res.status} ${res.statusText} on ${endpoint}${text ? ` — ${text.slice(0,200)}` : ""}`);
@@ -89,7 +94,10 @@ const { data, apiReady, apiError, refetch } = useSiteData();
 | `SyncMap` | 通过 props 接收选中项（不自己请求） |
 | `Journey`（表单） | `selectedMatches`、`explorePicks`，来自 App state |
 | `Journey.submit()` | `generateJourney()` → `GET /api/itinerary` |
-| `JourneyResult` | `generateJourney()` 返回的 `data` |
+| `JourneyResult` | `generateJourney()` 返回的 `data`；本地 state 承载编辑/添加/删除 |
+| `ShareModal` | `saveJourneyShare(payload)` → `POST /api/itinerary/save`（拿短码用于分享 URL） |
+| `App`（mount） | URL 含 `?i=<id>` 时：`loadJourneyShare(id)` → `GET /api/itinerary/share/<id>` → 渲染到 `JourneyResult` |
+| `ActivityPicker` | 只读 `siteData`，不发请求（用 `useSiteData` 已经加载好的 explore pool） |
 | `About` | 静态 |
 
 ---
@@ -380,6 +388,55 @@ fanEventCats = new Set([1,2,3,4,5,6,7,8,9,10,11,23]) // → data.fanEvents
 | `restaurant` | `DINE` | `fact_restaurant` 行 |
 | `match` | `MATCH` | 固定的比赛活动 |
 | `explore_pick` | `PICK` | 用户 Explore LA 选项 |
+| `custom` | `PLAN` | 行程生成后用 Activity Picker 添加的活动 |
+
+---
+
+### `POST /api/itinerary/save`
+
+把生成（或用户编辑）后的行程持久化，让短 URL 能再次打开同一份计划。`ShareModal` 在用户点 **Share** 时调用。
+
+**请求体** — 完整 `JourneyResult` payload（与 `GET /api/itinerary` 返回结构相同）：
+
+```json
+{
+  "days":     [...],
+  "hotel":    {...},
+  "match":    {...},
+  "traveler": "solo",
+  "budget_label": "mid",
+  "picks_used": [...]
+}
+```
+
+**响应：**
+
+```json
+{ "id": "RPgiSHq8" }
+```
+
+`id` 是 8 位 URL-safe 字符串（`secrets.token_urlsafe(6)[:8]`）。前端构造 `https://la-world-cup-journey.vercel.app/?i=<id>`，Copy / X / LinkedIn / Reddit / 系统分享按钮统一用这个 URL。
+
+**约束：**
+- Body 必须是带 `days` 数组的 JSON 对象，否则 400。
+- Body 大小上限 200 KB（≈ 30 天行程）超过返回 413。
+- ID 碰撞最多重试 5 次再报错（6 字节随机基本不会撞）。
+
+---
+
+### `GET /api/itinerary/share/<id>`
+
+按短码恢复保存的行程。`App` 在 mount 时检测到 URL 里有 `?i=<id>` 就调用。
+
+**行为：**
+- 用 `UPDATE … RETURNING` 原子地把 `view_count` +1，方便后续做哪些分享有流量的分析。
+- 返回原始 payload（结构和 `/api/itinerary/save` 的请求体一致）。
+- 找不到对应行 → 404；`id` 为空或 > 32 字符 → 400。
+- 加载完成后前端会用 `history.replaceState` 把 `?i=<id>` 从 URL 中清掉，避免手动刷新重新拉取。
+
+```bash
+curl http://127.0.0.1:5001/api/itinerary/share/RPgiSHq8 | head -40
+```
 
 ---
 
@@ -466,5 +523,7 @@ LLM 生成的赛前导读。由 `services/match_story.py` 调用 Anthropic Claud
 | `GET /api/events/category/<category>` | 可用 |
 | `GET /api/events/<event_id>` | 可用 |
 | `GET /api/itinerary` | 在用 |
+| `POST /api/itinerary/save` | 在用（点 Share 时持久化到 `journey_share` 表） |
+| `GET /api/itinerary/share/<id>` | 在用（URL 含 `?i=<id>` 时加载，自动 +1 `view_count`） |
 | `GET /api/match-story/<match_number>` | 在用（按需，带熔断器） |
 | `GET /api/match-stats/<match_number>` | 在用（按需，三层缓存） |

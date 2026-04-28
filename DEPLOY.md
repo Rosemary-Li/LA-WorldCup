@@ -26,7 +26,11 @@ The frontend is a static Vite build hosted on Vercel. It calls the Flask backend
 ## Prerequisites
 
 1. A GitHub repo with this codebase pushed.
-2. A managed PostgreSQL instance (DigitalOcean / Neon / Supabase — anything reachable over SSL with `sslmode=require`). Run the schema + import as documented in the main README.
+2. A managed PostgreSQL instance (DigitalOcean / Neon / Supabase — anything reachable over SSL with `sslmode=require`). Run the schema + import as documented in the main README, then apply the `journey_share` migration once:
+   ```bash
+   cd backend && python3 scripts/init_share_table.py
+   ```
+   (Idempotent — safe to re-run. Required so the **Share** button can persist itineraries to short URLs.)
 3. Free Render account: https://render.com
 4. Free Vercel account: https://vercel.com
 5. *(Optional)* Anthropic API key — enables AI match stories. Without it, the frontend falls back to bundled story data.
@@ -74,7 +78,7 @@ If you prefer not to use the Blueprint:
 3. **Runtime:** Python
 4. **Build Command:** `pip install --upgrade pip && pip install -r requirements.txt`
 5. **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60`
-6. **Health Check Path:** `/api/matches`
+6. **Health Check Path:** `/health` (a no-DB endpoint that returns 200 even while the DB is being reconfigured — `/api/matches` would block deploys if Trusted Sources / DNS is still warming up)
 7. Add the same env vars as in Option A.
 
 ### Notes
@@ -82,6 +86,8 @@ If you prefer not to use the Blueprint:
 - **Free plan cold start:** the free tier sleeps after 15 min of inactivity, so the first request can take ~30 s. The frontend has a 30 s timeout on `/api/itinerary`, but on cold start the load may exceed it. Upgrade to Starter ($7/mo) to keep it warm, or accept the first-load latency.
 - **CORS:** `CORS(app)` in `app.py` is open by default (any origin). Fine for a portfolio demo. To restrict to your Vercel domain, replace with `CORS(app, origins=["https://your-app.vercel.app"])`.
 - **File cache:** `backend/.cache/match_stats.json` is wiped on each deploy (Render filesystems are ephemeral). The in-memory cache + frontend `matchMeta` fallback keep the UI working.
+- **Share table migration:** the `journey_share` table is created **outside** the deploy pipeline — run `python3 backend/scripts/init_share_table.py` once against the same Postgres your Render service points at. The script is idempotent (`CREATE TABLE IF NOT EXISTS`), safe to re-run. Without it, `POST /api/itinerary/save` returns 500.
+- **DigitalOcean Trusted Sources:** if you use DO managed Postgres, leave **Trusted Sources empty** so Render's non-static egress IPs can connect. An allowlist with specific IPs will block Render entirely (logs show `psycopg2.OperationalError: connection timed out`).
 
 ---
 
@@ -119,7 +125,8 @@ If Matches stays empty:
 - [ ] Postgres credentials in Render dashboard (not in git)
 - [ ] `VITE_API_BASE` in Vercel env vars points at the Render URL with no trailing slash
 - [ ] `backend/.env` and `frontend/.env` are in `.gitignore` (verify before pushing)
-- [ ] Smoke test all three: `/api/matches`, `/api/itinerary?...`, the Vercel home page
+- [ ] `journey_share` table created (`python3 backend/scripts/init_share_table.py`)
+- [ ] Smoke test all four: `/api/matches`, `/api/itinerary?...`, `POST /api/itinerary/save`, the Vercel home page
 - [ ] *(Optional)* Tighten CORS in `app.py` to the Vercel domain
 - [ ] *(Optional)* Upgrade Render to Starter to avoid cold starts
 

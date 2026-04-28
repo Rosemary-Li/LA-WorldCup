@@ -26,7 +26,11 @@
 ## 先决条件
 
 1. 把代码推到 GitHub 仓库。
-2. 一个 PostgreSQL 托管实例（DigitalOcean / Neon / Supabase 都可以，只要支持 SSL `sslmode=require`）。按主 README 跑过建表与导入。
+2. 一个 PostgreSQL 托管实例（DigitalOcean / Neon / Supabase 都可以，只要支持 SSL `sslmode=require`）。按主 README 跑过建表与导入后，再跑一次 `journey_share` 迁移：
+   ```bash
+   cd backend && python3 scripts/init_share_table.py
+   ```
+   （幂等，可重复执行。**Share** 按钮要持久化行程到短 URL 必须有这张表。）
 3. 免费 Render 账号：https://render.com
 4. 免费 Vercel 账号：https://vercel.com
 5. *（可选）* Anthropic API key — 启用 AI 赛事故事；没有的话前端会回退到内置硬编码故事。
@@ -74,7 +78,7 @@ curl https://la-worldcup-api.onrender.com/api/matches | head -100
 3. **Runtime:** Python
 4. **Build Command:** `pip install --upgrade pip && pip install -r requirements.txt`
 5. **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60`
-6. **Health Check Path:** `/api/matches`
+6. **Health Check Path:** `/health`（不依赖 DB 的端点，DB 配置变更期间也能返回 200；用 `/api/matches` 会因 Trusted Sources / DNS 还在预热而阻断 deploy）
 7. 添加和方案 A 一样的环境变量。
 
 ### 注意事项
@@ -82,6 +86,8 @@ curl https://la-worldcup-api.onrender.com/api/matches | head -100
 - **免费方案冷启动：** 免费档 15 分钟没访问会休眠，第一个请求可能要 ~30 秒。前端对 `/api/itinerary` 设了 30 秒超时，冷启动时可能超时。要么升级到 Starter（$7/月）保持热机，要么接受首次加载慢。
 - **CORS：** `app.py` 里的 `CORS(app)` 默认放开所有来源，作品集 demo 没问题。要锁定到 Vercel 域名，把它换成 `CORS(app, origins=["https://your-app.vercel.app"])`。
 - **文件缓存：** `backend/.cache/match_stats.json` 每次部署都会清空（Render 文件系统是临时的）。内存缓存 + 前端的 `matchMeta` fallback 保证 UI 不会受影响。
+- **Share 表迁移：** `journey_share` 表在部署流程**之外**创建 — 对着 Render 用的同一个 Postgres 跑一次 `python3 backend/scripts/init_share_table.py` 就行。脚本是幂等的（`CREATE TABLE IF NOT EXISTS`），可以反复跑。没建表时 `POST /api/itinerary/save` 会返回 500。
+- **DigitalOcean Trusted Sources：** 用 DO 托管 Postgres 时，**Trusted Sources 留空** 让 Render 的非固定出口 IP 能连上。配了 IP 白名单会把 Render 整个挡掉（Render 日志会出现 `psycopg2.OperationalError: connection timed out`）。
 
 ---
 
@@ -119,7 +125,8 @@ Matches 一直空白时：
 - [ ] Postgres 凭据填在 Render 控制台（不进 git）
 - [ ] Vercel 的 `VITE_API_BASE` 指向 Render URL 且结尾无 `/`
 - [ ] `backend/.env` 与 `frontend/.env` 都在 `.gitignore`（push 前确认一下）
-- [ ] 三个自检都通过：`/api/matches`、`/api/itinerary?...`、Vercel 首页
+- [ ] 已建好 `journey_share` 表（`python3 backend/scripts/init_share_table.py`）
+- [ ] 四个自检都通过：`/api/matches`、`/api/itinerary?...`、`POST /api/itinerary/save`、Vercel 首页
 - [ ] *（可选）* 把 `app.py` 里的 CORS 锁定到 Vercel 域名
 - [ ] *（可选）* Render 升级到 Starter 避免冷启动
 

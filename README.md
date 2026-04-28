@@ -32,9 +32,20 @@ One scroll-snap page; six full-viewport sections plus a snap-aligned itinerary r
 2. **Matches** — Eight LA matches at SoFi Stadium. Multi-select with checkboxes; selected matches feed Journey. Click any row to open the match overlay.
 3. **Match Overlay** — Stage, date/time, team flags + FIFA rankings, AI-generated match story (Anthropic), live H2H stats (API-Football), and Players to Watch with photos.
 4. **Journey** — Step-card form: Your Matches · Who's Coming · Trip Preferences · Generate. The hero photo on the left switches per traveler type. CTA scrolls to Explore LA.
-5. **Explore LA** — Magazine-style typography entry view (HOTEL · Restaurant · Show · Attraction · vertical FAN EVENT) with a featured photo that swaps on hover. Each category opens a split view with cards + Leaflet map. "Build My Journey →" triggers itinerary generation.
-6. **Itinerary** — Snap-aligned result panel with summary card (tags, match, hotel, picks count + hero photo), per-day timeline cards (per-activity photo, transit/duration/price chips), and a full-height map on the right. Hovering a timeline item highlights its marker; clicking the photo or arrow opens the official site.
+5. **Explore LA** — Magazine-style typography entry view (HOTEL · Restaurant · Show · Attraction · vertical FAN EVENT) with a featured photo that swaps on hover. Each category opens a split view with cards + Leaflet map, plus a magazine-style **search bar** (matches name / area / region / type / flavor as you type). "Build My Journey →" triggers itinerary generation.
+6. **Itinerary** — Snap-aligned result panel with summary card (tags, match, hotel, picks count + hero photo), per-day timeline cards (per-activity photo, transit/duration/price chips), and a full-height map on the right. Hovering a timeline item highlights its marker; clicking the photo or arrow opens the official site. Each activity also gets hover-revealed action chips:
+   - **✎ Edit / swap** opens an **Activity Picker** modal — search the entire DB (restaurants / events / shows / attractions) and replace the planner's pick with a real entry, or just adjust the time
+   - **× Delete** removes the activity
+   - **📅 Add to Google Calendar** opens a one-event Google Calendar URL pre-filled with the title, time, location
+   - Per-day **+ Add activity from database** button at the bottom of each stack
+   - Top-right of the summary card: **↓ Calendar** (downloads a multi-event `.ics` for batch import into any calendar app) and **✦ Share** (see below)
 7. **About** — Team profiles with DiceBear avatars and GitHub links.
+
+### Share modal (✦ Share button on the itinerary)
+
+- Generates a 1080×1920 IG-Stories-shaped poster of the trip via `html2canvas` (lazy-loaded so it doesn't bloat the initial bundle). The card grows taller for long trips — width stays at 1080.
+- Persists the current itinerary to Postgres (`POST /api/itinerary/save`) and embeds a short `?i=<id>` link in every share, so the recipient sees the **exact same plan** instead of the homepage.
+- Five action buttons: **Copy link · X · LinkedIn · Reddit · Download PNG**. On mobile a prominent IG-gradient CTA at the top calls `navigator.share({ files: [pngFile], url: shareUrl })`, opening the OS share sheet so the user can hand the image directly to Instagram (Story / Feed / Direct).
 
 ---
 
@@ -51,6 +62,8 @@ One scroll-snap page; six full-viewport sections plus a snap-aligned itinerary r
 | Typography | Playfair Display (single font, app-wide) |
 | Maps | Leaflet.js via CDN + CARTO Dark Matter tiles |
 | Place imagery | One-shot Node scripts → og:image / Wikipedia → local files |
+| Share posters | `html2canvas` (lazy-imported) → 1080×1920 PNG → Web Share API + per-platform intent URLs |
+| Calendar export | RFC 5545 `.ics` builder + Google Calendar `eventedit` URLs (`frontend/src/lib/calendar.js`) |
 
 ---
 
@@ -112,12 +125,18 @@ LA_WorldCup/
 │       │   ├── SyncMap.jsx       # Leaflet map with name-first highlight matching
 │       │   ├── ExCard.jsx        # Explore item card
 │       │   ├── FilterRow.jsx     # Pill / select filter row
-│       │   └── DataNotice.jsx    # Loading / error / retry banner
+│       │   ├── DataNotice.jsx    # Loading / error / retry banner
+│       │   ├── ShareCard.jsx     # Off-screen 1080×1920 IG-Stories template
+│       │   ├── ShareModal.jsx    # Share sheet (preview + 5 social buttons + IG CTA on mobile)
+│       │   └── ActivityPicker.jsx # Modal: pick a real DB activity to add/swap on the itinerary
+│       ├── lib/
+│       │   ├── calendar.js       # ICS builder + Google Calendar URL helpers
+│       │   └── explorePool.js    # Shared activity pool (used by ExploreLA + ActivityPicker)
 │       ├── sections/
 │       │   ├── PhotoHero.jsx
 │       │   ├── Matches.jsx       # Schedule with multi-select
-│       │   ├── ExploreLA.jsx     # Magazine entry + opened category view
-│       │   ├── Journey.jsx       # Form + JourneyResult (exports both)
+│       │   ├── ExploreLA.jsx     # Magazine entry + opened category view (with search bar)
+│       │   ├── Journey.jsx       # Form + JourneyResult (edit/add/delete + Calendar + Share)
 │       │   ├── MatchOverlay.jsx
 │       │   └── About.jsx
 │       ├── hooks/
@@ -130,7 +149,12 @@ LA_WorldCup/
 ├── database/
 │   ├── raw_data/
 │   ├── clean_data/
+│   ├── migrations/
+│   │   └── 001_journey_share.sql # journey_share table for persisted share links
 │   └── docs/                     # ER diagram
+│
+├── backend/scripts/
+│   └── init_share_table.py       # One-shot runner for the journey_share migration
 │
 ├── archive/                      # Prior iterations (historical reference)
 ├── API_INTERFACE.md / .cn.md     # Endpoint reference (this + Chinese)
@@ -151,6 +175,10 @@ pip install -r requirements.txt
 cp .env.example .env
 # Fill in: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSLMODE
 # Optional: ANTHROPIC_API_KEY (match story), API_FOOTBALL_KEY (live stats)
+
+# Apply the share-link migration once (idempotent):
+python3 scripts/init_share_table.py
+
 python3 app.py
 # → http://127.0.0.1:5001
 ```
@@ -217,6 +245,12 @@ Dimensional model — dimension tables hold stable reference data, fact tables h
 
 All 14 `event_experience_detail` columns are now surfaced in the `/api/itinerary` payload and rendered as chips in the Itinerary view.
 
+### Share table
+
+| Table | Contents |
+|---|---|
+| `journey_share` | `id` (8-char URL-safe), `payload` (JSONB itinerary), `created_at`, `view_count`. Created by [`database/migrations/001_journey_share.sql`](database/migrations/001_journey_share.sql) — apply with `python3 backend/scripts/init_share_table.py`. |
+
 ---
 
 ## Journey Logic
@@ -279,6 +313,8 @@ Re-running the scrapers is safe and idempotent. The repo ships with the JSON map
 - **Click-through** — Itinerary activity photos and right-side `›` arrows open the official site in a new tab.
 - **Diagnostic logging** — every link in the click chain logs to console with `[explore]` / `[journey]` / `[api]` prefixes, so silent failures are observable in DevTools.
 - **Build button** — gated inside the click handler instead of via `disabled={…}` (which made React route clicks to `noop1` and silently drop them).
+- **Mobile responsive overhaul** — the whole site now adapts at `<= 768px`: scroll-snap is relaxed (touch swipes feel jerky against `mandatory`), nav collapses to a single centered row, Explore LA stacks the map under the cards, Journey form switches to single-column with stacked traveler/stat cards, the share button moves below the summary card, and the result page hides the side map (the timeline is the deliverable on a phone).
+- **Defensive overflow guard** — every `#mount-*` section gets `overflow-x: hidden; max-width: 100vw` on mobile so any single overflowing child can't push the whole page wider than the viewport.
 
 ---
 
@@ -301,6 +337,8 @@ See [API_INTERFACE.md](API_INTERFACE.md) for full request/response shapes.
 | `GET /api/itinerary` | Personalized journey generation (now ships full 14-field detail per activity) |
 | `GET /api/match-story/<match_number>` | LLM-generated match story (Anthropic; circuit breaker on credit-out) |
 | `GET /api/match-stats/<match_number>` | Live H2H + form (API-Football, 3-layer cache) |
+| `POST /api/itinerary/save` | Persist a generated/edited itinerary, returns short ID |
+| `GET /api/itinerary/share/<id>` | Re-hydrate a shared itinerary; auto-bumps `view_count` |
 
 ---
 
