@@ -98,6 +98,7 @@ function App() {
           apiError={apiError}
           onRetry={refetch}
           journeyLoading={journeyLoading}
+          journeyPrefs={journeyPrefs}
           onGoJourney={() => {
             if (!journeyRef.current) {
               console.error("[journey] onGoJourney fired but journeyRef.current is null — Journey hasn't mounted?");

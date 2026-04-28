@@ -564,6 +564,49 @@
         flex-shrink: 0;
         order: 3;
       }
+      .ex-persona-bar {
+        order: 3;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.1rem;
+        border-bottom: 1px solid var(--border-med);
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        flex-shrink: 0;
+      }
+      .ex-persona-dot {
+        color: var(--accent, #1D428A);
+        font-size: 0.95rem;
+      }
+      .ex-persona-text {
+        text-transform: uppercase;
+      }
+      .ex-persona-text em {
+        font-style: italic;
+        text-transform: none;
+        letter-spacing: 0.02em;
+        color: var(--ash, #666);
+        margin-left: 0.1rem;
+      }
+      .ex-persona-toggle {
+        margin-left: auto;
+        background: none;
+        border: 1px solid var(--border-med);
+        padding: 0.25rem 0.7rem;
+        font: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .ex-persona-toggle:hover {
+        background: var(--ink);
+        color: var(--white);
+      }
       .ex-body {
         display: flex;
         flex: 1;

@@ -4,6 +4,7 @@ import ExCard from "../components/ExCard.jsx";
 import FilterRow from "../components/FilterRow.jsx";
 import SyncMap from "../components/SyncMap.jsx";
 import { buildExploreItems } from "../lib/explorePool.js";
+import { personaActive, personaSummary, sortByPersona } from "../lib/personaSort.js";
 import {
   CATEGORY_EMOJIS,
   CATEGORY_FILTERS,
@@ -14,13 +15,14 @@ import {
 } from "../constants/explore.js";
 
 const ExploreLA = forwardRef(function ExploreLA(
-  { data, apiReady, apiError, journeyLoading = false, onGoJourney, onPicksChange, onRetry },
+  { data, apiReady, apiError, journeyLoading = false, journeyPrefs = null, onGoJourney, onPicksChange, onRetry },
   ref
 ) {
   const [activeCategory, setActiveCategory] = useState(null);
   const [selectedIds, setSelectedIds]       = useState([]);
   const [activeFilters, setActiveFilters]   = useState({});
   const [searchQuery, setSearchQuery]       = useState("");
+  const [personaSort, setPersonaSort]       = useState(true);
 
   // Lets the parent reset us back to the magazine entry view (e.g. when the user
   // clicks "Explore LA" from the Journey CTA, even after they previously drilled in).
@@ -54,6 +56,13 @@ const ExploreLA = forwardRef(function ExploreLA(
         .some((field) => field && String(field).toLowerCase().includes(q));
     });
   }, [visibleItems, activeCategory, activeFilters, searchQuery]);
+
+  const personaOn   = personaSort && personaActive(journeyPrefs, selectedItems);
+  const sortedItems = useMemo(
+    () => (personaOn ? sortByPersona(filteredItems, activeCategory, journeyPrefs, selectedItems) : filteredItems),
+    [filteredItems, activeCategory, journeyPrefs, selectedItems, personaOn]
+  );
+  const personaLabel = personaOn ? personaSummary(activeCategory, journeyPrefs, selectedItems) : "";
 
   const selectedByCategory = useMemo(() => {
     const counts = {};
@@ -218,20 +227,37 @@ const ExploreLA = forwardRef(function ExploreLA(
               <FilterRow key={key} items={visibleItems} filterKey={key} label={label} activeValue={activeFilters[key] || null} onSelect={(val) => setFilter(key, val)} select={!!select} />
             ))}
           </div>
+          {personaActive(journeyPrefs, selectedItems) && (
+            <div className="ex-persona-bar">
+              <span className="ex-persona-dot" aria-hidden="true">✦</span>
+              <span className="ex-persona-text">
+                {personaSort
+                  ? <>Sorted for you{personaLabel && <em> · {personaLabel}</em>}</>
+                  : "Default order"}
+              </span>
+              <button
+                type="button"
+                className="ex-persona-toggle"
+                onClick={() => setPersonaSort((on) => !on)}
+              >
+                {personaSort ? "Show default order" : "Sort by my preferences"}
+              </button>
+            </div>
+          )}
           <div className="ex-body">
             <div className="ex-cards-col">
               {apiError ? (
                 <DataNotice title="Backend unavailable" detail="Start the Flask server and click Retry." onRetry={onRetry} />
               ) : !apiReady ? (
                 <DataNotice title="Loading…" detail="Waiting for data." />
-              ) : filteredItems.length === 0 ? (
+              ) : sortedItems.length === 0 ? (
                 <DataNotice
                   title="No results"
                   detail={searchQuery ? `No matches for "${searchQuery}". Try a different search or clear the filters.` : "Try adjusting the filters."}
                 />
               ) : (
                 <div className="ex-cards">
-                  {filteredItems.map((item, i) => (
+                  {sortedItems.map((item, i) => (
                     <ExCard
                       key={item.id}
                       item={item}
