@@ -93,9 +93,8 @@ const ShareCard = forwardRef(function ShareCard({ data }, ref) {
         <div className="sc-footer">
           <div className="sc-qr">
             <img
-              src="images/la-world-cup-qr.png"
+              src="/images/la-world-cup-qr.png"
               alt=""
-              crossOrigin="anonymous"
             />
           </div>
           <div className="sc-cta">
