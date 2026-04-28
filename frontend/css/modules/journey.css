@@ -28,7 +28,7 @@
         height: 100%;                     /* fill grid cell vertically — no blank below */
         background-image:
           linear-gradient(90deg, rgba(248,246,242,0.96) 0%, rgba(248,246,242,0.82) 42%, rgba(248,246,242,0.35) 68%, rgba(248,246,242,0.05) 100%),
-          var(--jt-image, url("../images/LA sunset.jpg"));
+          var(--jt-image, url("/images/LA_sunset.jpg"));
         background-size: cover;
         background-position: 58% center;
         background-repeat: no-repeat;
@@ -551,7 +551,7 @@
           padding: calc(var(--nav-h, 64px) + 1rem) 1.1rem 1.6rem;
           background-image:
             linear-gradient(180deg, rgba(248,246,242,0.6) 0%, rgba(248,246,242,0.85) 70%, var(--paper) 100%),
-            var(--jt-image, url("../images/LA sunset.jpg"));
+            var(--jt-image, url("/images/LA_sunset.jpg"));
           background-position: center 35%;
           background-size: cover;
           background-color: var(--paper);

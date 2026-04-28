@@ -181,16 +181,29 @@ export function JourneyResult({ data, siteData }) {
     // never hit the share button.
     const html2canvas = (await import("html2canvas")).default;
 
-    // Measure the actual rendered card. The frame has min-height: 1920px so
-    // a one-day trip stays IG-Stories shaped; a 20-day trip grows to fit.
-    const rect = node.getBoundingClientRect();
-    const renderHeight = Math.max(1920, Math.round(rect.height));
+    // Use offsetHeight (matches the rendered box height including padding /
+    // min-height) — more reliable than getBoundingClientRect, which can
+    // return stale values right after layout-affecting state changes.
+    const renderHeight = node.offsetHeight || 1920;
 
+    // Pre-resolve the QR image so html2canvas always captures it. Without
+    // this, a fast click after mount can capture before the image network
+    // request settles, leaving an empty white square in the corner.
+    await Promise.all(
+      Array.from(node.querySelectorAll("img")).map((img) =>
+        img.complete && img.naturalWidth > 0
+          ? Promise.resolve()
+          : new Promise((res) => { img.onload = img.onerror = res; })
+      )
+    );
+
+    // Note: deliberately NOT passing windowWidth/windowHeight. With those
+    // set to (1080, renderHeight), html2canvas constrains the simulated
+    // viewport — and any content past `windowHeight` doesn't render, leaving
+    // a blank stripe at the bottom of the captured PNG.
     const canvas = await html2canvas(node, {
       width: 1080,
       height: renderHeight,
-      windowWidth: 1080,
-      windowHeight: renderHeight,
       scale: 1,
       useCORS: true,
       backgroundColor: "#0d0d0d",

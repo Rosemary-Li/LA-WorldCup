@@ -7,11 +7,11 @@ export const TRAVELER_TYPES = [
 ];
 
 export const TRAVELER_THEMES = {
-  solo:    { accent: "#1D428A", tint: "rgba(29,66,138,0.07)",   hover: "#163472", image: "images/Solo%201.jpg" },
-  family:  { accent: "#C25B00", tint: "rgba(194,91,0,0.07)",    hover: "#9f4a00", image: "images/Family_1.jpg" },
-  couple:  { accent: "#7B1C4E", tint: "rgba(123,28,78,0.07)",   hover: "#621540", image: "images/Couples_1.jpg" },
-  friends: { accent: "#2E7D32", tint: "rgba(46,125,50,0.07)",   hover: "#1b5e20", image: "images/Friends_1.jpg" },
-  group:   { accent: "#B71C1C", tint: "rgba(183,28,28,0.07)",   hover: "#7f0000", image: "images/LA%20sunset.jpg" },
+  solo:    { accent: "#1D428A", tint: "rgba(29,66,138,0.07)",   hover: "#163472", image: "/images/Solo_1.jpg" },
+  family:  { accent: "#C25B00", tint: "rgba(194,91,0,0.07)",    hover: "#9f4a00", image: "/images/Family_1.jpg" },
+  couple:  { accent: "#7B1C4E", tint: "rgba(123,28,78,0.07)",   hover: "#621540", image: "/images/Couples_1.jpg" },
+  friends: { accent: "#2E7D32", tint: "rgba(46,125,50,0.07)",   hover: "#1b5e20", image: "/images/Friends_1.jpg" },
+  group:   { accent: "#B71C1C", tint: "rgba(183,28,28,0.07)",   hover: "#7f0000", image: "/images/LA_sunset.jpg" },
 };
 
 // ─────────────────────────────────────────
